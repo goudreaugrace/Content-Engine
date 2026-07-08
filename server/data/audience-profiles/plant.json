@@ -1,0 +1,9 @@
+{
+  "id": "plant",
+  "label": "Plant & manufacturing operators",
+  "summary": "Production-line operators in PepsiCo food and beverage plants. Safety- and compliance-sensitive work; standards must be exact.",
+  "toneOfVoice": "Precise and safety-conscious. Formal where compliance language is required. Never casual on safety topics.",
+  "readingContext": "Pre-shift briefings or scheduled breaks. Limited screen time during a shift. May print to read at the line.",
+  "contentGuidelines": "Expand every acronym on first use (LOTO, OEE, GMP, HACCP). Quote regulatory standards by number (NOM-051, NR-1, OSHA 1910.X). Safety steps are non-negotiable; word them as imperatives. Reference the specific PPE required.",
+  "searchIntent": "Plant employees search for safety, shift, and certification content. Queries lean compliance-heavy. Titles that match an SOP number or certification name (\"LOTO refresher\") rank best."
+}

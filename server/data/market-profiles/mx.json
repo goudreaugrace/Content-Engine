@@ -1,0 +1,47 @@
+{
+  "id": "mx",
+  "sectorId": "latam",
+  "name": "Mexico",
+  "language": "Spanish",
+  "languageCode": "es-MX",
+  "toneOfVoice": "Professional, warm, and respectful. Use the formal 'usted' form in policy and official communications contexts. For FAQs and how-to guides, the informal 'tú' form is acceptable for a more approachable feel. Keep sentences short, clear, and direct. Avoid anglicisms when a natural Spanish equivalent exists.",
+  "contentStrategy": "Prioritize content that reflects Mexican workplace culture: family, respect for hierarchy, and collaboration. Lead with practical, action-oriented language. Reference local PepsiCo operations (e.g., Sabritas, Gamesa) where contextually relevant. Where the topic has regulatory implications, explicitly call out the relevant Mexican law or norm rather than assuming readers know it.",
+  "contentGuidelines": "1. Always localize examples (use Mexican cities, MXN currency, and DD/MM/YYYY date format). 2. Acronyms like 'HR' must be expanded to 'Recursos Humanos' on first use. 3. Do not directly translate from US English templates — adapt the structure when it doesn't fit Mexican conventions. 4. For payroll and benefits content, reference Mexican benefit names (aguinaldo, vales de despensa, prima vacacional). 5. Use proper Spanish punctuation including ¿ and ¡ where appropriate.",
+  "terminology": {
+    "soda": "refresco",
+    "chips": "sabritas",
+    "employee": "colaborador",
+    "team member": "colaborador",
+    "manager": "gerente",
+    "HR": "Recursos Humanos"
+  },
+  "bannedTerms": [
+    "muchachos",
+    "esclavo"
+  ],
+  "regulatoryNotes": "Reference NOM-051 for product labeling content. For HR content, consider the Federal Labor Law (Ley Federal del Trabajo, LFT) and NOM-035 (psychosocial risk factors). Privacy-related content must align with the LFPDPPP. Always involve the local legal team when content touches on these areas.",
+  "dateFormat": "DD/MM/YYYY",
+  "currency": "MXN",
+  "reviewers": [
+    "l.hernandez@pepsico.com",
+    "portal-gov-mx@pepsico.com"
+  ],
+  "availableLanguages": [
+    "es-MX",
+    "en-US"
+  ],
+  "seoNotes": "Empleados en México buscan en español, mezclando términos formales con coloquiales. Usar títulos con la palabra clave del problema al inicio (\"Cambio de cuenta bancaria — cómo solicitarlo\"). Evitar anglicismos cuando exista equivalente claro en español.",
+  "commonSearchTerms": [
+    "nómina",
+    "vacaciones",
+    "incapacidad",
+    "MyPepsiCo",
+    "recibo de nómina",
+    "fondo de ahorro",
+    "aguinaldo",
+    "tarjeta corporativa"
+  ],
+  "defaultCountries": [
+    "MX"
+  ]
+}

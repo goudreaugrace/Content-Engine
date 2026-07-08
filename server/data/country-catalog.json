@@ -1,0 +1,40 @@
+[
+  { "code": "US", "name": "United States", "defaultMarketId": "us", "region": "NAM" },
+  { "code": "CA", "name": "Canada", "defaultMarketId": "us", "region": "NAM" },
+
+  { "code": "MX", "name": "Mexico", "defaultMarketId": "mx", "region": "LATAM" },
+  { "code": "GT", "name": "Guatemala", "defaultMarketId": "mx", "region": "LATAM" },
+  { "code": "HN", "name": "Honduras", "defaultMarketId": "mx", "region": "LATAM" },
+  { "code": "SV", "name": "El Salvador", "defaultMarketId": "mx", "region": "LATAM" },
+  { "code": "CR", "name": "Costa Rica", "defaultMarketId": "mx", "region": "LATAM" },
+  { "code": "PA", "name": "Panama", "defaultMarketId": "mx", "region": "LATAM" },
+
+  { "code": "BR", "name": "Brazil", "defaultMarketId": "br", "region": "LATAM" },
+  { "code": "AR", "name": "Argentina", "defaultMarketId": "br", "region": "LATAM" },
+  { "code": "CL", "name": "Chile", "defaultMarketId": "br", "region": "LATAM" },
+  { "code": "CO", "name": "Colombia", "defaultMarketId": "br", "region": "LATAM" },
+  { "code": "PE", "name": "Peru", "defaultMarketId": "br", "region": "LATAM" },
+  { "code": "UY", "name": "Uruguay", "defaultMarketId": "br", "region": "LATAM" },
+
+  { "code": "GB", "name": "United Kingdom", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "IE", "name": "Ireland", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "FR", "name": "France", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "DE", "name": "Germany", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "ES", "name": "Spain", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "IT", "name": "Italy", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "NL", "name": "Netherlands", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "PL", "name": "Poland", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "TR", "name": "Turkey", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "ZA", "name": "South Africa", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "SA", "name": "Saudi Arabia", "defaultMarketId": "uk", "region": "EMEA" },
+  { "code": "AE", "name": "United Arab Emirates", "defaultMarketId": "uk", "region": "EMEA" },
+
+  { "code": "IN", "name": "India", "defaultMarketId": "in", "region": "APAC" },
+  { "code": "PK", "name": "Pakistan", "defaultMarketId": "in", "region": "APAC" },
+  { "code": "BD", "name": "Bangladesh", "defaultMarketId": "in", "region": "APAC" },
+  { "code": "AU", "name": "Australia", "defaultMarketId": "in", "region": "APAC" },
+  { "code": "NZ", "name": "New Zealand", "defaultMarketId": "in", "region": "APAC" },
+  { "code": "SG", "name": "Singapore", "defaultMarketId": "in", "region": "APAC" },
+  { "code": "JP", "name": "Japan", "defaultMarketId": "in", "region": "APAC" },
+  { "code": "CN", "name": "China", "defaultMarketId": "in", "region": "APAC" }
+]

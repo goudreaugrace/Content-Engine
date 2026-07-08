@@ -1,0 +1,1639 @@
+[
+  {
+    "id": "ka-a1d8c5a3",
+    "jobId": "job-20ce4d1b",
+    "title": "How to get figma access",
+    "contentType": "How-To",
+    "market": "US",
+    "countries": [
+      "US",
+      "CA",
+      "GB"
+    ],
+    "seo": {
+      "title": "How to get figma access — step-by-step guide",
+      "metaDescription": "Step-by-step: contact robert. Written for People leaders & managers. Includes context, common pitfalls, and where to get help. This is more text",
+      "keywords": [
+        "figma",
+        "access",
+        "contact",
+        "robert",
+        "how to"
+      ],
+      "summary": "contact robert",
+      "keyQuestions": [
+        "How to get figma access?",
+        "Who is eligible?",
+        "What do I need before starting?",
+        "How do I do this?",
+        "What if something goes wrong?",
+        "Where can I get help?"
+      ],
+      "entities": [
+        "MyPepsiCo",
+        "People",
+        "First",
+        "They",
+        "Tone",
+        "Professional"
+      ]
+    },
+    "body": "# How to get figma access\n\n## Summary\n\ncontact robert\n\n## Who this applies to\n\nPeople leaders & managers — First- and second-line people managers across the operation. They are responsible for both following the policy themselves and applying it to their team.\nTone: Professional and direct. Assume managerial context — approvals, escalations, performance. Confident, action-oriented, no marketing language.\nReading context: Desktop primarily, between meetings. Often skimming during a transition; will return to the article later for detail.\nGuidelines: Always surface manager-specific actions clearly: approve, escalate, coach, document. Where the policy differs for managers vs employees, call that out explicitly with a 'Manager actions' subsection.\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Sign in to MyPepsiCo with your corporate credentials.\n2. Navigate to the relevant section for this topic.\n3. Follow the on-screen instructions and review your inputs before submitting.\n4. Confirm the action. You'll receive a notification when it's processed.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 07/02/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "submittedAt": "2026-07-02T15:23:23.544Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Troubleshooting",
+        "severity": "warning",
+        "reason": "How-To articles work best with: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (44 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (144 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "3 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-demo-uk01",
+    "jobId": "job-demo-uk01",
+    "title": "Statutory bereavement leave — UK entitlements",
+    "contentType": "Policy",
+    "market": "UK",
+    "sector": "europe",
+    "countries": [
+      "GB"
+    ],
+    "seo": {
+      "title": "Statutory bereavement leave — UK policy",
+      "metaDescription": "UK statutory bereavement leave, parental bereavement pay, and the process to request time away. Written for all employees in Europe.",
+      "keywords": [
+        "bereavement",
+        "leave",
+        "UK",
+        "statutory",
+        "parental"
+      ],
+      "summary": "UK statutory bereavement leave and parental bereavement pay eligibility.",
+      "keyQuestions": [
+        "How much statutory bereavement leave am I entitled to?",
+        "Do parents get paid bereavement leave in the UK?"
+      ],
+      "entities": [
+        "PepsiCo Europe",
+        "Parental Bereavement (Leave and Pay) Act 2018",
+        "HMRC"
+      ]
+    },
+    "body": "# Statutory bereavement leave — UK entitlements\n\n## Overview\n\nThis policy describes UK statutory bereavement leave and PepsiCo Europe's additional\nprovisions. Employees in Great Britain are entitled to reasonable unpaid time off\nfollowing the death of a dependant, and parents who lose a child under 18 (or a\nstillbirth after 24 weeks) are entitled to two weeks of Statutory Parental\nBereavement Pay.\n\n## Who this applies to\n\nAll PepsiCo UK employees, including field-based colleagues in DSD and manufacturing.\n\n## Requesting leave\n\n1. Notify your line manager as soon as reasonably possible.\n2. Log the absence in MyPepsiCo under **Time away → Compassionate leave**.\n3. HR People Services will confirm your statutory pay entitlement and any\n   additional PepsiCo Europe top-up within two working days.\n\n## Statutory entitlement\n\nParents who meet HMRC eligibility rules receive two weeks of Statutory Parental\nBereavement Pay (SPBP) at the current statutory rate. Time off can be taken as one\nblock of two weeks or two separate blocks of one week within 56 weeks of the child's\ndeath.\n\n## Need help?\n\nContact your local HR People Partner or open a case in MyPepsiCo → *Contact HR*.\n\n---\n\n**Last updated:** 01/07/2026\n**Owner:** UK HR People Services\n**Next review:** 01/07/2027",
+    "submittedBy": {
+      "name": "Priya Rai",
+      "email": "priya.rai@pepsico.com"
+    },
+    "submittedAt": "2026-07-01T14:30:00.000Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (41 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (139 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-demo-in01",
+    "jobId": "job-demo-in01",
+    "title": "Statutory bonus payout — India factory workforce",
+    "contentType": "FAQ",
+    "market": "IN",
+    "sector": "amesa",
+    "countries": [
+      "IN"
+    ],
+    "seo": {
+      "title": "Statutory bonus payout — India FAQ",
+      "metaDescription": "How PepsiCo India calculates and disburses the Payment of Bonus Act statutory bonus for factory-workforce employees, with timing and slab detail.",
+      "keywords": [
+        "statutory bonus",
+        "Payment of Bonus Act",
+        "India",
+        "factory",
+        "AMESA"
+      ],
+      "summary": "Answers about the annual statutory bonus for India factory workforce.",
+      "keyQuestions": [
+        "Who qualifies for the statutory bonus?",
+        "When is the bonus disbursed?",
+        "How is the bonus amount calculated?"
+      ],
+      "entities": [
+        "Payment of Bonus Act, 1965",
+        "PepsiCo India",
+        "AMESA",
+        "SAP SuccessFactors"
+      ]
+    },
+    "body": "# Statutory bonus payout — India factory workforce\n\n## Overview\n\nThe Payment of Bonus Act, 1965 requires PepsiCo India to pay an annual statutory\nbonus to eligible factory and workforce employees. This FAQ explains eligibility,\ncalculation slabs, and the yearly disbursement cycle for AMESA operations.\n\n## Who qualifies?\n\nEmployees earning up to ₹21,000/month in basic wages who have worked at least 30\ndays in the accounting year. Line supervisors, technicians, and forklift operators\nare all in scope; leadership grades sit above the wage ceiling and are not covered.\n\n## When does the bonus land?\n\nBonus is credited by the end of the eighth month after the financial year closes —\nin practice, PepsiCo India releases the payout in late November. Payslips clearly\nlabel it as *Statutory Bonus (PoBA)* so the line-item is traceable.\n\n## How is the amount calculated?\n\nThe Act sets a minimum of 8.33% and a maximum of 20% of eligible wages, subject to\nthe establishment's allocable surplus. PepsiCo India applies the maximum of 20% each\nyear, which is disclosed in the year-end works-committee circular.\n\n## Where do I see my calculation?\n\nOpen MyPepsiCo → *Payslips* → your November slip. The full working (eligible\nsalary × bonus %) is broken out on the *Statutory* tab.\n\n---\n\n**Last updated:** 01/07/2026\n**Owner:** India Total Rewards\n**Next review:** 30/09/2026",
+    "submittedBy": {
+      "name": "Anil Menon",
+      "email": "anil.menon@pepsico.com"
+    },
+    "submittedAt": "2026-07-01T14:30:00.000Z",
+    "status": "needs-info",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (33 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (145 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-demo-glb1",
+    "jobId": "job-demo-glb1",
+    "title": "Speak Up 2026 — corporate-wide refresh",
+    "contentType": "Topic Page",
+    "market": "Global",
+    "sector": "global",
+    "countries": [],
+    "seo": {
+      "title": "Speak Up 2026 — how to raise a concern",
+      "metaDescription": "The PepsiCo Speak Up program has been refreshed for 2026. New channels, faster acknowledgement SLA, same anti-retaliation protection worldwide.",
+      "keywords": [
+        "Speak Up",
+        "ethics",
+        "compliance",
+        "retaliation",
+        "hotline"
+      ],
+      "summary": "Overview of the 2026 refresh to the PepsiCo Speak Up program.",
+      "keyQuestions": [
+        "What has changed in Speak Up for 2026?",
+        "Am I still protected if I raise a concern?",
+        "How do I contact Speak Up?"
+      ],
+      "entities": [
+        "PepsiCo Global Code of Conduct",
+        "Global Ethics & Compliance",
+        "Speak Up hotline"
+      ]
+    },
+    "body": "# Speak Up 2026 — corporate-wide refresh\n\n## Overview\n\nSpeak Up is PepsiCo's confidential channel for raising concerns about ethics,\nsafety, harassment, financial integrity, human rights, and anything else that\ndoesn't feel right at work. The 2026 refresh focuses on faster acknowledgement,\nclearer channel choices, and reinforced anti-retaliation protection worldwide.\n\n## What has changed\n\n- **Acknowledgement within 24 hours.** Every concern raised via the Speak Up\n  portal now receives a formal acknowledgement within one business day, up from\n  the previous three-day standard.\n- **In-language phone lines** in 42 markets, expanded from 28. Live interpreters\n  are available for any language on request.\n- **Anonymous case tracking**. Reporters get a case reference at submission and\n  can check status any time without revealing identity.\n\n## What has not changed\n\n- Anti-retaliation protection is absolute. Retaliation against anyone who raises a\n  good-faith concern is grounds for immediate disciplinary action.\n- All reports are triaged by Global Ethics & Compliance, independent from local\n  management.\n\n## How to raise a concern\n\nVisit **speakup.pepsico.com** or call your local Speak Up phone line. Both work\n24/7 and are staffed by an independent third party.\n\n## Need help understanding when to use Speak Up?\n\nIf it involves safety, harassment, financial integrity, discrimination, or a\npossible breach of the PepsiCo Global Code of Conduct — use Speak Up. For general\nHR questions (leave, benefits, payroll), use your local HR channels instead.\n\n---\n\n**Last updated:** 01/07/2026\n**Owner:** Global Ethics & Compliance\n**Next review:** 01/01/2027",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "submittedAt": "2026-07-01T14:30:00.000Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (41 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (147 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-9d98c278",
+    "jobId": "job-4870b75b",
+    "title": "How to request access",
+    "contentType": "How-To",
+    "market": "MX",
+    "countries": [
+      "US",
+      "CA",
+      "MX"
+    ],
+    "seo": {
+      "title": "How to request access — step-by-step guide",
+      "metaDescription": "Step-by-step: how to request access to figma through HR. Written for People leaders & managers. Includes context, common pitfalls, and where to get help.",
+      "keywords": [
+        "request",
+        "access",
+        "figma",
+        "through"
+      ],
+      "summary": "how to request access to figma through HR",
+      "keyQuestions": [
+        "How to request access?"
+      ],
+      "entities": [
+        "MyPepsiCo",
+        "Confirme",
+        "Propietario",
+        "HR   People",
+        "First",
+        "They"
+      ]
+    },
+    "body": "# How to request access\n\n## Resumen\n\nhow to request access to figma through HR\n\n## A quién aplica\n\nPeople leaders & managers — First- and second-line people managers across the operation. They are responsible for both following the policy themselves and applying it to their team.\nTone: Professional and direct. Assume managerial context — approvals, escalations, performance. Confident, action-oriented, no marketing language.\nReading context: Desktop primarily, between meetings. Often skimming during a transition; will return to the article later for detail.\nGuidelines: Always surface manager-specific actions clearly: approve, escalate, coach, document. Where the policy differs for managers vs employees, call that out explicitly with a 'Manager actions' subsection.\n\n## Antes de comenzar\n\n- Confirme que tiene acceso a MyPepsiCo con sus credenciales corporativas.\n- Tenga a la mano cualquier información de soporte (códigos, recibos, fechas) que pueda necesitar.\n- Si su solicitud requiere aprobación, identifique a su gerente directo antes de comenzar.\n\n## Pasos\n\n1. Inicie sesión en MyPepsiCo con su cuenta corporativa.\n2. Navegue a la sección correspondiente al tema.\n3. Siga las instrucciones en pantalla y revise sus selecciones antes de enviar.\n4. Confirme la acción. Recibirá una notificación cuando se procese.\n\n## Situaciones comunes\n\n**No puedo iniciar sesión.** Verifique sus credenciales en MyPepsiCo o restablezca su contraseña.\n\n**Mi solicitud no fue aprobada en el plazo esperado.** Las aprobaciones pendientes por más de tres días hábiles se escalan automáticamente al siguiente nivel.\n\n**Necesito modificar una solicitud enviada.** Abra el caso original y use la opción *Editar*. Si ya fue procesado, contacte al equipo responsable.\n\n## ¿Necesita ayuda?\n\nSi tiene dudas, abra un caso en MyPepsiCo en *Contactar a RH* o escriba al equipo responsable indicado abajo.\n\n---\n\n**Última actualización:** 25/06/2026\n**Propietario:** [Propietario del artículo, por confirmar]\n**Próxima revisión:** TBD",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "submittedAt": "2026-06-25T18:51:03.869Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Steps, Troubleshooting",
+        "severity": "warning",
+        "reason": "How-To articles work best with: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (42 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (153 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "3 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "sector": "latam"
+  },
+  {
+    "id": "ka-2058f693",
+    "jobId": "job-4870b75b",
+    "title": "How to request access",
+    "contentType": "How-To",
+    "market": "US",
+    "countries": [
+      "US",
+      "CA",
+      "MX"
+    ],
+    "seo": {
+      "title": "How to request access — step-by-step guide",
+      "metaDescription": "Step-by-step: how to request access to figma through HR. Written for People leaders & managers. Includes context, common pitfalls, and where to get help.",
+      "keywords": [
+        "request",
+        "access",
+        "figma",
+        "through"
+      ],
+      "summary": "how to request access to figma through HR",
+      "keyQuestions": [
+        "How to request access?",
+        "Who is eligible?",
+        "What do I need before starting?",
+        "How do I do this?",
+        "What if something goes wrong?",
+        "Where can I get help?"
+      ],
+      "entities": [
+        "MyPepsiCo",
+        "HR   People",
+        "First",
+        "They",
+        "Tone",
+        "Professional"
+      ]
+    },
+    "body": "# How to request access\n\n## Summary\n\nhow to request access to figma through HR\n\n## Who this applies to\n\nPeople leaders & managers — First- and second-line people managers across the operation. They are responsible for both following the policy themselves and applying it to their team.\nTone: Professional and direct. Assume managerial context — approvals, escalations, performance. Confident, action-oriented, no marketing language.\nReading context: Desktop primarily, between meetings. Often skimming during a transition; will return to the article later for detail.\nGuidelines: Always surface manager-specific actions clearly: approve, escalate, coach, document. Where the policy differs for managers vs employees, call that out explicitly with a 'Manager actions' subsection.\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Sign in to MyPepsiCo with your corporate credentials.\n2. Navigate to the relevant section for this topic.\n3. Follow the on-screen instructions and review your inputs before submitting.\n4. Confirm the action. You'll receive a notification when it's processed.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 06/25/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "submittedAt": "2026-06-25T18:51:03.454Z",
+    "status": "published",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Troubleshooting",
+        "severity": "warning",
+        "reason": "How-To articles work best with: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (42 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (153 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "3 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "reviewedAt": "2026-06-25T18:51:33.192Z",
+    "reviewer": "Demo Reviewer",
+    "publishedArticleId": "pub-a58d787d",
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-56dc0320",
+    "jobId": "job-d24a18ef",
+    "title": "Brand-safety global",
+    "contentType": "Policy",
+    "market": "UK",
+    "countries": [
+      "US",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "Global brand safety policy: regional handling notes",
+      "metaDescription": "Cross-market brand-safety policy that applies identically across every PepsiCo region, with notes on regional exceptions and escalation paths.",
+      "keywords": []
+    },
+    "globalJustification": "Applies identically in every PepsiCo region",
+    "body": "# Brand-safety global\n\n## Summary\n\nx\n\n## Who this applies to\n\nall\n\n## What this policy covers\n\nThis policy sets the expectations and obligations that apply to the situation described above. It includes:\n\n- Key definitions and scope.\n- Step-by-step procedures.\n- Roles and responsibilities.\n- Permitted exceptions and the approval process.\n- Consequences for non-compliance.\n\n### Specific details\n\nx\n\n## What's expected\n\n1. Read this policy in full and clarify anything that isn't clear.\n2. Apply the described procedures to situations that correspond.\n3. Document exceptions via the indicated approval process.\n4. Complete the annual acknowledgment in MyPepsiCo.\n\n## Exceptions\n\nExceptions are evaluated case by case and require documented approval from the responsible team. To request an exception, open a case in MyPepsiCo with the justification, context, and proposed mitigations.\n\n## Compliance\n\nNon-compliance with this policy may result in corrective action under PepsiCo's Code of Conduct. Report concerns through the usual channels or the Speak Up hotline.\n\n---\n\n**Last updated:** 08/06/2026\n**Owner:** [Article Owner — to be confirmed]\n**Effective:** Immediately\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "T",
+      "email": "t@x.com"
+    },
+    "submittedAt": "2026-06-08T18:24:24.384Z",
+    "status": "published",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Effective date, Contact",
+        "severity": "warning",
+        "reason": "Policy articles work best with: Overview, Policy, Effective date, Contact."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (51 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (142 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "3 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "reviewedAt": "2026-06-23T17:51:56.555Z",
+    "reviewer": "Smoke Test",
+    "publishedArticleId": "pub-8b00d755",
+    "sector": "europe"
+  },
+  {
+    "id": "ka-b5664394",
+    "jobId": "job-d24a18ef",
+    "title": "Brand-safety global",
+    "contentType": "Policy",
+    "market": "BR",
+    "countries": [
+      "US",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "Global brand safety policy: regional handling notes",
+      "metaDescription": "Cross-market brand-safety policy that applies identically across every PepsiCo region, with notes on regional exceptions and escalation paths.",
+      "keywords": []
+    },
+    "globalJustification": "Applies identically in every PepsiCo region",
+    "body": "# Brand-safety global\n\n## Summary\n\nx\n\n## Who this applies to\n\nall\n\n## What this policy covers\n\nThis policy sets the expectations and obligations that apply to the situation described above. It includes:\n\n- Key definitions and scope.\n- Step-by-step procedures.\n- Roles and responsibilities.\n- Permitted exceptions and the approval process.\n- Consequences for non-compliance.\n\n### Specific details\n\nx\n\n## What's expected\n\n1. Read this policy in full and clarify anything that isn't clear.\n2. Apply the described procedures to situations that correspond.\n3. Document exceptions via the indicated approval process.\n4. Complete the annual acknowledgment in MyPepsiCo.\n\n## Exceptions\n\nExceptions are evaluated case by case and require documented approval from the responsible team. To request an exception, open a case in MyPepsiCo with the justification, context, and proposed mitigations.\n\n## Compliance\n\nNon-compliance with this policy may result in corrective action under PepsiCo's Code of Conduct. Report concerns through the usual channels or the Speak Up hotline.\n\n---\n\n**Last updated:** 08/06/2026\n**Owner:** [Article Owner — to be confirmed]\n**Effective:** Immediately\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "T",
+      "email": "t@x.com"
+    },
+    "submittedAt": "2026-06-08T18:24:23.978Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Effective date, Contact",
+        "severity": "warning",
+        "reason": "Policy articles work best with: Overview, Policy, Effective date, Contact."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (51 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (142 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "3 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "sector": "latam"
+  },
+  {
+    "id": "ka-618766e0",
+    "jobId": "job-71a28349",
+    "title": "How to update banking details across regions",
+    "contentType": "How-To",
+    "market": "BR",
+    "countries": [
+      "US",
+      "CA",
+      "MX",
+      "BR"
+    ],
+    "seo": {
+      "title": "Update banking details across regions in MyPepsiCo",
+      "metaDescription": "A short walkthrough for employees in US, MX, and BR who need to update their direct-deposit or bank account information through the self-service portal.",
+      "keywords": [
+        "banking",
+        "direct deposit"
+      ]
+    },
+    "body": "# How to update banking details across regions\n\n## Summary\n\nWalkthrough for updating direct-deposit/bank info in each market\n\n## Who this applies to\n\nall\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Review the source information.\n2. Apply the relevant steps.\n3. Confirm the result.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 08/06/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "Test",
+      "email": "t@x.com"
+    },
+    "submittedAt": "2026-06-08T18:24:23.860Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Troubleshooting",
+        "severity": "warning",
+        "reason": "How-To articles work best with: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (50 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (152 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "4 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "sector": "latam"
+  },
+  {
+    "id": "ka-ce852761",
+    "jobId": "job-d24a18ef",
+    "title": "Brand-safety global",
+    "contentType": "Policy",
+    "market": "MX",
+    "countries": [
+      "US",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "Global brand safety policy: regional handling notes",
+      "metaDescription": "Cross-market brand-safety policy that applies identically across every PepsiCo region, with notes on regional exceptions and escalation paths.",
+      "keywords": []
+    },
+    "globalJustification": "Applies identically in every PepsiCo region",
+    "body": "# Brand-safety global\n\n## Resumen\n\nx\n\n## A quién aplica\n\nall\n\n## Qué incluye esta política\n\nEsta política establece las expectativas y obligaciones aplicables a la situación descrita arriba. Incluye:\n\n- Definiciones clave y alcance.\n- Procedimientos paso a paso.\n- Roles y responsabilidades.\n- Excepciones permitidas y proceso de aprobación.\n- Consecuencias por incumplimiento.\n\n### Detalles específicos\n\nx\n\n## Lo que se espera\n\n1. Lea esta política en su totalidad y consulte cualquier sección que no esté clara.\n2. Aplique los procedimientos descritos a las situaciones que correspondan.\n3. Documente las excepciones según el proceso de aprobación indicado.\n4. Complete el reconocimiento anual en MyPepsiCo.\n\n## Excepciones\n\nLas excepciones se evalúan caso por caso y requieren la aprobación documentada del equipo responsable. Para solicitar una excepción, abra un caso en MyPepsiCo con la justificación, contexto, y mitigaciones propuestas.\n\n## Cumplimiento\n\nEl incumplimiento de esta política puede resultar en medidas correctivas conforme al Código de Conducta de PepsiCo. Reporte cualquier preocupación a través de los canales habituales o la línea Speak Up.\n\n---\n\n**Última actualización:** 08/06/2026\n**Propietario:** [Propietario del artículo, por confirmar]\n**Vigencia:** Inmediata\n**Próxima revisión:** TBD",
+    "submittedBy": {
+      "name": "T",
+      "email": "t@x.com"
+    },
+    "submittedAt": "2026-06-08T18:24:23.570Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Policy, Effective date, Contact",
+        "severity": "warning",
+        "reason": "Policy articles work best with: Overview, Policy, Effective date, Contact."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (51 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (142 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "3 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "sector": "latam"
+  },
+  {
+    "id": "ka-f97f1ba8",
+    "jobId": "job-71a28349",
+    "title": "How to update banking details across regions",
+    "contentType": "How-To",
+    "market": "MX",
+    "countries": [
+      "US",
+      "CA",
+      "MX",
+      "BR"
+    ],
+    "seo": {
+      "title": "Update banking details across regions in MyPepsiCo",
+      "metaDescription": "A short walkthrough for employees in US, MX, and BR who need to update their direct-deposit or bank account information through the self-service portal.",
+      "keywords": [
+        "banking",
+        "direct deposit"
+      ]
+    },
+    "body": "# How to update banking details across regions\n\n## Resumen\n\nWalkthrough for updating direct-deposit/bank info in each market\n\n## A quién aplica\n\nall\n\n## Antes de comenzar\n\n- Confirme que tiene acceso a MyPepsiCo con sus credenciales corporativas.\n- Tenga a la mano cualquier información de soporte (códigos, recibos, fechas) que pueda necesitar.\n- Si su solicitud requiere aprobación, identifique a su gerente directo antes de comenzar.\n\n## Pasos\n\n1. Revise la información de origen.\n2. Aplique los pasos correspondientes.\n3. Confirme el resultado.\n\n## Situaciones comunes\n\n**No puedo iniciar sesión.** Verifique sus credenciales en MyPepsiCo o restablezca su contraseña.\n\n**Mi solicitud no fue aprobada en el plazo esperado.** Las aprobaciones pendientes por más de tres días hábiles se escalan automáticamente al siguiente nivel.\n\n**Necesito modificar una solicitud enviada.** Abra el caso original y use la opción *Editar*. Si ya fue procesado, contacte al equipo responsable.\n\n## ¿Necesita ayuda?\n\nSi tiene dudas, abra un caso en MyPepsiCo en *Contactar a RH* o escriba al equipo responsable indicado abajo.\n\n---\n\n**Última actualización:** 08/06/2026\n**Propietario:** [Propietario del artículo, por confirmar]\n**Próxima revisión:** TBD",
+    "submittedBy": {
+      "name": "Test",
+      "email": "t@x.com"
+    },
+    "submittedAt": "2026-06-08T18:24:23.451Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Steps, Troubleshooting",
+        "severity": "warning",
+        "reason": "How-To articles work best with: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (50 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (152 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "4 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "sector": "latam"
+  },
+  {
+    "id": "ka-272b8f5b",
+    "jobId": "job-d24a18ef",
+    "title": "Brand-safety global",
+    "contentType": "Policy",
+    "market": "US",
+    "countries": [
+      "US",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "Global brand safety policy: regional handling notes",
+      "metaDescription": "Cross-market brand-safety policy that applies identically across every PepsiCo region, with notes on regional exceptions and escalation paths.",
+      "keywords": []
+    },
+    "globalJustification": "Applies identically in every PepsiCo region",
+    "body": "# Brand-safety global\n\n## Summary\n\nx\n\n## Who this applies to\n\nall\n\n## What this policy covers\n\nThis policy sets the expectations and obligations that apply to the situation described above. It includes:\n\n- Key definitions and scope.\n- Step-by-step procedures.\n- Roles and responsibilities.\n- Permitted exceptions and the approval process.\n- Consequences for non-compliance.\n\n### Specific details\n\nx\n\n## What's expected\n\n1. Read this policy in full and clarify anything that isn't clear.\n2. Apply the described procedures to situations that correspond.\n3. Document exceptions via the indicated approval process.\n4. Complete the annual acknowledgment in MyPepsiCo.\n\n## Exceptions\n\nExceptions are evaluated case by case and require documented approval from the responsible team. To request an exception, open a case in MyPepsiCo with the justification, context, and proposed mitigations.\n\n## Compliance\n\nNon-compliance with this policy may result in corrective action under PepsiCo's Code of Conduct. Report concerns through the usual channels or the Speak Up hotline.\n\n---\n\n**Last updated:** 06/08/2026\n**Owner:** [Article Owner — to be confirmed]\n**Effective:** Immediately\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "T",
+      "email": "t@x.com"
+    },
+    "submittedAt": "2026-06-08T18:24:23.161Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Effective date, Contact",
+        "severity": "warning",
+        "reason": "Policy articles work best with: Overview, Policy, Effective date, Contact."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (51 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (142 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "3 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-103d3404",
+    "jobId": "job-71a28349",
+    "title": "How to update banking details across regions",
+    "contentType": "How-To",
+    "market": "US",
+    "countries": [
+      "US",
+      "CA",
+      "MX",
+      "BR"
+    ],
+    "seo": {
+      "title": "Update banking details across regions in MyPepsiCo",
+      "metaDescription": "A short walkthrough for employees in US, MX, and BR who need to update their direct-deposit or bank account information through the self-service portal.",
+      "keywords": [
+        "banking",
+        "direct deposit"
+      ]
+    },
+    "body": "# How to update banking details across regions\n\n## Summary\n\nWalkthrough for updating direct-deposit/bank info in each market\n\n## Who this applies to\n\nall\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Review the source information.\n2. Apply the relevant steps.\n3. Confirm the result.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 06/08/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "Test",
+      "email": "t@x.com"
+    },
+    "submittedAt": "2026-06-08T18:24:23.043Z",
+    "status": "needs-info",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Troubleshooting",
+        "severity": "warning",
+        "reason": "How-To articles work best with: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (50 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (152 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "4 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "sector": "pfna",
+    "reviewedAt": "2026-07-02T15:04:37.345Z",
+    "reviewer": "Demo Reviewer",
+    "infoNeeded": "Needs more information"
+  },
+  {
+    "id": "ka-7f53e3ba",
+    "jobId": "job-b7ac2b33",
+    "title": "Onboarding new guys to the team",
+    "contentType": "How-To",
+    "market": "US",
+    "countries": [
+      "US"
+    ],
+    "seo": {
+      "title": "Edited SEO title — updated via inline editor",
+      "metaDescription": "updated meta description that passes the validation threshold required.",
+      "keywords": [
+        "original"
+      ]
+    },
+    "body": "# Onboarding new guys to the team\n\n## Summary\n\nHow to bring guys up to speed in their first week\n\n## Who this applies to\n\nsales\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Review the source information.\n2. Apply the relevant steps.\n3. Confirm the result.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 06/05/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD\n\n<!-- Revised to address 1 compliance issue(s). -->",
+    "submittedBy": {
+      "name": "Test",
+      "email": "test@pepsico.com"
+    },
+    "submittedAt": "2026-06-05T17:25:00.259Z",
+    "status": "needs-info",
+    "complianceIssues": [
+      {
+        "severity": "error",
+        "category": "inclusivity",
+        "message": "Non-inclusive language detected. Use neutral alternatives.",
+        "excerpt": "guys"
+      }
+    ],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Troubleshooting",
+        "severity": "warning",
+        "reason": "How-To articles work best with: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (45 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (148 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "1 country tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "1 compliance error",
+        "severity": "error",
+        "reason": "Non-inclusive language detected. Use neutral alternatives."
+      }
+    ],
+    "autoApproveCandidate": false,
+    "infoNeeded": "• 1 compliance error — Non-inclusive language detected. Use neutral alternatives.",
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-aa18fedf",
+    "jobId": "job-88668955",
+    "title": "How to update your direct deposit account",
+    "contentType": "How-To",
+    "market": "US",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "Update your direct deposit in MyPepsiCo (2 min fix)",
+      "metaDescription": "Step-by-step instructions for changing your direct deposit routing and account numbers from the MyPepsiCo self-service portal in under two minutes.",
+      "keywords": [
+        "direct deposit",
+        "payroll",
+        "banking",
+        "update"
+      ]
+    },
+    "body": "# How to update your direct deposit account\n\n## Summary\n\nStep-by-step on changing your direct deposit account through MyPepsiCo self-service\n\n## Who this applies to\n\nall\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Review the source information.\n2. Apply the relevant steps.\n3. Confirm the result.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 06/05/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "Test",
+      "email": "test@pepsico.com"
+    },
+    "submittedAt": "2026-06-05T17:24:56.665Z",
+    "status": "needs-info",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Overview, Troubleshooting",
+        "severity": "warning",
+        "reason": "How-To articles work best with: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (51 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (147 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "2 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "reviewedAt": "2026-06-05T19:05:53.914Z",
+    "reviewer": "Demo Reviewer",
+    "infoNeeded": "sdf",
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-b88feaf6",
+    "jobId": "job-7a68f9fd",
+    "title": "Onboarding new guys to the team",
+    "contentType": "How-To",
+    "market": "US",
+    "countries": [
+      "US"
+    ],
+    "seo": {
+      "title": "Onboarding new team members in the first week",
+      "metaDescription": "A short walkthrough for managers covering the essential introductions, tools, and check-ins that help a new hire get productive in their first week.",
+      "keywords": [
+        "onboarding",
+        "new hire"
+      ]
+    },
+    "body": "# Onboarding new guys to the team\n\n## Summary\n\nHow to bring guys up to speed in their first week\n\n## Who this applies to\n\nsales\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Review the source information.\n2. Apply the relevant steps.\n3. Confirm the result.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 06/05/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD\n\n<!-- Revised to address 1 compliance issue(s). -->",
+    "submittedBy": {
+      "name": "Test",
+      "email": "test@pepsico.com"
+    },
+    "submittedAt": "2026-06-05T17:16:45.580Z",
+    "status": "needs-info",
+    "complianceIssues": [
+      {
+        "severity": "error",
+        "category": "inclusivity",
+        "message": "Non-inclusive language detected. Use neutral alternatives.",
+        "excerpt": "guys"
+      }
+    ],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing required sections: Overview, Troubleshooting",
+        "severity": "error",
+        "reason": "How-To articles must include: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (45 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (148 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "1 country tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "1 compliance error",
+        "severity": "error",
+        "reason": "Non-inclusive language detected. Use neutral alternatives."
+      }
+    ],
+    "autoApproveCandidate": false,
+    "infoNeeded": "• Missing required sections: Overview, Troubleshooting — How-To articles must include: Overview, Steps, Troubleshooting.\n• 1 compliance error — Non-inclusive language detected. Use neutral alternatives.",
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-7a359c98",
+    "jobId": "job-b6953782",
+    "title": "How to update your direct deposit",
+    "contentType": "How-To",
+    "market": "US",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "Update your direct deposit in MyPepsiCo (2 min)",
+      "metaDescription": "Step-by-step instructions for changing your direct deposit routing and account numbers from the MyPepsiCo self-service portal in under two minutes.",
+      "keywords": [
+        "direct deposit",
+        "payroll",
+        "banking",
+        "update"
+      ]
+    },
+    "body": "# How to update your direct deposit\n\n## Summary\n\nStep-by-step on changing your direct deposit account through MyPepsiCo self-service\n\n## Who this applies to\n\nall\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Review the source information.\n2. Apply the relevant steps.\n3. Confirm the result.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 06/05/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "Test",
+      "email": "test@pepsico.com"
+    },
+    "submittedAt": "2026-06-05T17:16:41.953Z",
+    "status": "needs-info",
+    "complianceIssues": [],
+    "approvalResults": [
+      {
+        "id": "required-sections",
+        "label": "Missing required sections: Overview, Troubleshooting",
+        "severity": "error",
+        "reason": "How-To articles must include: Overview, Steps, Troubleshooting."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (47 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (147 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "2 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "infoNeeded": "• Missing required sections: Overview, Troubleshooting — How-To articles must include: Overview, Steps, Troubleshooting.",
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-ee1aaec5",
+    "jobId": "job-5f32c1fe",
+    "title": "X",
+    "contentType": "FAQ",
+    "market": "MX",
+    "countries": [
+      "US",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "This is a test SEO title that fits",
+      "metaDescription": "a meta description long enough yes definitely yes plus more",
+      "keywords": []
+    },
+    "globalJustification": "Applies in all PepsiCo regions",
+    "body": "## ¿De qué se trata \"X\"?\n\nX\n\nEsta sección amplía los puntos clave con contexto adicional, ejemplos concretos, o casos límite. Reemplace este texto con el detalle específico que la audiencia necesita.\n\n## ¿A quién aplica?\n\nAplica a todos los colaboradores en el alcance descrito. Consulte con su gerente o Recursos Humanos si tiene dudas sobre su elegibilidad.\n\n## ¿Cuándo entra en vigor?\n\nEsta información está vigente desde la fecha de última actualización indicada al final del documento.\n\n## ¿Dónde puedo obtener más información?\n\nAbra un caso en MyPepsiCo en *Contactar a RH*, o consulte la sección correspondiente del portal del colaborador.\n\n## ¿Qué hago si necesito una excepción?\n\nLas excepciones se gestionan caso por caso. Comuníquese con su gerente directo y con el equipo responsable del tema.\n\n---\n\n**Última actualización:** 05/06/2026\n**Propietario:** [Propietario del artículo, por confirmar]",
+    "submittedBy": {
+      "name": "T",
+      "email": "t@x.com"
+    },
+    "submittedAt": "2026-06-05T17:06:42.154Z",
+    "status": "published",
+    "complianceIssues": [],
+    "sector": "latam",
+    "reviewedAt": "2026-07-02T15:03:15.915Z",
+    "reviewer": "Demo Reviewer",
+    "publishedArticleId": "pub-96bd4e0c"
+  },
+  {
+    "id": "ka-b43958a7",
+    "jobId": "job-5f32c1fe",
+    "title": "X",
+    "contentType": "FAQ",
+    "market": "US",
+    "countries": [
+      "US",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "This is a test SEO title that fits",
+      "metaDescription": "a meta description long enough yes definitely yes plus more",
+      "keywords": []
+    },
+    "globalJustification": "Applies in all PepsiCo regions",
+    "body": "## What is \"X\" about?\n\nX\n\n## Who does this apply to?\n\nIt applies to all employees within the described scope. Check with your manager or HR if you have questions about your eligibility.\n\n## When does it take effect?\n\nThis information is effective from the last-updated date shown at the bottom of this document.\n\n## Where can I get more details?\n\nOpen a case in MyPepsiCo at *Get Help*, or visit the relevant section of the employee portal.\n\n## What do I do if I need an exception?\n\nExceptions are handled case by case. Contact your direct manager and the responsible team listed below.\n\n---\n\n**Last updated:** 06/05/2026\n**Owner:** [Article Owner — to be confirmed]",
+    "submittedBy": {
+      "name": "T",
+      "email": "t@x.com"
+    },
+    "submittedAt": "2026-06-05T17:06:41.745Z",
+    "status": "rejected",
+    "complianceIssues": [],
+    "sector": "pfna",
+    "reviewedAt": "2026-07-02T15:04:11.838Z",
+    "reviewer": "Demo Reviewer",
+    "rejectionReason": "Not enough information"
+  },
+  {
+    "id": "ka-e9c06de7",
+    "jobId": "job-679e8c19",
+    "title": "How to refresh a driver login token",
+    "contentType": "How-To",
+    "market": "US",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "Refresh driver login token: 2-minute fix",
+      "metaDescription": "A short walkthrough for drivers whose route-app login token has expired, with the screens to tap and what to do if it fails.",
+      "keywords": [
+        "driver",
+        "login",
+        "token",
+        "refresh"
+      ]
+    },
+    "body": "# How to refresh a driver login token\n\n## Summary\n\nSteps for refreshing the driver auth token\n\n## Who this applies to\n\ndrivers\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Review the source information.\n2. Apply the relevant steps.\n3. Confirm the result.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 06/05/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "Demo",
+      "email": "demo@pepsico.com"
+    },
+    "submittedAt": "2026-06-05T17:06:41.668Z",
+    "status": "published",
+    "complianceIssues": [],
+    "sector": "pfna",
+    "reviewedAt": "2026-07-02T15:04:03.665Z",
+    "reviewer": "Demo Reviewer",
+    "publishedArticleId": "pub-317cf3af"
+  },
+  {
+    "id": "ka-e351ccda",
+    "jobId": "job-689124b4",
+    "title": "how to submit a report",
+    "contentType": "FAQ",
+    "market": "US",
+    "body": "## What is \"how to submit a report\" about?\n\nas;dkf;asdkf;alskdf;alskf;aslkdf\n\nThis expanded paragraph adds context, examples, or specific edge cases. Replace this placeholder with the concrete detail your audience needs.\n\n## Who does this apply to?\n\nIt applies to all employees within the described scope. Check with your manager or HR if you have questions about your eligibility.\n\n## When does it take effect?\n\nThis information is effective from the last-updated date shown at the bottom of this document.\n\n## Where can I get more details?\n\nOpen a case in MyPepsiCo at *Get Help*, or visit the relevant section of the employee portal.\n\n## What do I do if I need an exception?\n\nExceptions are handled case by case. Contact your direct manager and the responsible team listed below.\n\n## Recent edits\n\n*Jun 9, 2026* — Reviewer request: make this information more desne\n\n## Recent edits\n\n*Jun 25, 2026* — Reviewer request: add more information to the whole thing\n\n\n---\n\n**Last updated:** 06/03/2026\n**Owner:** [Article Owner — to be confirmed]",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "submittedAt": "2026-06-03T20:29:19.269Z",
+    "status": "published",
+    "complianceIssues": [],
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "how to submit a report — FAQ guide",
+      "metaDescription": "FAQ for US employees: how to submit a report. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next time you nee",
+      "keywords": [
+        "submit",
+        "report",
+        "faq"
+      ]
+    },
+    "reviewedAt": "2026-06-25T18:39:54.910Z",
+    "reviewer": "Demo Reviewer",
+    "publishedArticleId": "pub-f26eac74",
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-0ff5f3a8",
+    "jobId": "job-e8f9d96c",
+    "title": "Something vague",
+    "contentType": "FAQ",
+    "market": "US",
+    "body": "# Something vague\n\n## More information needed\n\nBefore this article can be drafted, the content agent needs the following from the requester:\n\n- audience\n- summary or source material\n\nA clarification email has been sent to **demo@pepsico.com**. Once the missing details are provided, resubmit the request to generate the draft.",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "demo@pepsico.com"
+    },
+    "submittedAt": "2026-05-29T17:38:20.153Z",
+    "status": "needs-info",
+    "complianceIssues": [],
+    "infoNeeded": "Missing: audience, summary or source material",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "Something vague — FAQ guide — quick answer",
+      "metaDescription": "FAQ for US employees: something vague. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next time you need it.",
+      "keywords": [
+        "something",
+        "vague",
+        "faq"
+      ]
+    },
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-fec0f30f",
+    "jobId": "job-41e167bb",
+    "title": "How to request a corporate credit card",
+    "contentType": "How-To",
+    "market": "US",
+    "body": "# How to request a corporate credit card\n\n## Summary\n\nStep-by-stp guide for employees who need a corporate card for travel and expenses.\n\n## Who this applies to\n\nNewly hired managers and senior individual contributors who travel for business\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Submit request through MyPepsiCo.\n2. Manager approves.\n3. Finance team reviews credit limit.\n4. Card mailed in 7-10 business days.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 05/27/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "submittedBy": {
+      "name": "Test Author",
+      "email": "test.author@pepsico.com"
+    },
+    "submittedAt": "2026-05-27T16:16:46.412Z",
+    "status": "published",
+    "complianceIssues": [],
+    "reviewedAt": "2026-06-02T19:14:12.381Z",
+    "reviewer": "Demo Reviewer",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "How to request a corporate credit card",
+      "metaDescription": "How-To for US employees: how to request a corporate credit card. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for th",
+      "keywords": [
+        "request",
+        "corporate",
+        "credit",
+        "card",
+        "how-to"
+      ]
+    },
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-012",
+    "title": "Travel & expense policy update",
+    "contentType": "Policy",
+    "market": "US",
+    "body": "## Summary\n\nEffective **July 1, 2026**, all business travel for U.S. employees must be booked through the Concur Travel portal. Out-of-portal bookings (e.g., direct on airline or hotel sites) are no longer reimbursable except in the specific exception cases listed below. This update consolidates travel and expense into a single workflow, gives the company better duty-of-care visibility, and unlocks negotiated rates from preferred suppliers.\n\n## Who this applies to\n\nAll U.S.-based salaried employees who travel for business. Hourly employees who travel as part of their role (limited categories) continue to use the same process as before. Your site's HR partner will clarify.\n\n## What's changing\n\n### 1. Concur Travel is mandatory for new bookings\n\n- Air, hotel, rental car, and rail must be booked through Concur Travel.\n- Concur surfaces the corporate preferred suppliers first, with negotiated rates. You can choose alternates, but the system flags out-of-policy choices for visibility.\n- Bookings made directly on supplier sites starting July 1 will be denied for reimbursement.\n\n### 2. Pre-trip approval\n\n- Trips over **$2,500 total estimated cost** require manager pre-approval *before* booking. Concur prompts for the approval workflow automatically.\n- International trips of any cost require pre-approval.\n- Last-minute trips (booked within 72 hours of departure) trigger an additional approval and a justification field.\n\n### 3. Lodging caps by city\n\nPepsiCo aligns to the U.S. General Services Administration (GSA) per diem schedule for lodging, with tier adjustments for high-cost cities:\n\n| Tier | Example cities | Nightly cap |\n|---|---|---|\n| Tier 1 | NYC, San Francisco, Boston, DC | $325 |\n| Tier 2 | Chicago, Seattle, LA, Miami | $260 |\n| Tier 3 | Most major cities | $185 |\n| Tier 4 | Other locations | $135 |\n\nThe cap is exclusive of taxes and resort fees. Concur applies the cap automatically when you book.\n\n### 4. Meal per diems\n\nFor trips of 24 hours or more away from your home location, you can choose between:\n\n- **Per diem mode:** a flat daily amount based on the GSA M&IE schedule for the city. No receipts required. Set this preference at booking.\n- **Itemized mode:** submit actual meal receipts up to the daily limit. Use this when you expect to host clients or vendors.\n\nYou cannot mix modes within a trip.\n\n### 5. Air travel class\n\n- **Domestic (US):** economy class.\n- **International:** economy on flights under six hours; premium economy or business on flights six hours or more, but only with VP-level pre-approval.\n- **Personal upgrades** using your own airline status or miles are permitted and don't require additional approval.\n\n### 6. Ground transportation\n\n- Ride-share (Uber, Lyft) and taxis are reimbursable for travel between airports, hotels, client sites, and PepsiCo offices. Use **Uber for Business** through Concur for automatic submission.\n- Rental cars: economy or mid-size class. SUVs only when justified by group size (4+) or terrain.\n- Personal vehicle use for business travel: reimbursed at the IRS standard mileage rate, currently 67 cents per mile. Submit through Concur with the route and odometer readings.\n\n## Exceptions where out-of-portal booking is permitted\n\n1. **Conference-required bookings:** the conference organizer mandates booking through a specific portal. Attach the requirement letter to your expense report.\n2. **Group bookings (10+ travelers):** handled by the Corporate Meetings team, not Concur Travel.\n3. **Emergency travel** within 24 hours, where Concur Travel cannot book in time. Email **te-help@pepsico.com** within one business day with a justification.\n\n## What's NOT changing\n\n- Reimbursement timing (still 5 business days after final approval).\n- Approval thresholds for expense reports (still tiered by total amount).\n- Personal credit card vs. corporate card policy (separate KA covers this).\n- The Missing Receipt Affidavit process.\n\n## How to prepare\n\n1. **Set up Concur Travel** if you haven't already. Sign in to MyPepsiCo, click **T&E**, then **Set Up Travel Profile**. Enter your preferred seat, frequent flyer numbers, and TSA/Global Entry numbers.\n2. **Use the Booking Coach** for your first trip in Concur Travel. It walks you through end-to-end in about 15 minutes and saves your preferences.\n3. **Cancel pre-July bookings made outside Concur** if the trip is for after July 1. You'll need to rebook through the portal to remain in policy.\n\n## Training and Q&A\n\n- **Live Q&A sessions** every Tuesday in June, 2 PM ET, recorded and posted in the Benefits Hub.\n- **Self-paced training** (45 minutes) auto-assigned to all eligible travelers in May.\n- **Travel Help Desk:** **te-help@pepsico.com** for any questions.\n\n## Compliance\n\nOut-of-policy bookings will be flagged at submission. Repeated violations are addressed by your manager and the T&E governance committee. The goal is alignment, not punishment. When you see a flag, take a moment to understand it.\n\n---\n\n**Last updated:** 05/18/2026 \n**Owner:** Travel & Expense Governance \n**Effective:** 07/01/2026 \n**Next review:** 01/01/2027 \n**Approved by:** SVP, Finance Operations",
+    "submittedBy": {
+      "name": "Devon Williams",
+      "email": "devon.williams@pepsico.com"
+    },
+    "submittedAt": "2026-05-18T11:30:00Z",
+    "status": "rejected",
+    "complianceIssues": [],
+    "reviewedAt": "2026-06-02T15:26:40.771Z",
+    "reviewer": "Demo Reviewer",
+    "rejectionReason": "You are missing key information",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "Travel & expense policy update",
+      "metaDescription": "Policy for US employees: travel & expense policy update. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next t",
+      "keywords": [
+        "travel",
+        "expense",
+        "policy",
+        "update"
+      ]
+    },
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-010",
+    "title": "Holiday schedule 2026",
+    "contentType": "FAQ",
+    "market": "US",
+    "body": "## What holidays does PepsiCo observe in 2026?\n\nFor U.S. salaried employees, the 2026 paid holiday schedule:\n\n| Date | Holiday | Day |\n|---|---|---|\n| January 1 | New Year's Day | Thursday |\n| January 19 | Martin Luther King Jr. Day | Monday |\n| May 25 | Memorial Day | Monday |\n| July 3 | Independence Day (observed) | Friday |\n| September 7 | Labor Day | Monday |\n| November 26 | Thanksgiving | Thursday |\n| November 27 | Day after Thanksgiving | Friday |\n| December 24 | Christmas Eve | Thursday |\n| December 25 | Christmas Day | Friday |\n\nPlus **2 floating holidays** you can take on any business day with manager approval.\n\n## What about hourly employees in plants and warehouses?\n\nThe holiday schedule at production sites follows the local collective bargaining agreement or site policy. Check with your site HR partner. Some sites pay double-time for working on a recognized holiday; others provide the day off paid.\n\n## When do floating holidays expire?\n\nFloating holidays must be used by December 31 of the calendar year. They don't roll over. Most managers prefer that you book them at least one week in advance. Book through MyPepsiCo under **Time Off > Floating Holiday**.\n\n## What if the holiday falls on a weekend?\n\nWhen Christmas (December 25) falls on a Sunday, the holiday is observed on the following Monday. When it falls on a Saturday, the holiday is observed on the preceding Friday. The same logic applies to New Year's Day and Independence Day.\n\nIn 2026, July 4 falls on a Saturday, so Independence Day is observed on Friday, July 3.\n\n## Do offices close on these days?\n\n- **Corporate offices:** closed.\n- **Plants and warehouses:** generally operating with skeleton crews on a holiday premium pay basis. Check your site's published holiday schedule.\n- **Customer-facing and field sales:** vary by team. Confirm with your manager.\n- **IT Service Desk and Security Operations Center:** open 24/7, 365 days a year. Reach them at the usual numbers.\n\n## What if I'm scheduled to work a holiday?\n\nIf you're a salaried employee and your role requires holiday work (rare; only for on-call rotations or active project deadlines), discuss with your manager. PepsiCo provides a comp day in lieu, taken within 60 days of the worked holiday.\n\nFor hourly employees in plants, holiday work follows the local CBA or site practice, typically time-and-a-half or double-time pay.\n\n## What about religious or cultural observances not on this list?\n\nUse one of your floating holidays, or use PTO. Religious observances that fall on a workday are accommodated under the Reasonable Accommodation Policy. Talk to your HR Business Partner if you need recurring scheduling flexibility.\n\n## What about employees outside the U.S.?\n\nMexico, Canada, and international sites follow their local statutory holiday schedules. For Mexico, see the **Calendario de feriados oficiales México 2026** KA. For other geographies, check the corresponding regional KA or your local HR partner.\n\n## What if a holiday falls during my PTO?\n\nIf a paid company holiday falls within your scheduled PTO, PepsiCo restores that day to your PTO balance. You don't spend PTO on a day that's already a paid holiday.\n\n## When will the 2027 calendar be published?\n\nThe 2027 schedule is typically published in mid-October 2026, after the corporate calendar review. It appears in MyPepsiCo under **Time Off > Holiday Calendar**.\n\n---\n\n**Last updated:** 05/17/2026 \n**Owner:** Total Rewards \n**Next review:** 10/15/2026",
+    "submittedBy": {
+      "name": "James O'Brien",
+      "email": "james.obrien@pepsico.com"
+    },
+    "submittedAt": "2026-05-17T08:45:00Z",
+    "status": "published",
+    "complianceIssues": [],
+    "reviewedAt": "2026-06-02T15:26:27.837Z",
+    "reviewer": "Demo Reviewer",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "Holiday schedule 2026 — FAQ guide",
+      "metaDescription": "FAQ for US employees: holiday schedule 2026. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next time you need",
+      "keywords": [
+        "holiday",
+        "schedule",
+        "2026",
+        "faq"
+      ]
+    },
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-008",
+    "title": "Preguntas frecuentes: nómina",
+    "contentType": "FAQ",
+    "market": "MX",
+    "body": "## ¿Cuándo recibo mi pago?\n\nLos pagos se realizan **quincenalmente**, los días 15 y último de cada mes. Si el día de pago cae en sábado, domingo o feriado oficial, el depósito se adelanta al día hábil anterior. El depósito normalmente se refleja en su cuenta antes de las 10:00 AM hora del centro.\n\n## ¿Dónde veo mi recibo de nómina?\n\nIngrese a MyPepsiCo en **Mi Perfil > Nómina > Recibos**. Los recibos están disponibles en formato PDF a partir de las 6:00 AM del día de pago. Puede descargar recibos de los últimos 24 meses; los más antiguos se solicitan a través de **Contactar a Nómina**.\n\n## ¿Cómo calcula PepsiCo mi sueldo?\n\nSu sueldo se compone de:\n\n- **Sueldo nominal:** el monto bruto acordado en su contrato.\n- **Bonos y comisiones:** según las reglas de su plan de compensación variable, si aplica.\n- **Prestaciones en especie:** vales de despensa, fondo de ahorro, seguro de gastos médicos mayores.\n\nDe ese total se descuenta:\n\n- **ISR (Impuesto sobre la Renta):** según las tablas vigentes del SAT.\n- **IMSS (Seguro Social):** aportación del colaborador.\n- **AFORE:** aportación a su cuenta de retiro.\n- **Préstamos o descuentos voluntarios** que usted haya autorizado.\n\nEl recibo desglosa cada línea.\n\n## ¿Cuándo recibo mi aguinaldo?\n\nEl aguinaldo se paga **antes del 20 de diciembre** de cada año, conforme al Artículo 87 de la Ley Federal del Trabajo. PepsiCo México otorga **30 días de salario** como aguinaldo, superior al mínimo legal de 15 días.\n\n## ¿Qué es el fondo de ahorro y cómo funciona?\n\nEl fondo de ahorro es una prestación voluntaria. Si decide participar, PepsiCo iguala su aportación hasta el 13% de su salario, con un tope mensual definido en su política de compensación. Los fondos se retiran:\n\n- Una vez al año, en diciembre, automáticamente.\n- Anticipadamente solo en casos de emergencia documentada (matrimonio, fallecimiento de familiar directo, gastos médicos mayores), con aprobación de RH.\n\nInscríbase en **MyPepsiCo > Mi Perfil > Prestaciones > Fondo de Ahorro**.\n\n## ¿Cómo cambio mi cuenta bancaria de depósito?\n\n1. Ingrese a MyPepsiCo en **Mi Perfil > Datos Bancarios**.\n2. Haga clic en **Cambiar Cuenta**.\n3. Suba una imagen de su estado de cuenta o caratula bancaria reciente (no más de 60 días).\n4. Haga clic en **Enviar**.\n\nEl cambio se aplica al siguiente periodo de pago. Asegúrese de hacerlo al menos cinco días hábiles antes del próximo pago para evitar retrasos.\n\n## ¿Por qué mi recibo de este mes es diferente al anterior?\n\nLos motivos más comunes:\n\n- **Cambio en deducciones de impuestos** por ajuste anual del SAT (suele ocurrir en febrero).\n- **Pago de prima vacacional** si tomó días de descanso en ese periodo.\n- **Bonos o comisiones** acreditados en el periodo.\n- **Ajuste de IMSS** por modificación de su salario diario integrado.\n\nSi nada de lo anterior aplica y la diferencia es significativa, abra un caso en **MyPepsiCo > Contactar a Nómina**.\n\n## ¿Qué hago si mi pago no llegó?\n\n1. Verifique con su banco que no haya retención por algún motivo (cuenta inactiva, etc.).\n2. Confirme en MyPepsiCo que el recibo fue emitido en la fecha correcta.\n3. Si el recibo existe pero el depósito no llegó, contacte a **Nómina México** a través de **MyPepsiCo > Contactar a Nómina** y adjunte una captura de pantalla de su estado de cuenta del día.\n\nEl equipo de nómina responde en un máximo de 24 horas hábiles. En casos urgentes (por ejemplo, si necesita acceso al pago el mismo día), comuníquese al teléfono **800-PEP-NOMI**.\n\n## ¿Cómo solicito una carta laboral con sueldo?\n\nGenere una **constancia laboral** automática desde MyPepsiCo en **Mi Perfil > Documentos > Generar Constancia**. Hay tres tipos:\n\n- Constancia laboral simple (sin sueldo).\n- Constancia laboral con sueldo (para trámites bancarios, visas).\n- Constancia laboral con sueldo y bonos (para trámites específicos).\n\nLas constancias se descargan en formato PDF firmado digitalmente. No requieren sello adicional.\n\n---\n\n**Última actualización:** 16/05/2026 \n**Propietario:** Nómina México \n**Próxima revisión:** 01/12/2026",
+    "submittedBy": {
+      "name": "Carlos Ramírez",
+      "email": "carlos.ramirez@pepsico.com"
+    },
+    "submittedAt": "2026-05-16T15:50:00Z",
+    "status": "needs-info",
+    "complianceIssues": [],
+    "translations": {
+      "en": "# FAQ: Payroll\n\n## When do I get paid?\n\nPay is processed **every two weeks**, on the 15th and the last day of each month. If a payday falls on a Saturday, Sunday, or official holiday, the deposit is moved up to the previous business day. The deposit usually appears in your account before 10:00 AM Central Time.\n\n## Where do I see my pay stub?\n\nSign in to MyPepsiCo at **My Profile > Payroll > Stubs**. Stubs are available as PDF starting at 6:00 AM on payday. You can download stubs from the last 24 months; older ones are requested through **Contact Payroll**.\n\n## How does PepsiCo calculate my salary?\n\nYour salary is composed of:\n\n- **Base salary:** the gross amount agreed in your contract.\n- **Bonuses and commissions:** according to the rules of your variable compensation plan, if applicable.\n- **In-kind benefits:** food vouchers (vales de despensa), savings fund, major medical insurance.\n\nThe following is deducted from that total:\n\n- **ISR (Income Tax):** per the current SAT tables.\n- **IMSS (Social Security):** employee contribution.\n- **AFORE:** contribution to your retirement account.\n- **Loans or voluntary deductions** that you have authorized.\n\nThe stub itemizes each line.\n\n## When do I get my aguinaldo?\n\nThe aguinaldo (year-end bonus) is paid **before December 20** each year, per Article 87 of the Federal Labor Law. PepsiCo Mexico grants **30 days of salary** as aguinaldo, above the legal minimum of 15 days.\n\n## What is the savings fund and how does it work?\n\nThe savings fund is a voluntary benefit. If you choose to participate, PepsiCo matches your contribution up to 13% of your salary, with a monthly cap defined in your compensation policy. Funds are withdrawn:\n\n- Automatically, once a year in December.\n- Early only in documented emergencies (marriage, death of an immediate family member, major medical expenses), with HR approval.\n\nEnroll at **MyPepsiCo > My Profile > Benefits > Savings Fund**.\n\n## How do I change my bank deposit account?\n\n1. Sign in to MyPepsiCo at **My Profile > Bank Details**.\n2. Click **Change Account**.\n3. Upload an image of your recent bank statement or account header (no more than 60 days old).\n4. Click **Submit**.\n\nThe change applies to the next pay cycle. Make sure to submit it at least five business days before the next payday to avoid delays.\n\n## Why is this month's stub different from last month's?\n\nThe most common reasons:\n\n- **Tax deduction change** due to SAT's annual adjustment (usually in February).\n- **Vacation premium payment** if you took time off during that cycle.\n- **Bonuses or commissions** credited in the cycle.\n- **IMSS adjustment** due to a change in your integrated daily wage.\n\nIf none of the above applies and the difference is significant, open a case at **MyPepsiCo > Contact Payroll**.\n\n## What do I do if my pay didn't arrive?\n\n1. Check with your bank that there isn't a hold for some reason (inactive account, etc.).\n2. Confirm in MyPepsiCo that the stub was issued on the correct date.\n3. If the stub exists but the deposit didn't arrive, contact **Payroll Mexico** through **MyPepsiCo > Contact Payroll** and attach a screenshot of your account statement for the day.\n\nThe payroll team responds within 24 business hours. For urgent cases (e.g., if you need same-day access to your pay), call **800-PEP-NOMI**.\n\n## How do I request an employment letter with salary?\n\nGenerate an **employment certificate** automatically from MyPepsiCo at **My Profile > Documents > Generate Certificate**. There are three types:\n\n- Simple employment certificate (without salary).\n- Employment certificate with salary (for bank applications, visas).\n- Employment certificate with salary and bonuses (for specific procedures).\n\nCertificates download as digitally signed PDFs. They don't require an additional stamp.\n\n---\n\n**Last updated:** 16/05/2026 \n**Owner:** Payroll Mexico \n**Next review:** 01/12/2026"
+    },
+    "reviewedAt": "2026-06-02T15:26:26.082Z",
+    "reviewer": "Demo Reviewer",
+    "infoNeeded": "Need more information on something",
+    "countries": [
+      "MX"
+    ],
+    "seo": {
+      "title": "Preguntas frecuentes: nómina — FAQ guide",
+      "metaDescription": "FAQ for MX employees: preguntas frecuentes: nómina. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next time y",
+      "keywords": [
+        "preguntas",
+        "frecuentes",
+        "mina",
+        "faq"
+      ]
+    },
+    "sector": "latam"
+  },
+  {
+    "id": "ka-006",
+    "title": "Benefits enrollment hub",
+    "contentType": "Topic Page",
+    "market": "US",
+    "body": "## Welcome to your benefits\n\nYour PepsiCo benefits package is designed to support your health, financial security, and life outside of work. This hub is your starting point: enroll, change coverage during qualifying life events, and get help when you need it.\n\n## Enrollment windows\n\n| When | What |\n|---|---|\n| Within 30 days of your start date | First-time enrollment for new hires |\n| October 28 to November 15 each year | Annual Open Enrollment for all employees |\n| Within 60 days of a qualifying event | Mid-year change (marriage, birth, adoption, loss of other coverage) |\n\nIf you miss your window, you wait until next Open Enrollment.\n\n## Health and wellness\n\n### Medical\n\nThree medical plan options through Aetna and Anthem: a PPO, a high-deductible plan with HSA, and a value plan with the lowest premium. Compare them side by side in the [Plan Comparison Tool](#).\n\n### Dental and vision\n\nDelta Dental and VSP. Both run on a calendar year. Vision covers one exam plus an allowance toward frames or contacts annually.\n\n### Mental health\n\nLyra Health gives you and your household 12 free counseling sessions per year, plus self-guided programs. No referral, no copay. Access at **pepsico.lyrahealth.com**.\n\n### Wellness incentives\n\nEarn up to $600 annually toward your medical premium by completing your annual physical, biometric screening, and three wellbeing activities (in any combination). Track progress in **My Wellbeing** inside MyPepsiCo.\n\n## Financial\n\n### 401(k)\n\nPepsiCo matches 100% of the first 5% you contribute. Vesting is 3-year graded. The default investment for new enrollees is the Target Date Fund matching your year of retirement; you can change this anytime through Fidelity.\n\n### Employee Stock Purchase Plan (ESPP)\n\nBuy PepsiCo stock at a 15% discount through payroll deductions. Two enrollment windows per year (April and October). Maximum contribution is 10% of eligible pay.\n\n### Financial coaching\n\nFree 1:1 sessions with a Fidelity-certified financial coach. Topics range from debt strategy to retirement modeling to college savings. Book through Fidelity NetBenefits.\n\n## Life and family\n\n### Parental leave\n\nUp to 14 weeks of paid leave for the primary caregiver, 6 weeks for the supporting caregiver. Applies to birth, adoption, and foster placement. Coordinate with your HR Business Partner at least 30 days before your leave start date.\n\n### Caregiver leave\n\nUp to 4 weeks paid leave per year to care for a seriously ill family member. Documentation through Cigna.\n\n### Adoption and surrogacy assistance\n\nUp to $25,000 reimbursement per child for qualified adoption expenses or surrogacy fees.\n\n### Backup childcare and eldercare\n\nThrough Bright Horizons: up to 20 days per year of subsidized backup care (in-home or center-based) for kids, elders, or pets.\n\n## Time off\n\n- **Paid time off (PTO):** accrues based on tenure and role level. New hires typically start with 20 days, increasing to 25 after 5 years.\n- **Holidays:** 10 paid federal holidays plus 2 floating holidays you can take any time.\n- **Volunteer time off:** 8 hours per year, fully paid, for community service.\n\n## How to enroll\n\n1. Go to **MyPepsiCo > Benefits**.\n2. Click **Start Enrollment**.\n3. Walk through the guided enrollment in order: medical → dental/vision → financial → life → time off elections.\n4. Designate beneficiaries for life insurance and 401(k).\n5. Review and submit. You'll receive a confirmation by email within 24 hours.\n\n## Help and decision support\n\n- **ALEX**, an interactive benefits decision tool, walks you through plan choices based on your situation in about 10 minutes. Access at [alex.pepsico.com](#).\n- **Benefits Concierge** is a live human you can call at **1-800-PEP-BNFT** weekdays 8 AM to 8 PM ET.\n- **Counselor 1:1s** during Open Enrollment are bookable through the Benefits Hub.\n\n---\n\n**Last updated:** 05/15/2026 \n**Owner:** Total Rewards \n**Next review:** 10/01/2026",
+    "submittedBy": {
+      "name": "Sarah Chen",
+      "email": "sarah.chen@pepsico.com"
+    },
+    "submittedAt": "2026-05-15T13:10:00Z",
+    "status": "needs-info",
+    "complianceIssues": [],
+    "reviewedAt": "2026-06-02T19:14:04.429Z",
+    "reviewer": "Demo Reviewer",
+    "infoNeeded": "somethings missing",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "Benefits enrollment hub — Topic Page guide",
+      "metaDescription": "Topic Page for US employees: benefits enrollment hub. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next time",
+      "keywords": [
+        "benefits",
+        "enrollment",
+        "topic page"
+      ]
+    },
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-001",
+    "title": "How to submit an expense report",
+    "contentType": "How-To",
+    "market": "US",
+    "body": "## Summary\n\nSubmit your business expense report through Concur within 30 days of the trip end date. Reports must include itemized receipts for any single expense of $25 or more, plus a manager-approved trip purpose. Most reports route automatically and reimburse within five business days of approval.\n\n## Who this applies to\n\nAll U.S. salaried and hourly employees who incur reimbursable business expenses on a corporate card or personal funds. Contractors, interns, and temporary workers follow a different process documented in the Contractor Reimbursement KA.\n\n## Before you start\n\n- Confirm the expense is on the [approved spend categories list](#).\n- Save digital receipts as PDFs or photos. Concur accepts JPG, PNG, and PDF up to 10 MB per file.\n- Have your trip purpose, project code, and (if billable) the client account number ready.\n\n## Steps\n\n1. Sign in to Concur at **concur.pepsico.com** with your PepsiCo SSO.\n2. From the home screen, click **+ Create New Report** in the top right.\n3. Enter a **Report Name** that follows the convention: `[Trip purpose] — [Location] — [Month YYYY]`. Example: *Client meetings — NYC — Oct 2026*.\n4. Set the **Report Date** to the last day of the trip.\n5. Add the **Business Purpose** in one or two sentences. Concur uses this in the audit trail.\n6. Click **Next** and start adding expenses one at a time. For each line, attach the corresponding receipt.\n7. When all expenses are entered, click **Submit Report** at the top right.\n\n## Approval flow\n\n| Report total | Approvers |\n|---|---|\n| Up to $500 | Direct manager only |\n| $501 to $5,000 | Direct manager + functional finance partner |\n| Over $5,000 | Direct manager + functional finance partner + VP sponsor |\n\nApproval typically completes within two to three business days. Reimbursement lands in the same bank account as your paycheck within five business days after the last approver signs off.\n\n## Common issues\n\n**My receipt is missing.** Use the **Missing Receipt Affidavit** option inside the expense line. This is allowed once per report.\n\n**A line is flagged 'Out of policy'.** Open the line and read the flag detail. Most flags resolve by adding a longer business purpose or splitting the expense across project codes.\n\n**I traveled internationally.** Switch the line's currency to the local currency at point of sale. Concur converts using the daily rate; don't pre-convert to USD yourself.\n\n## Need help\n\n- Reach the T&E support team at **te-help@pepsico.com**.\n- Concur runs office hours every Tuesday at 2 PM ET. Join the recurring Teams event in your calendar's *PepsiCo, Operations* channel.\n\n---\n\n**Last updated:** 05/12/2026 \n**Owner:** Travel & Expense, Finance Operations \n**Effective:** Immediately \n**Next review:** 12/01/2026",
+    "submittedBy": {
+      "name": "Sarah Chen",
+      "email": "sarah.chen@pepsico.com"
+    },
+    "submittedAt": "2026-05-12T14:23:00Z",
+    "status": "published",
+    "complianceIssues": [],
+    "reviewedAt": "2026-06-02T15:26:08.706Z",
+    "reviewer": "Demo Reviewer",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "How to submit an expense report",
+      "metaDescription": "How-To for US employees: how to submit an expense report. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next ",
+      "keywords": [
+        "submit",
+        "expense",
+        "report",
+        "how-to"
+      ]
+    },
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-002",
+    "title": "Cómo solicitar tiempo de vacaciones",
+    "contentType": "How-To",
+    "market": "MX",
+    "body": "## Resumen\n\nSolicite su tiempo de vacaciones a través del portal MyPepsiCo con al menos dos semanas de anticipación. Su gerente directo aprueba la solicitud y Recursos Humanos confirma el balance disponible. Los días aprobados se reflejan automáticamente en su recibo de nómina del siguiente periodo.\n\n## A quién aplica\n\nTodos los colaboradores de tiempo completo en PepsiCo México con al menos seis meses de antigüedad. Los colaboradores de medio tiempo y eventuales siguen un proceso distinto, descrito en el KA **Tiempo libre para colaboradores eventuales**.\n\n## Antes de comenzar\n\n- Revise su saldo de vacaciones en MyPepsiCo en **Mi Perfil > Tiempo Libre**.\n- Confirme que sus pendientes están cubiertos por un colaborador o que su gerente está de acuerdo con cómo se gestionarán.\n- Si planea viajar al extranjero, considere también solicitar el día como **vacaciones**, no como **permiso personal**.\n\n## Pasos\n\n1. Inicie sesión en MyPepsiCo con su cuenta corporativa.\n2. Vaya a **Tiempo Libre > Solicitar Vacaciones**.\n3. Seleccione las fechas en el calendario. Los días feriados oficiales aparecen sombreados y no cuentan contra su saldo.\n4. Agregue una nota breve para su gerente (opcional pero recomendado para tramos de más de cinco días).\n5. Haga clic en **Enviar Solicitud**.\n\nSu gerente recibe una notificación automática y dispone de tres días hábiles para aprobar o pedir modificaciones.\n\n## Reglas importantes\n\n- **Antigüedad y derecho:** según la Ley Federal del Trabajo, usted tiene derecho a 12 días por su primer año, 14 días por su segundo, y así sucesivamente. PepsiCo México otorga días adicionales según su política interna; consulte el documento **Política de vacaciones México 2026**.\n- **Aguinaldo y prima vacacional:** la prima vacacional (25% sobre los días tomados) se paga automáticamente con la nómina del periodo en que ejerza el descanso.\n- **Vacaciones acumuladas:** podrá acumular un máximo de 1.5 veces su saldo anual. El excedente se pierde al cierre del año fiscal.\n- **Periodos restringidos:** durante el cierre de inventario anual (segunda quincena de diciembre) las solicitudes requieren aprobación adicional de su gerente de planta o función.\n\n## Si su gerente no responde\n\nSi pasan tres días hábiles sin respuesta, MyPepsiCo escala automáticamente la solicitud al siguiente nivel de aprobación. Usted recibe una notificación cuando esto ocurre.\n\n## ¿Necesita ayuda?\n\n- Comuníquese con su Business Partner de Recursos Humanos a través de MyPepsiCo en **Contactar a RH**.\n- Para preguntas sobre la Ley Federal del Trabajo, escriba a **rh-asesoria-mx@pepsico.com**.\n\n---\n\n**Última actualización:** 10/05/2026 \n**Propietario:** Recursos Humanos México \n**Vigencia:** Inmediata \n**Próxima revisión:** 01/12/2026",
+    "submittedBy": {
+      "name": "Carlos Ramírez",
+      "email": "carlos.ramirez@pepsico.com"
+    },
+    "submittedAt": "2026-05-10T09:15:00Z",
+    "status": "published",
+    "complianceIssues": [],
+    "translations": {
+      "en": "# How to request vacation time\n\n## Summary\n\nRequest your vacation time through the MyPepsiCo portal at least two weeks in advance. Your direct manager approves the request and Human Resources confirms the available balance. Approved days are automatically reflected in your pay stub for the following pay cycle.\n\n## Who this applies to\n\nAll full-time PepsiCo Mexico employees with at least six months of tenure. Part-time and temporary employees follow a different process, described in the KA **Time off for temporary employees**.\n\n## Before you start\n\n- Check your vacation balance in MyPepsiCo at **My Profile > Time Off**.\n- Confirm your pending work is covered by a colleague or that your manager is comfortable with how it will be managed.\n- If you plan to travel abroad, also consider requesting the day as **vacation**, not **personal leave**.\n\n## Steps\n\n1. Sign in to MyPepsiCo with your corporate account.\n2. Go to **Time Off > Request Vacation**.\n3. Select the dates on the calendar. Official holidays appear shaded and don't count against your balance.\n4. Add a brief note for your manager (optional but recommended for stretches longer than five days).\n5. Click **Submit Request**.\n\nYour manager receives an automatic notification and has three business days to approve or request changes.\n\n## Important rules\n\n- **Tenure and entitlement:** under Mexico's Federal Labor Law, you're entitled to 12 days in your first year, 14 days in your second, and so on. PepsiCo Mexico grants additional days per its internal policy; see the **Mexico Vacation Policy 2026** document.\n- **Aguinaldo and vacation premium:** the vacation premium (25% on days taken) is paid automatically with the pay cycle in which you take time off.\n- **Accrued vacation:** you can accumulate a maximum of 1.5 times your annual balance. The excess is forfeited at fiscal year end.\n- **Restricted periods:** during the annual inventory close (second half of December), requests require additional approval from your plant or function manager.\n\n## If your manager doesn't respond\n\nIf three business days pass without a response, MyPepsiCo automatically escalates the request to the next approval level. You'll receive a notification when this happens.\n\n## Need help?\n\n- Contact your HR Business Partner through MyPepsiCo at **Contact HR**.\n- For questions about the Federal Labor Law, email **rh-asesoria-mx@pepsico.com**.\n\n---\n\n**Last updated:** 10/05/2026 \n**Owner:** Human Resources Mexico \n**Effective:** Immediately \n**Next review:** 01/12/2026"
+    },
+    "reviewedAt": "2026-06-02T15:26:04.727Z",
+    "reviewer": "Demo Reviewer",
+    "countries": [
+      "MX"
+    ],
+    "seo": {
+      "title": "Cómo solicitar tiempo de vacaciones",
+      "metaDescription": "How-To for MX employees: cómo solicitar tiempo de vacaciones. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
+      "keywords": [
+        "solicitar",
+        "tiempo",
+        "vacaciones",
+        "how-to"
+      ]
+    },
+    "sector": "latam"
+  },
+  {
+    "id": "ka-003",
+    "title": "Remote work policy — North America",
+    "contentType": "Policy",
+    "market": "Global",
+    "body": "## Summary\n\nThis policy defines eligibility, expectations, and limits for remote and hybrid work arrangements across PepsiCo's U.S. and Mexico operations. Most office-based roles are eligible for hybrid work (three days in the office, two days remote by default). Fully remote roles exist but are limited to positions explicitly designated as such by the function leader and HR.\n\n## Who this applies to\n\nAll salaried office-based employees in the United States and Mexico. The policy does not apply to roles requiring physical presence: plant operations, field sales, retail merchandising, warehouse, and most R&D bench scientists. Those roles follow site-specific schedules.\n\n## Default arrangement\n\nUnless your role is designated otherwise, the standing expectation is:\n\n- **In office:** Tuesday, Wednesday, Thursday\n- **Remote:** Monday and Friday\n\nFunction leaders may shift the in-office days to align with team rituals (for example, a marketing team might choose Monday/Wednesday/Thursday to anchor weekly planning). Any deviation from the default three-days-in standard requires HR Business Partner sign-off.\n\n## Eligibility for fully remote\n\nFully remote arrangements are approved on a case-by-case basis. Approval requires:\n\n1. The role to be designated as **remote-eligible** in Workday by the function leader.\n2. A documented business case explaining why presence isn't required (typically: the role has no team rituals dependent on co-location, no physical asset access, and the employee has demonstrated independent performance for at least 12 months).\n3. Sign-off from the function VP and the HR Business Partner.\n\nFully remote employees must reside in a state or municipality where PepsiCo is registered to employ. The talent acquisition team maintains the current list.\n\n## Expectations while remote\n\n- **Core hours:** 9:00 AM to 3:00 PM local time. You're expected to be available on Teams and email during these hours.\n- **Camera norms:** cameras on for cross-functional meetings, optional for one-on-ones and team standups.\n- **Workspace:** you're responsible for a workspace that's reasonably private, has reliable internet (minimum 50 Mbps down), and is ergonomically safe.\n- **Equipment:** IT provides a laptop, an external monitor, a keyboard, and a mouse. Additional equipment requires manager approval.\n- **Security:** all PepsiCo work must be performed on PepsiCo-issued devices, never on personal computers or phones.\n\n## Tax and compliance\n\nYour assigned office location determines your tax withholding. If you work remotely from a different state or country than your office for more than 30 calendar days in a year, you must notify the HR Business Partner. This may trigger a payroll and benefits review.\n\n## Exceptions and time-bound flexibility\n\n- **Short-term flex:** up to two weeks per year of working from an alternate location (a different state or country) is permitted with manager notice, no HR approval needed.\n- **Caregiver flex:** documented caregiver responsibilities may grant temporary additional remote days. Contact your HR Business Partner.\n- **Medical accommodations:** are handled separately under the Reasonable Accommodation Policy.\n\n## Policy violations\n\nRepeated unexcused in-office absence is treated like any other attendance issue. The first conversation is between you and your manager. Repeated patterns escalate to HR.\n\n---\n\n**Last updated:** 05/08/2026 \n**Owner:** People Strategy, North America \n**Effective:** 06/01/2026 \n**Next review:** 06/01/2027 \n**Approved by:** SVP People, North America",
+    "submittedBy": {
+      "name": "Priya Patel",
+      "email": "priya.patel@pepsico.com"
+    },
+    "submittedAt": "2026-05-08T16:42:00Z",
+    "status": "published",
+    "reviewedAt": "2026-05-15T11:00:00Z",
+    "reviewer": "M. Johnson",
+    "complianceIssues": [],
+    "countries": [
+      "US",
+      "MX",
+      "BR",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "Remote work policy — North America",
+      "metaDescription": "Policy for Global employees: remote work policy — north america. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for th",
+      "keywords": [
+        "remote",
+        "work",
+        "policy",
+        "north",
+        "america"
+      ]
+    },
+    "sector": "global"
+  },
+  {
+    "id": "ka-004",
+    "title": "FAQ: New hire onboarding checklist",
+    "contentType": "FAQ",
+    "market": "US",
+    "body": "## When does my first day actually start?\n\nYour Day One officially begins at 9:00 AM in your local time zone. You'll receive a Teams calendar invite the week before with the morning's agenda: welcome session, IT setup, benefits orientation, and a 1:1 with your manager. If you're in-office, plan to arrive 15 minutes early to check in with security.\n\n## When do I get my laptop?\n\nYour IT-provisioned laptop ships to the address you provided in Workday three business days before your start date. Track it through the welcome email subject line **\"Your IT kit is on the way\"** from **it-onboarding@pepsico.com**. If you don't see tracking by your start date minus two, email IT immediately. Do NOT log in to any work systems from a personal device.\n\n## When does benefits enrollment open?\n\nYou have **30 days from your start date** to enroll in medical, dental, vision, and 401(k). The window closes at midnight on Day 30. If you miss it, you'll have to wait until the next open enrollment period (November). Visit the [Benefits Hub](#) in MyPepsiCo or schedule a 1:1 with a benefits counselor through the same hub.\n\n## What's the 401(k) match?\n\nPepsiCo matches 100% of the first 5% of your eligible pay that you contribute. The match vests on a 3-year graded schedule. Most new hires set up auto-escalation from 5% to 10% over two years; you can do this when you enroll.\n\n## How do I get my first paycheck?\n\nPay is biweekly, on Fridays. Your first paycheck arrives on the Friday closest to your second full week of work. Direct deposit is set up during onboarding; if you can't complete it on Day One, you'll receive a paper check sent to your address for the first cycle only.\n\n## What's expected of me in the first 30 days?\n\nYour manager will share a 30/60/90 plan during your first week. The first 30 days are mostly absorption: meet your team, learn the tools, understand how your function operates, and complete required training (compliance, security, code of conduct). You're not expected to deliver outcomes yet. Your job is to learn.\n\n## Who do I contact if something is broken?\n\n| Issue | Where to go |\n|---|---|\n| Laptop, software, account access | IT Service Desk via **MyIT** in the portal |\n| Pay, benefits, time off | HR Service Center via **MyPepsiCo > Get Help** |\n| Onboarding logistics | Your assigned People Operations contact (listed in your welcome email) |\n| Building access, badges | Site Operations at your office's front desk |\n\n## I haven't met my buddy. How do I find them?\n\nEvery new hire is paired with an onboarding buddy. Their name is in your welcome email and in Workday under **My Profile > Onboarding > Buddy**. Your buddy will reach out by end of Week One. If they don't, ping your manager; sometimes the assignment doesn't transfer cleanly.\n\n## What about training I need to complete?\n\nRequired training shows up automatically in your MyPepsiCo dashboard under **Learning > Required**. Most are short (15-30 minutes each) and you have 60 days to complete them. The most-important-first list is:\n\n1. **Code of Conduct** (required Day 1-7)\n2. **Information Security Essentials** (required Day 1-14)\n3. **Anti-Bribery and Anti-Corruption** (required Day 1-30)\n4. Function-specific training (varies)\n\n## Where do I find this stuff in three months when I forget?\n\nBookmark **mypepsico.com/onboarding** and **mypepsico.com/benefits-hub** today. The full onboarding KA library lives under **Help > New Hire** and stays accessible for your first 12 months.\n\n---\n\n**Last updated:** 05/07/2026 \n**Owner:** People Operations, North America \n**Next review:** 11/01/2026",
+    "submittedBy": {
+      "name": "James O'Brien",
+      "email": "james.obrien@pepsico.com"
+    },
+    "submittedAt": "2026-05-07T10:30:00Z",
+    "status": "published",
+    "reviewedAt": "2026-05-14T15:20:00Z",
+    "reviewer": "M. Johnson",
+    "complianceIssues": [],
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "FAQ: New hire onboarding checklist",
+      "metaDescription": "FAQ for US employees: faq: new hire onboarding checklist. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next ",
+      "keywords": [
+        "hire",
+        "onboarding",
+        "checklist",
+        "faq"
+      ]
+    },
+    "sector": "pfna"
+  },
+  {
+    "id": "ka-005",
+    "title": "Política de seguridad en planta",
+    "contentType": "Policy",
+    "market": "MX",
+    "body": "## Resumen\n\nEsta política establece las reglas generales de seguridad para todos los colaboradores en las plantas de PepsiCo México. Su cumplimiento es obligatorio.\n\n## A quién aplica\n\nTodos los colaboradores de planta, contratistas y visitantes en sitios de manufactura, almacenes y centros de distribución de PepsiCo México.\n\n## Equipo de protección personal\n\nAl ingresar al área operativa, todos los colaboradores deben portar:\n\n- Zapatos de seguridad.\n- Lentes de seguridad.\n- Protección auditiva donde se indique.\n- Chaleco reflejante en zonas con tráfico de montacargas.\n\nEl EPP es proporcionado por PepsiCo. Solicite reemplazos a su supervisor cuando muestre desgaste.\n\n## Reglas generales\n\n1. No usar teléfonos celulares en áreas operativas.\n2. No correr en la planta.\n3. No remover guardas o dispositivos de seguridad.\n4. Reportar accidentes o condiciones inseguras a su supervisor de inmediato.\n5. No trabajar bajo influencia de alcohol o drogas.\n\n## Capacitación\n\nTodo el personal debe completar el curso de seguridad industrial en los primeros 30 días, y recertificarse anualmente. El curso se asigna automáticamente en MyPepsiCo.\n\n## Reporte de incidentes\n\nReporte cualquier incidente a su supervisor directo o a través de la línea SafetyFirst al 800-PEP-SAFE.\n\n---\n\n**Última actualización:** 06/05/2026 \n**Propietario:** Salud, Seguridad y Medio Ambiente México \n**Próxima revisión:** Pendiente",
+    "submittedBy": {
+      "name": "Ana Gutiérrez",
+      "email": "ana.gutierrez@pepsico.com"
+    },
+    "submittedAt": "2026-05-06T08:00:00Z",
+    "status": "rejected",
+    "reviewedAt": "2026-05-13T13:45:00Z",
+    "reviewer": "L. Hernández",
+    "rejectionReason": "Missing NOM-051 references and lacks detail on critical procedures (LOTO, trabajo en alturas, espacios confinados). Plant safety policy needs full regulatory citations and step-level detail before publication.",
+    "complianceIssues": [
+      {
+        "severity": "error",
+        "category": "regulatory",
+        "message": "No NOM-051, NOM-017, NOM-029 references for plant safety content. Required by Mexican STPS regulations."
+      },
+      {
+        "severity": "warning",
+        "category": "formatting",
+        "message": "Missing critical procedure sections: bloqueo y etiquetado (LOTO), trabajo en alturas, espacios confinados."
+      }
+    ],
+    "translations": {
+      "en": "# Plant safety policy\n\n## Summary\n\nThis policy sets out the general safety rules for all employees at PepsiCo Mexico plants. Compliance is mandatory.\n\n## Who this applies to\n\nAll plant employees, contractors, and visitors at PepsiCo Mexico manufacturing sites, warehouses, and distribution centers.\n\n## Personal protective equipment\n\nWhen entering the operating area, all employees must wear:\n\n- Safety shoes.\n- Safety glasses.\n- Hearing protection where indicated.\n- Reflective vest in zones with forklift traffic.\n\nPPE is provided by PepsiCo. Request replacements from your supervisor when items show wear.\n\n## General rules\n\n1. No mobile phone use in operating areas.\n2. No running on the plant floor.\n3. Do not remove guards or safety devices.\n4. Report accidents or unsafe conditions to your supervisor immediately.\n5. Do not work under the influence of alcohol or drugs.\n\n## Training\n\nAll plant personnel must complete the industrial safety course in the first 30 days, and recertify annually. The course is assigned automatically in MyPepsiCo.\n\n## Incident reporting\n\nReport any incident to your direct supervisor or via the SafetyFirst hotline at 800-PEP-SAFE.\n\n---\n\n**Last updated:** 06/05/2026 \n**Owner:** Health, Safety and Environment Mexico \n**Next review:** Pending"
+    },
+    "countries": [
+      "MX"
+    ],
+    "seo": {
+      "title": "Política de seguridad en planta",
+      "metaDescription": "Policy for MX employees: política de seguridad en planta. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next ",
+      "keywords": [
+        "tica",
+        "seguridad",
+        "planta",
+        "policy"
+      ]
+    },
+    "sector": "latam"
+  },
+  {
+    "id": "ka-009",
+    "title": "Code of conduct — annual refresh",
+    "contentType": "Policy",
+    "market": "Global",
+    "body": "## Our values\n\nWe act with integrity in everything we do. Hey team, let's all do the right thing! Doing what is right means making decisions guided by our values: integrity, respect, and accountability. Every employee, contractor, and partner is expected to uphold these standards every day.\n\n## What this policy covers\n\nThe Code of Conduct establishes the standards of behavior expected of everyone working at or on behalf of PepsiCo, globally. It is reviewed and refreshed annually. Sign-off is required from every employee within 60 days of each annual refresh.\n\nThe Code addresses, at minimum:\n\n- Compliance with laws and regulations in every market we operate in.\n- Anti-bribery, anti-corruption, and conflict-of-interest standards.\n- Workplace conduct, including non-discrimination, anti-harassment, and inclusion.\n- Privacy and data protection.\n- Use of company assets.\n- Public communications and social media.\n\n## Compliance with laws\n\nWe comply with the laws of every country, state, and municipality where we operate. When local law sets a stricter standard than this Code, follow the local law. When the Code sets a stricter standard than local law, follow the Code. When in doubt, ask Legal or Ethics & Compliance.\n\n## Anti-bribery and anti-corruption\n\nGuys, we never offer, give, accept, or solicit anything of value to influence a business decision. This applies to government officials, business partners, customers, and suppliers. \"Anything of value\" includes cash, gifts, hospitality, sponsorships, donations, and personal favors.\n\nReasonable business hospitality is permitted within the limits defined in the **Gifts, Hospitality, and Sponsorships Policy**. When in doubt, pre-clear with Ethics & Compliance.\n\n## Conflicts of interest\n\nA conflict of interest exists when your personal interests interfere — or appear to interfere — with your ability to act in PepsiCo's best interest. Examples include:\n\n- Hiring, supervising, or being supervised by a family member.\n- A financial interest in a supplier, customer, or competitor.\n- Outside employment that competes with or relies on PepsiCo's business.\n\nDisclose any potential conflict to your manager and to Ethics & Compliance. Disclosure does not always mean prohibition; many conflicts can be managed transparently once disclosed.\n\n## Workplace conduct\n\nWe expect every workplace to be free of discrimination, harassment, intimidation, and retaliation. This includes physical workplaces, remote-work settings, business travel, off-site events, and digital channels (Teams, email, social media). Click here for more details.\n\nDecisions about hiring, promotion, compensation, and termination are based on merit, qualifications, and performance, never on protected characteristics.\n\n## Privacy and data\n\nWe handle personal data with care, in accordance with the laws of the markets we operate in. Need-to-know is the operating principle. If you don't need access to do your job, don't request it.\n\n## Reporting concerns\n\nYou can raise a concern through any of these channels: your manager, your HR Business Partner, Ethics & Compliance directly, or the Speak Up hotline.\n\n## Acknowledgment\n\nEvery employee must complete the annual Code of Conduct course and sign the acknowledgment in MyPepsiCo within 60 days of the refresh announcement.\n\n---\n\n**Last updated:** 05/02/2026 \n**Owner:** Ethics & Compliance",
+    "submittedBy": {
+      "name": "Priya Patel",
+      "email": "priya.patel@pepsico.com"
+    },
+    "submittedAt": "2026-05-02T09:20:00Z",
+    "status": "rejected",
+    "reviewedAt": "2026-05-09T14:00:00Z",
+    "reviewer": "M. Johnson",
+    "rejectionReason": "Tone too informal for a Tier-1 policy document. Multiple inclusivity and accessibility issues that must be fixed before resubmission.",
+    "complianceIssues": [
+      {
+        "severity": "warning",
+        "category": "tone",
+        "message": "Casual phrasing ('Hey team', 'Guys') not appropriate for policy documents."
+      },
+      {
+        "severity": "error",
+        "category": "inclusivity",
+        "message": "Non-inclusive language detected: 'Guys'. Use neutral alternatives."
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "message": "Generic link text 'Click here' is not screen-reader friendly. Use descriptive link text."
+      }
+    ],
+    "countries": [
+      "US",
+      "MX",
+      "BR",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "Code of conduct — annual refresh",
+      "metaDescription": "Policy for Global employees: code of conduct — annual refresh. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the ",
+      "keywords": [
+        "code",
+        "conduct",
+        "annual",
+        "refresh",
+        "policy"
+      ]
+    },
+    "sector": "global"
+  },
+  {
+    "id": "ka-011",
+    "title": "Guía de uso del portal MyPepsiCo",
+    "contentType": "How-To",
+    "market": "MX",
+    "body": "## Introducción\n\nMyPepsiCo es su portal del colaborador: el lugar único para acceder a herramientas, comunicaciones, capacitación, prestaciones, y servicios. Esta guía cubre lo que necesita saber para usarlo bien desde su primera semana.\n\n## A quién aplica\n\nTodos los colaboradores de PepsiCo México. El portal funciona en escritorio (a través de cualquier navegador moderno) y en dispositivos móviles (con la app **MyPepsiCo** disponible en iOS y Android).\n\n## Cómo ingresar\n\n### Desde una computadora\n\n1. Vaya a **mypepsico.com.mx** desde cualquier navegador moderno (Chrome, Edge, Safari, Firefox).\n2. Inicie sesión con su cuenta corporativa (formato `nombre.apellido@pepsico.com`).\n3. Complete la autenticación de dos factores con la app **Microsoft Authenticator** en su teléfono.\n\n### Desde el celular\n\n1. Descargue **MyPepsiCo** desde la App Store o Google Play.\n2. Abra la app y seleccione **Iniciar sesión**.\n3. Use sus credenciales corporativas y complete la autenticación de dos factores.\n\nSi olvida su contraseña, restablézcala en **passwordreset.pepsico.com** o llame al **Service Desk al 800-PEP-HELP**.\n\n## Qué encontrará en el portal\n\nEl portal está organizado en cinco secciones principales accesibles desde el menú superior:\n\n### 1. Inicio\n\nResumen personalizado: sus próximas reuniones, sus pendientes de aprobación, anuncios corporativos, y noticias relevantes para su función.\n\n### 2. Mi Perfil\n\nDatos personales, datos bancarios, contactos de emergencia, prestaciones inscritas, recibos de nómina, e historial de tiempo libre.\n\n### 3. Tiempo Libre\n\nSolicitar vacaciones, permisos personales, días por enfermedad, e incapacidades. También consulta de su saldo actual.\n\n### 4. Aprendizaje\n\nCursos obligatorios, capacitación opcional, certificaciones, y rutas de desarrollo profesional. Cursos asignados automáticamente aparecen marcados con un punto naranja.\n\n### 5. Contactar a RH\n\nAbrir un caso con Recursos Humanos para cualquier tema: nómina, prestaciones, dudas legales, conflictos en el trabajo, etc. Los casos se asignan automáticamente al especialista apropiado y reciben respuesta en máximo 24 horas hábiles.\n\n## Tareas comunes\n\n### Descargar su recibo de nómina\n\n**Mi Perfil > Nómina > Recibos**. Disponible en PDF desde las 6:00 AM del día de pago.\n\n### Solicitar vacaciones\n\n**Tiempo Libre > Solicitar Vacaciones**. Vea el KA **Cómo solicitar tiempo de vacaciones** para el detalle completo.\n\n### Generar una constancia laboral\n\n**Mi Perfil > Documentos > Generar Constancia**. Tres tipos disponibles: simple, con sueldo, con sueldo y bonos. PDF firmado digitalmente, descargable al instante.\n\n### Cambiar su contraseña\n\nDesde **passwordreset.pepsico.com** o desde **Mi Perfil > Seguridad > Cambiar contraseña**. Cambio obligatorio cada 90 días.\n\n### Ver sus prestaciones inscritas\n\n**Mi Perfil > Prestaciones**. Aquí ve la cobertura de gastos médicos mayores, su saldo en el fondo de ahorro, sus vales de despensa, y otras prestaciones según su nivel y función.\n\n### Completar un curso obligatorio\n\n**Aprendizaje > Obligatorio**. Los cursos están ordenados por fecha límite. Hacer clic en uno lo abre directamente. El progreso se guarda automáticamente.\n\n## Búsqueda\n\nLa barra de búsqueda en la parte superior busca en todo el portal: documentos, KAs, personas, cursos, y casos. Use comillas para búsquedas exactas (por ejemplo, `\"política de viajes\"`).\n\n## Notificaciones\n\nLas notificaciones aparecen en el ícono de campana en la parte superior derecha. Las más comunes son:\n\n- Aprobaciones pendientes (solicitudes de tiempo libre, gastos, etc.).\n- Recordatorios de cursos por vencer.\n- Confirmaciones de nómina o cambios en sus datos.\n\nPuede ajustar qué notificaciones recibe por correo en **Mi Perfil > Preferencias > Notificaciones**.\n\n## Si algo no funciona\n\n- **El portal no carga:** verifique su VPN si está fuera de la red de PepsiCo. Si el portal está caído, vea **status.pepsico.com**.\n- **Una sección no aparece:** algunas funciones requieren permisos específicos. Si cree que debería ver una sección que no aparece, contacte al Service Desk.\n- **Datos incorrectos:** los datos de nómina y prestaciones se actualizan diariamente. Si ve un error, abra un caso en **Contactar a RH**.\n\n---\n\n**Última actualización:** 28/04/2026 \n**Propietario:** Recursos Humanos México \n**Próxima revisión:** 01/11/2026",
+    "submittedBy": {
+      "name": "Ana Gutiérrez",
+      "email": "ana.gutierrez@pepsico.com"
+    },
+    "submittedAt": "2026-04-28T10:00:00Z",
+    "status": "published",
+    "reviewedAt": "2026-05-05T16:00:00Z",
+    "reviewer": "L. Hernández",
+    "complianceIssues": [],
+    "translations": {
+      "en": "# MyPepsiCo Portal User Guide\n\n## Introduction\n\nMyPepsiCo is your employee portal: the single place to access tools, communications, training, benefits, and services. This guide covers what you need to know to use it well from your first week.\n\n## Who this applies to\n\nAll PepsiCo Mexico employees. The portal works on desktop (through any modern browser) and on mobile devices (with the **MyPepsiCo** app available on iOS and Android).\n\n## How to sign in\n\n### From a computer\n\n1. Go to **mypepsico.com.mx** from any modern browser (Chrome, Edge, Safari, Firefox).\n2. Sign in with your corporate account (format `firstname.lastname@pepsico.com`).\n3. Complete two-factor authentication with the **Microsoft Authenticator** app on your phone.\n\n### From your phone\n\n1. Download **MyPepsiCo** from the App Store or Google Play.\n2. Open the app and select **Sign In**.\n3. Use your corporate credentials and complete two-factor authentication.\n\nIf you forget your password, reset it at **passwordreset.pepsico.com** or call the **Service Desk at 800-PEP-HELP**.\n\n## What you'll find in the portal\n\nThe portal is organized into five main sections accessible from the top menu:\n\n### 1. Home\n\nPersonalized summary: your upcoming meetings, pending approvals, corporate announcements, and news relevant to your function.\n\n### 2. My Profile\n\nPersonal data, bank details, emergency contacts, enrolled benefits, pay stubs, and time-off history.\n\n### 3. Time Off\n\nRequest vacation, personal leave, sick days, and disability. Also a view of your current balance.\n\n### 4. Learning\n\nRequired courses, optional training, certifications, and professional development paths. Automatically assigned courses appear marked with an orange dot.\n\n### 5. Contact HR\n\nOpen a case with Human Resources for any topic: payroll, benefits, legal questions, workplace conflicts, etc. Cases are automatically assigned to the appropriate specialist and receive a response within 24 business hours.\n\n## Common tasks\n\n### Download your pay stub\n\n**My Profile > Payroll > Stubs**. Available as PDF starting at 6:00 AM on payday.\n\n### Request vacation\n\n**Time Off > Request Vacation**. See the KA **How to request vacation time** for the full details.\n\n### Generate an employment certificate\n\n**My Profile > Documents > Generate Certificate**. Three types available: simple, with salary, with salary and bonuses. Digitally signed PDF, downloadable instantly.\n\n### Change your password\n\nFrom **passwordreset.pepsico.com** or from **My Profile > Security > Change Password**. Mandatory change every 90 days.\n\n### View your enrolled benefits\n\n**My Profile > Benefits**. Here you see major medical insurance coverage, your savings fund balance, food vouchers, and other benefits according to your level and function.\n\n### Complete a required course\n\n**Learning > Required**. Courses are ordered by deadline. Clicking one opens it directly. Progress is saved automatically.\n\n## Search\n\nThe search bar at the top searches the entire portal: documents, KAs, people, courses, and cases. Use quotes for exact searches (for example, `\"travel policy\"`).\n\n## Notifications\n\nNotifications appear in the bell icon in the upper right. The most common are:\n\n- Pending approvals (time-off requests, expenses, etc.).\n- Reminders for courses about to expire.\n- Payroll confirmations or changes to your data.\n\nYou can adjust which notifications you receive by email at **My Profile > Preferences > Notifications**.\n\n## If something doesn't work\n\n- **The portal won't load:** check your VPN if you're outside the PepsiCo network. If the portal is down, see **status.pepsico.com**.\n- **A section is missing:** some functions require specific permissions. If you think you should see a section that isn't appearing, contact the Service Desk.\n- **Incorrect data:** payroll and benefits data updates daily. If you see an error, open a case at **Contact HR**.\n\n---\n\n**Last updated:** 28/04/2026 \n**Owner:** Human Resources Mexico \n**Next review:** 01/11/2026"
+    },
+    "countries": [
+      "MX"
+    ],
+    "seo": {
+      "title": "Guía de uso del portal MyPepsiCo",
+      "metaDescription": "How-To for MX employees: guía de uso del portal mypepsico. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next",
+      "keywords": [
+        "portal",
+        "mypepsico",
+        "how-to"
+      ]
+    },
+    "sector": "latam"
+  }
+]

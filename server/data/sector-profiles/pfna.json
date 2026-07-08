@@ -1,0 +1,34 @@
+{
+  "id": "pfna",
+  "name": "PepsiCo Foods North America",
+  "summary": "Foods business in the US and Canada — Frito-Lay, Quaker, and other PFNA-owned brands. Retail, DSD (direct-store-delivery), and manufacturing footprint.",
+  "toneOfVoice": "Confident, plain-spoken, energetic. This is a fast-moving foods business — content should feel that way. Use active verbs. Assume the reader is on the floor, in the truck, or in the plant, not at a desk. Prioritize immediately actionable guidance over background context.",
+  "contentStrategy": "PFNA content lives at the intersection of frontline operations and corporate policy. Prioritize: (1) shift-worker safety, food safety, and quality standards; (2) route sales and DSD guidance; (3) brand-specific promotional and merchandising content (Frito-Lay, Quaker, Cheetos, Doritos, Tostitos); (4) plant-floor training and compliance material. Content should be short, printable, and referenceable during a shift.",
+  "contentGuidelines": "1. Reference specific PFNA brands by name (Frito-Lay, Quaker Oats, Cheetos, Doritos, Tostitos, Lay's) rather than 'our products.' 2. Distinguish plant-floor content from route/DSD content clearly. 3. Food safety references must cite FSMA, HACCP, or the specific PFNA quality standard. 4. Route sales content should use PFNA route terminology (start-of-day, end-of-day, service call, PROS). 5. Any content touching allergen management gets escalated to the PFNA Quality team for review before publish.",
+  "terminology": {
+    "chips": "salty snacks",
+    "chip aisle": "salty snack aisle",
+    "route driver": "route sales representative",
+    "driver": "route sales representative",
+    "warehouse": "distribution center",
+    "plant floor": "manufacturing floor"
+  },
+  "bannedTerms": [
+    "junk food",
+    "unhealthy snacks",
+    "empty calories",
+    "cheap eats"
+  ],
+  "regulatoryNotes": "FSMA (Food Safety Modernization Act), USDA, FDA labeling, and CFIA (for Canada) apply. Allergen disclosure must follow FALCPA and Canadian allergen labeling standards. State/provincial regulations (California Prop 65, Ontario labeling) require legal review when referenced. FLSA/FMLA/ADA for US employees; ESA for Ontario employees.",
+  "seoNotes": "PFNA content ranks against brand searches (Frito-Lay, Quaker, Cheetos). Employee-facing content should include the brand name + PepsiCo qualifier to disambiguate from consumer-facing marketing. Route sales content indexes against internal MyPepsiCo search only.",
+  "commonSearchTerms": [
+    "Frito-Lay",
+    "Quaker",
+    "route sales",
+    "DSD",
+    "food safety",
+    "plant floor",
+    "PROS",
+    "shift schedule"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "global",
+  "name": "Global",
+  "summary": "Corporate content that applies to every sector and market. Reserved for company-wide policy, brand statements, and cross-sector programs.",
+  "toneOfVoice": "Neutral, corporate, precise. Every claim must be defensible across markets and cultures. Avoid idioms, regional metaphors, and colloquialisms. Prefer international English (avoid US-specific spellings, dates, or currency in the source). Cite policy sources rather than paraphrasing.",
+  "contentStrategy": "Global content anchors the brand and sets the guardrails. Prioritize: (1) statements of principle and corporate policy that don't change by market; (2) unified explanations of company programs (Diversity, Ethics, Speak Up, Sustainability); (3) cross-market reference material that individual markets can point to. Do not include market-specific procedures — those live in the market-level extensions.",
+  "contentGuidelines": "1. Write in international English; leave US/UK spelling to the market layer. 2. Never assume a currency, date format, or working week. 3. Use ISO 8601 for dates in structured references. 4. Cite the underlying PepsiCo policy document by title and year for auditability. 5. Content that requires legal counsel review must include a \"Contact Global Legal\" note. 6. Avoid using the word 'we' — prefer 'PepsiCo' or 'the company' since 'we' shifts meaning by market.",
+  "terminology": {
+    "our company": "PepsiCo",
+    "corporate HQ": "PepsiCo Global Headquarters",
+    "leadership": "PepsiCo Executive Committee"
+  },
+  "bannedTerms": [
+    "third-world",
+    "developed markets",
+    "emerging markets",
+    "manpower",
+    "guys",
+    "master/slave",
+    "blacklist",
+    "whitelist"
+  ],
+  "regulatoryNotes": "Global content must comply with the PepsiCo Global Code of Conduct, the Global Human Rights Policy, and applicable anti-corruption and competition law statements. Any policy claim must trace to an approved global policy document. Legal review required for content referencing regulatory frameworks (GDPR, SOX, FCPA, UK Bribery Act) at the global level.",
+  "seoNotes": "Global content is indexed across all portal regions. Prefer neutral phrasing that ranks in multiple English variants. Structured data (schema.org) must include organization = PepsiCo, not a regional entity.",
+  "commonSearchTerms": [
+    "PepsiCo policy",
+    "code of conduct",
+    "speak up",
+    "global HR",
+    "corporate",
+    "company-wide"
+  ],
+  "sources": [
+    {
+      "id": "src-glb-code",
+      "kind": "url",
+      "title": "PepsiCo Global Code of Conduct (2026)",
+      "url": "https://www.pepsico.com/who-we-are/mission-and-vision/global-code-of-conduct",
+      "snippet": "PepsiCo Global Code of Conduct. Sets baseline expectations for ethics, anti-corruption, human rights, competition law, and Speak Up program worldwide. All corporate content must cite this document by title and year when referencing corporate ethics obligations.",
+      "addedAt": "2026-01-05T09:00:00.000Z",
+      "addedBy": "Global Ethics & Compliance"
+    },
+    {
+      "id": "src-glb-hr",
+      "kind": "note",
+      "title": "Global Human Rights Policy summary",
+      "snippet": "PepsiCos Global Human Rights Policy commits the company to the UN Guiding Principles on Business and Human Rights and the ILO Declaration on Fundamental Principles and Rights at Work. Applies across all sectors, all markets, all business partners.",
+      "addedAt": "2026-01-05T09:05:00.000Z",
+      "addedBy": "Global Legal"
+    }
+  ]
+}

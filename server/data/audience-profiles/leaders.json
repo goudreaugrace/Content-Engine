@@ -1,0 +1,9 @@
+{
+  "id": "leaders",
+  "label": "People leaders & managers",
+  "summary": "First- and second-line people managers across the operation. They are responsible for both following the policy themselves and applying it to their team.",
+  "toneOfVoice": "Professional and direct. Assume managerial context — approvals, escalations, performance. Confident, action-oriented, no marketing language.",
+  "readingContext": "Desktop primarily, between meetings. Often skimming during a transition; will return to the article later for detail.",
+  "contentGuidelines": "Always surface manager-specific actions clearly: approve, escalate, coach, document. Where the policy differs for managers vs employees, call that out explicitly with a 'Manager actions' subsection.",
+  "searchIntent": "Leaders search for policy and decision-context content (\"approval thresholds\", \"escalation path\"). They scan headings; the answer must be visible in the first paragraph."
+}

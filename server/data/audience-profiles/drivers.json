@@ -1,0 +1,9 @@
+{
+  "id": "drivers",
+  "label": "Drivers & route sales",
+  "summary": "Delivery drivers and route-sales reps running daily routes. Mobile, time-tight, often outdoors.",
+  "toneOfVoice": "Brief, scannable, decision-driven. Plain language. Friendly enough to feel human but tight on word count.",
+  "readingContext": "Phone, during pre-shift briefings, often standing. May read at a customer stop between deliveries. Read time: under 60 seconds for most articles.",
+  "contentGuidelines": "Lead with what they need to do. Frame edge cases as 'When X, do Y' decision points. Reference DOT regulations and HOS limits accurately. Avoid corporate language; route-talk works better.",
+  "searchIntent": "Drivers search on the route app between stops, typically about login, route, or vehicle issues. Queries include the app name and a specific symptom. Titles that match the error message rank highest."
+}

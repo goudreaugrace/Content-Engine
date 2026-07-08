@@ -1,0 +1,9 @@
+{
+  "id": "sales",
+  "label": "Sales & field representatives",
+  "summary": "Field-based sales team calling on customer accounts. Time-pressured, mobile-first, focused on hitting quota.",
+  "toneOfVoice": "Direct, action-oriented, no marketing fluff. Confident. Respect the reader's time — every sentence should be useful.",
+  "readingContext": "Phone-first, between client visits or in a vehicle. Often standing in a parking lot or sitting between calls. Average read time: 2-3 minutes.",
+  "contentGuidelines": "Lead with the action. Use scannable bullets and tables over long prose. Reference quota, route, and customer-account contexts naturally. Where steps depend on territory or product line, state that up front.",
+  "searchIntent": "Sales reps search on mobile between calls. Short queries with the customer-facing term (\"expense per diem\", \"laptop replacement\"). They need the answer and the next action."
+}

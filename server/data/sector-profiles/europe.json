@@ -1,0 +1,36 @@
+{
+  "id": "europe",
+  "name": "Europe",
+  "summary": "PepsiCo Europe sector covering the UK, Ireland, and continental Europe. Combined Foods and Beverages business. Walkers, Doritos EU, Naked Juice, Tropicana, KVI, and PepsiCo's European portfolio.",
+  "toneOfVoice": "Precise, measured, professional. European employees generally expect thorough context, clear regulatory grounding, and understated tone. Avoid over-selling or promotional language in employee-facing content. Prefer specific facts over generalizations.",
+  "contentStrategy": "European content operates under strong regulatory frameworks (GDPR, EU Working Time Directive, national labor codes). Prioritize: (1) rigorous privacy and data-handling guidance; (2) sustainability content aligned with EU Green Deal and national targets; (3) Walkers and Doritos EU brand content that respects UK/EU consumer preferences (savory, quality-forward); (4) works-council and union-relations content where relevant.",
+  "contentGuidelines": "1. Use British English spelling (colour, behaviour, optimise) unless the specific market requires otherwise. 2. Numbers: use the SI system (Celsius, metric weights, litres). 3. Currency in GBP or EUR per market. 4. Reference PepsiCo Europe Sustainability targets specifically, not just global commitments. 5. Any content touching employee data or personal information must include a GDPR compliance note and cite the relevant Article. 6. Works council consultation may be required before publishing employee-facing policy changes — flag for HR.",
+  "terminology": {
+    "chips": "crisps",
+    "french fries": "chips",
+    "sidewalk": "pavement",
+    "elevator": "lift",
+    "vacation": "annual leave",
+    "sick day": "sick leave"
+  },
+  "bannedTerms": [
+    "guys",
+    "manpower",
+    "cheap",
+    "brexit humour",
+    "empire"
+  ],
+  "regulatoryNotes": "GDPR (EU Regulation 2016/679) governs all employee and consumer data. EU Working Time Directive limits weekly hours; national implementations vary. UK-specific: the Modern Slavery Act statement is a required annual publication. Advertising claims (nutrition, sustainability, comparative) fall under ASA (UK) and country-specific regulators. Food labeling: EU FIC (Food Information to Consumers) Regulation; UK Front-of-Pack labeling scheme.",
+  "seoNotes": "European content indexes across multiple language variants. English content should default to British English spelling; local-language variants live at the market level. Structured data should reference PepsiCo Europe (or the specific national subsidiary) as the organization entity.",
+  "commonSearchTerms": [
+    "Walkers",
+    "Doritos",
+    "Tropicana",
+    "Naked",
+    "GDPR",
+    "annual leave",
+    "sick leave",
+    "PepsiCo Europe",
+    "modern slavery"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "id": "apac",
+  "name": "Asia Pacific",
+  "summary": "PepsiCo APAC sector covering China, Australia, New Zealand, and Southeast Asia. Combined Foods and Beverages business. Le, Smith's, Twisties, Doritos APAC variants, and PepsiCo's Asia-Pacific portfolio.",
+  "toneOfVoice": "Concise, direct, digitally-native. APAC employees expect content to be mobile-first, short, and clearly structured. Long-form policy documents don't perform well — prefer step-by-step guidance with clear headings. Respect the digital-first workplace conventions of the region.",
+  "contentStrategy": "APAC content covers highly digital markets (China, Australia) alongside developing markets. Prioritize: (1) mobile-friendly content that works on WeChat, LINE, and other regional platforms; (2) sustainability content aligned with regional targets and manufacturing footprint; (3) local brand-specific content (Smith's Australia, Twisties, Doritos APAC variants); (4) region-specific supply-chain content given manufacturing density in China and Southeast Asia.",
+  "contentGuidelines": "1. Format for mobile-first reading — short paragraphs, clear headings, minimal scrolling. 2. Reference APAC-specific brands (Smith's, Twisties, Le, Doritos APAC) where relevant. 3. Chinese content requires simplified Chinese for mainland China and traditional Chinese for Taiwan and Hong Kong. 4. Australian content uses AU-specific spellings and references (postcode, GST, Fair Work). 5. Respect national data localization laws (China's PIPL, Vietnam's cybersecurity law) when content references data handling.",
+  "terminology": {
+    "salty snacks": "savoury snacks",
+    "chips": "chips (crisps in Singapore and Malaysia)",
+    "postal code": "postcode (AU/NZ), zip code (US usage)",
+    "cell phone": "mobile phone"
+  },
+  "bannedTerms": [
+    "orient",
+    "oriental",
+    "third-world",
+    "cheap Asian labor"
+  ],
+  "regulatoryNotes": "China: PIPL (Personal Information Protection Law), Data Security Law, and Cybersecurity Law govern data handling; content referencing employee data or consumer data requires legal review. Australia: Fair Work Act, National Employment Standards, and modern awards. India-Pacific labor laws vary widely. Nutrition and food safety: China SAMR, Australia FSANZ, Singapore SFA, Japan MHLW. Advertising claims subject to ACCC (Australia), SAMR (China), and country-specific regulators.",
+  "seoNotes": "APAC content indexes across many languages and platforms. English content works for the shared regional layer; Simplified Chinese, Japanese, Korean, and Southeast Asian languages live at the market level. Mobile-first structured data is critical for APAC search performance.",
+  "commonSearchTerms": [
+    "Smith's",
+    "Twisties",
+    "Doritos",
+    "PepsiCo China",
+    "PepsiCo Australia",
+    "Fair Work",
+    "PIPL",
+    "mobile portal"
+  ]
+}

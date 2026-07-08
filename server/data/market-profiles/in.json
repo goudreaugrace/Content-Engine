@@ -1,0 +1,51 @@
+{
+  "id": "in",
+  "sectorId": "amesa",
+  "name": "India",
+  "language": "English (Indian)",
+  "languageCode": "en-IN",
+  "toneOfVoice": "Professional, respectful, and welcoming. Indian English with British spelling conventions. Slightly more formal than US English; titles (Mr./Ms./Dr.) acceptable in formal communications. Direct but courteous. Avoid casual American slang. Keep sentences clear and structured; Indian readers are accustomed to thorough, structured documentation.",
+  "contentStrategy": "Prioritize content that respects hierarchy and process — Indian workplaces value clear roles, escalation paths, and documented procedures. Reference local PepsiCo India operations (Lay's India, Kurkure, Tropicana India, Quaker India) where contextually relevant. Where regulation applies, cite the specific Act or Rule rather than describing it in general terms. New-hire and benefits content should reference local statutory benefits (PF, gratuity, ESI) by name.",
+  "contentGuidelines": "1. Use British spelling consistently (colour, organisation, programme). 2. Dates as DD/MM/YYYY, currency in INR with ₹ prefix. Use the Indian numbering system in narrative text (lakhs and crores) but include INR numeric equivalent in parentheses for clarity in policy documents (e.g. ₹5 lakh / ₹500,000). 3. Reference Indian statutory benefits by name: Provident Fund (PF), gratuity, leave structure (CL, SL, PL, EL), ESI. 4. For HR content, cite the relevant Act (POSH Act 2013, Maternity Benefit Act, Factories Act 1948) where applicable.",
+  "terminology": {
+    "chips": "chips",
+    "soda": "soft drink",
+    "401(k)": "Provident Fund (PF)",
+    "PTO": "earned leave",
+    "vacation": "earned leave",
+    "elevator": "lift",
+    "trash": "waste",
+    "ZIP code": "PIN code"
+  },
+  "bannedTerms": [
+    "guys",
+    "manpower",
+    "blacklist",
+    "whitelist",
+    "native (in tech contexts)"
+  ],
+  "regulatoryNotes": "Reference the Digital Personal Data Protection Act (DPDP) 2023 for data and privacy content. For workplace harassment, cite the POSH Act 2013 (Prevention of Sexual Harassment at Workplace). Ground HR content in the Industrial Disputes Act 1947, the Maternity Benefit Act 1961, the Factories Act 1948, and state-specific Shops and Establishments Acts where relevant. For benefits, reference the Employees' Provident Funds Act 1952 and Payment of Gratuity Act 1972. Engage the India legal team for anything touching on state-level variations.",
+  "dateFormat": "DD/MM/YYYY",
+  "currency": "INR",
+  "reviewers": [
+    "r.sharma@pepsico.com",
+    "portal-gov-in@pepsico.com"
+  ],
+  "availableLanguages": [
+    "en-IN"
+  ],
+  "seoNotes": "India + APAC employees often search in English with regional-specific terms (PF, gratuity, NPS). Mobile-first — keep meta descriptions tight. Mention statutory components by their common abbreviation.",
+  "commonSearchTerms": [
+    "PF",
+    "gratuity",
+    "NPS",
+    "MyPepsiCo",
+    "form 16",
+    "leave encashment",
+    "medical claim",
+    "ESI"
+  ],
+  "defaultCountries": [
+    "IN"
+  ]
+}

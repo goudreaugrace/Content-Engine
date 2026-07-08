@@ -1,0 +1,32 @@
+{
+  "toneRules": [
+    "Use plain language. Avoid jargon and acronyms unless defined on first use.",
+    "Write in active voice. Keep sentences under 25 words where possible.",
+    "Address the reader directly with second person ('you').",
+    "Avoid hyperbolic or marketing language in policy documents."
+  ],
+  "inclusivityRules": [
+    "Use gender-neutral language. Avoid 'guys', 'manpower', 'mankind'.",
+    "Avoid idioms that don't translate well across cultures.",
+    "Don't make assumptions about reader's job, location, or background.",
+    "Use 'allowlist'/'blocklist' instead of 'whitelist'/'blacklist'."
+  ],
+  "accessibilityRules": [
+    "Use descriptive link text. Never 'click here' or 'read more'.",
+    "Break long content into scannable sections with H2/H3 headings.",
+    "Use bulleted lists for steps or items. Number ordered procedures.",
+    "Provide alt text guidance for any referenced images."
+  ],
+  "formattingRules": [
+    "Title must be present, descriptive, and under 80 characters.",
+    "Include a one-paragraph executive summary at the top.",
+    "Include 'Who this applies to' section identifying the audience.",
+    "Include 'Last updated' and 'Owner' metadata blocks.",
+    "Use Markdown headings (H2 for major sections, H3 for sub-sections)."
+  ],
+  "characterLimits": {
+    "title": 80,
+    "summary": 280,
+    "metaDescription": 160
+  }
+}

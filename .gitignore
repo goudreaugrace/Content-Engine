@@ -1,0 +1,22 @@
+node_modules
+dist
+build
+.env
+.env.local
+.env.*
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.tsbuildinfo
+.vite/
+
+# Runtime-generated data (fresh install regenerates via API activity)
+server/data/jobs.json
+server/data/emails.json
+
+# User uploads served through /api/uploads — POC storage, not source
+server/data/source-uploads/
+
+# Claude Code personal settings (permissions grants etc)
+.claude/settings.local.json

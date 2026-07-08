@@ -1,0 +1,68 @@
+{
+  "id": "us",
+  "sectorId": "pfna",
+  "name": "United States",
+  "language": "English",
+  "languageCode": "en-US",
+  "toneOfVoice": "Professional but approachable. Use plain, conversational language. Keep sentences short. Address the reader directly using 'you'. Avoid corporate jargon and acronyms unless defined on first use. Use active voice. Policy documents skew slightly more formal; FAQs and how-to guides can be more casual.",
+  "contentStrategy": "Lead with the action — what does the reader need to DO? Use second-person voice. Surface the most important information in the first sentence (BLUF — bottom line up front). For benefits, payroll, and HR topics, default to plain language over legalese, with footnotes or links to detailed policy where needed. Prioritize content that addresses common day-to-day questions over rarely-referenced edge cases.",
+  "contentGuidelines": "1. Use US spelling (color, behavior, optimize). 2. Numeric values: spell out one through nine; use numerals for 10+. 3. Currency in USD with $ prefix. 4. Reference US laws (FLSA, FMLA, ADA) where relevant. 5. For state-specific content (CA, NY, IL), call out the state explicitly and flag for legal review. 6. Use Oxford comma. 7. Sentence-case headings (not Title Case).",
+  "terminology": {
+    "soda": "beverage",
+    "pop": "beverage",
+    "associates": "employees",
+    "team members": "employees"
+  },
+  "bannedTerms": [
+    "guys",
+    "manpower",
+    "blacklist",
+    "whitelist"
+  ],
+  "regulatoryNotes": "Reference FDA labeling guidelines for product-related content. For HR/benefits content, ensure compliance with FLSA, FMLA, and ADA where relevant. State-specific guidance (CA, NY, IL) should be flagged for legal review.",
+  "dateFormat": "MM/DD/YYYY",
+  "currency": "USD",
+  "reviewers": [
+    "m.johnson@pepsico.com",
+    "portal-gov-us@pepsico.com"
+  ],
+  "availableLanguages": [
+    "en-US"
+  ],
+  "seoNotes": "US employees use Google-style query phrasing (\"how do I…\", \"why is my…\"). Headlines that match natural question phrasing rank highest. Prefer plain English; spell out PepsiCo acronyms on first use.",
+  "commonSearchTerms": [
+    "benefits",
+    "PTO",
+    "401k",
+    "expense report",
+    "direct deposit",
+    "MyPepsiCo",
+    "payroll",
+    "open enrollment"
+  ],
+  "defaultCountries": [
+    "US",
+    "CA"
+  ],
+  "sources": [
+    {
+      "id": "src-us-fmla",
+      "kind": "url",
+      "title": "US Department of Labor — Family and Medical Leave Act (FMLA)",
+      "url": "https://www.dol.gov/agencies/whd/fmla",
+      "snippet": "FMLA entitles eligible US employees to take up to 12 weeks of unpaid, job-protected leave per year for specified family and medical reasons. When drafting US leave/benefits content, defer to FMLA thresholds (12 months of service, 1,250 hours) unless a state law is more generous.",
+      "addedAt": "2026-01-08T14:00:00.000Z",
+      "addedBy": "US HR People Services"
+    },
+    {
+      "id": "src-us-handbook",
+      "kind": "pdf",
+      "title": "PepsiCo US Employee Handbook 2026",
+      "fileName": "pepsico-us-handbook-2026.pdf",
+      "filePath": "source-uploads/us/pepsico-us-handbook-2026.pdf",
+      "snippet": "PepsiCo US 2026 handbook covers PTO structure, holiday schedule, expense reporting, remote-work eligibility, and benefits enrollment windows. Use exact section titles when citing (e.g. \"Section 4.3 — Remote Work\") so employees can trust the reference.",
+      "addedAt": "2026-01-08T14:05:00.000Z",
+      "addedBy": "US HR People Services"
+    }
+  ]
+}

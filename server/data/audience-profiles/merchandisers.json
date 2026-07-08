@@ -1,0 +1,9 @@
+{
+  "id": "merchandisers",
+  "label": "Retail merchandisers",
+  "summary": "In-store reps maintaining shelf presence, displays, and execution standards at PepsiCo retail partners (grocery, c-store, mass).",
+  "toneOfVoice": "Procedural and visual. Direct sentences. Image-friendly prose; describe what the reader should see, not just what to do.",
+  "readingContext": "Phone, between stores, often moving. They glance at the screen, do a task, move on. Read time per article: under 90 seconds.",
+  "contentGuidelines": "Step-by-step numbered procedures. Use visual anchors ('check the planogram', 'compare the front-row facings'). Avoid background context that doesn't change the steps. Note brand- or chain-specific exceptions inline rather than at the end.",
+  "searchIntent": "Merchandisers search in-store on phones, often in low-signal environments. Queries are mid-task (\"reset planogram tablet\", \"who do I call when…\"). Front-load the action; offline-friendly content wins."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "amesa",
+  "name": "Africa, Middle East & South Asia",
+  "summary": "PepsiCo AMESA sector covering India, Pakistan, the Middle East, and Sub-Saharan Africa. Combined Foods and Beverages business. Kurkure, Lay's India, 7UP, and PepsiCo's AMESA portfolio.",
+  "toneOfVoice": "Respectful, precise, culturally aware. AMESA content spans many languages and religious traditions — content must be inclusive of that diversity by default. Prefer neutral, formal register in employee-facing content; casual tone is a market-level choice, not a sector default.",
+  "contentStrategy": "AMESA is highly diverse — Hindi, Urdu, Arabic, Bengali, English, and multiple African languages all appear across markets. Prioritize: (1) content that respects religious observances (Ramadan, festival calendars, halal certification for beverages and foods); (2) agriculture and supply-chain content given the sector's manufacturing and sourcing footprint; (3) local brand-specific content (Kurkure, Lehar, Aliva, Lay's India variants); (4) manufacturing safety and community programs that resonate across the sector.",
+  "contentGuidelines": "1. When calendars are referenced, include local + Gregorian dates where practical. 2. Halal certification and food handling must be called out explicitly for beverage and food content in Muslim-majority markets. 3. Reference AMESA-specific brands (Kurkure, Lehar, Aliva, Lay's India, 7UP MENA) alongside global brands. 4. Respect gender-neutral language conventions in each market's dominant language. 5. Cross-country programs (Positive Agriculture, PepsiCo Foundation initiatives) should identify which countries the program operates in.",
+  "terminology": {
+    "salty snacks": "namkeen and chips",
+    "chips": "chips (crisps in some markets)",
+    "raw material": "raw ingredients",
+    "vendor": "supplier partner"
+  },
+  "bannedTerms": [
+    "third-world",
+    "tribal",
+    "primitive",
+    "backward",
+    "eastern promise"
+  ],
+  "regulatoryNotes": "Food safety: FSSAI (India), SFDA (Saudi Arabia), various regional standards. Halal certification requirements vary by market and by product category. India-specific: labor laws under the Code on Wages and the Industrial Relations Code; state-level variations. Middle East: labor laws differ significantly by GCC country. Nutrition and health claims subject to local advertising standards (ASCI in India, GCC Standardization Organization).",
+  "seoNotes": "AMESA content ranks across many languages. English is the shared working language for internal content but market-level translation is critical. Include local brand names (Kurkure, Lehar) and program names in the local language when relevant.",
+  "commonSearchTerms": [
+    "Kurkure",
+    "Lay's India",
+    "Lehar",
+    "7UP",
+    "halal",
+    "PepsiCo India",
+    "FSSAI",
+    "employee handbook"
+  ]
+}

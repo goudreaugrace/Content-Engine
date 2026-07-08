@@ -1,0 +1,35 @@
+{
+  "id": "pbna",
+  "name": "PepsiCo Beverages North America",
+  "summary": "Beverages business in the US and Canada — Pepsi, Mountain Dew, Gatorade, Aquafina, Starbucks RTD, Rockstar, and other PBNA-owned brands. Bottler network, foodservice, and retail.",
+  "toneOfVoice": "Bold, brand-forward, energetic. PBNA content should feel proud of the portfolio. Address specific brand teams and bottler partners directly. Use precise product SKU language (case count, PET vs can vs glass, mL vs oz). Avoid generic phrases like 'our drinks' — call the brand out.",
+  "contentStrategy": "PBNA content covers: (1) bottler network operations and franchise relationships; (2) brand-specific promotional guidance (Pepsi, Mountain Dew, Gatorade, Aquafina, Starbucks RTD, Rockstar); (3) foodservice and vending channel guidance; (4) sustainability commitments specific to beverages (recycled PET, water stewardship, package weight). Keep bottler-partner content clearly labeled — it applies to franchisees, not employees.",
+  "contentGuidelines": "1. Reference brands by name (Pepsi, Mountain Dew, Gatorade, Aquafina, Bubly, Starbucks RTD, Rockstar). 2. Use SKU language precisely: '12 oz can 12-pack' not 'a pack of cans.' 3. Distinguish bottler-partner audience from PBNA-employee audience explicitly. 4. Sustainability claims (recycled content %, water usage, GHG) must cite the most recent PBNA sustainability report. 5. Any content about Pepsi/Coca-Cola competitive positioning goes through Legal.",
+  "terminology": {
+    "soft drink": "carbonated soft drink (CSD)",
+    "soda": "carbonated soft drink (CSD)",
+    "pop": "carbonated soft drink (CSD)",
+    "diet drink": "zero-sugar beverage",
+    "water bottle": "PET bottle",
+    "bottler": "franchise bottler partner"
+  },
+  "bannedTerms": [
+    "sugary drinks",
+    "empty calories",
+    "diet",
+    "junk drink"
+  ],
+  "regulatoryNotes": "FDA beverage labeling, CFIA (Canada), state/provincial sugar-sweetened-beverage taxes (Philadelphia, Berkeley, Oakland, Cook County, various Canadian provinces). Advertising claims for zero-sugar / low-calorie products go through Legal + Regulatory. Sustainability claims subject to FTC Green Guides and Canadian Competition Bureau environmental marketing guidance.",
+  "seoNotes": "PBNA content ranks against strong brand searches. Employee content should include PepsiCo qualifier to avoid consumer-facing ambiguity. Bottler-partner content is indexed against a separate partner portal and requires no external SEO.",
+  "commonSearchTerms": [
+    "Pepsi",
+    "Mountain Dew",
+    "Gatorade",
+    "Aquafina",
+    "bottler",
+    "route sales",
+    "vending",
+    "foodservice",
+    "recycled PET"
+  ]
+}

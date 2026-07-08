@@ -1,0 +1,33 @@
+{
+  "id": "latam",
+  "name": "Latin America",
+  "summary": "PepsiCo Latin America sector covering Mexico, Brazil, and the rest of Central and South America. Combined Foods and Beverages business. Sabritas, Gamesa, Toddy, Elma Chips, and PepsiCo's LatAm-specific portfolio.",
+  "toneOfVoice": "Warm, direct, community-oriented. LatAm content should feel personal — reference the reader as a colleague, teammate, and family member. Avoid corporate distance. Use inclusive first-person plural ('nosotros', 'nosso time') where the language supports it.",
+  "contentStrategy": "LatAm covers a large geographic and cultural range — content must respect that markets are NOT interchangeable (Mexico and Brazil have distinct languages, tax regimes, and labor law). Prioritize: (1) cross-market employee programs (health, education, community); (2) LatAm-specific brands (Sabritas, Gamesa, Toddy, Elma Chips, Doritos LatAm variants); (3) manufacturing, agriculture, and supply-chain content that spans multiple countries; (4) family-and-community framing that resonates with LatAm cultural context.",
+  "contentGuidelines": "1. Content translated to Spanish or Portuguese must respect market-specific vocabulary — Mexican Spanish is not neutral Spanish; Brazilian Portuguese is not European Portuguese. 2. Reference LatAm-specific brands (Sabritas, Gamesa, Toddy, Elma Chips) alongside global brands. 3. Currency, tax, and regulatory references must be per-market. 4. When content references community programs (Nutrición para Todos, Sembrando Juntos), name the program in the local language. 5. Family and personal framing is culturally welcome; keep it warm but professional.",
+  "terminology": {
+    "salty snacks": "botanas",
+    "chips": "botanas",
+    "warehouse workers": "colaboradores de centro de distribución",
+    "field team": "equipo de campo",
+    "community": "comunidad"
+  },
+  "bannedTerms": [
+    "third-world",
+    "developing country",
+    "cheap labor"
+  ],
+  "regulatoryNotes": "Each LatAm market has distinct labor codes (LFT for Mexico, CLT for Brazil), tax regimes (IVA, ICMS), and food labeling requirements (Mexican front-of-pack warnings, Brazilian INMETRO). Nutrition and health claims must comply with country-specific standards (COFEPRIS in Mexico, ANVISA in Brazil). Environmental content: LatAm sustainability commitments align with PepsiCo Positive but reference regional water and biodiversity contexts.",
+  "seoNotes": "LatAm content indexes in multiple languages (Mexican Spanish, Brazilian Portuguese, and increasingly regional Spanish for Central America). Include local brand names and region-specific program names. Search terms often mix English brand names with local descriptors.",
+  "commonSearchTerms": [
+    "Sabritas",
+    "Gamesa",
+    "Toddy",
+    "Elma Chips",
+    "Doritos",
+    "botanas",
+    "PepsiCo LatAm",
+    "empleado",
+    "colaborador"
+  ]
+}

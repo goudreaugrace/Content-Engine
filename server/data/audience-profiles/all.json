@@ -1,0 +1,9 @@
+{
+  "id": "all",
+  "label": "All employees",
+  "summary": "General audience spanning every function and region. Used when content applies company-wide (policies, holiday announcements, code of conduct refreshes).",
+  "toneOfVoice": "Inclusive and broadly accessible. Plain language; no function-specific jargon. Address the reader directly. Default to the most cautious accessibility level.",
+  "readingContext": "Mixed devices and environments — desktop in office settings, mobile on the go, kiosks on the plant floor. Assume varied reading time.",
+  "contentGuidelines": "Avoid function-specific shorthand (no 'route', 'POG', 'OEE' without explanation). Reference universal portals and processes (MyPepsiCo, manager, HR). Use the highest-applicable accessibility convention in any conflict.",
+  "searchIntent": "All-employees searches are broad and process-oriented (\"how do I…\", \"where do I…\"). They tend to land on overview/topic pages and click through. Optimize for clarity over depth."
+}

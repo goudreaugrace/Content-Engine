@@ -1,0 +1,9 @@
+{
+  "id": "warehouse",
+  "label": "Warehouse & distribution",
+  "summary": "Distribution-center associates handling pick, pack, ship, and inventory. Equipment-supported, process-driven work.",
+  "toneOfVoice": "Direct and action-oriented. No marketing voice. Procedural — every sentence should advance the task.",
+  "readingContext": "Tablet at a workstation, or kiosk at a station. Read between scans or during shift changes.",
+  "contentGuidelines": "Numbered steps over prose. Reference scanner / WMS terminology accurately. Pull background context out into a separate 'Why this matters' section so it doesn't slow the procedural flow.",
+  "searchIntent": "Warehouse staff search for shift-swap, time-off, and equipment certification content. Short, action-oriented queries on shared kiosks. Optimize for big tap targets and minimal scrolling."
+}

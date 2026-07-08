@@ -1,0 +1,47 @@
+{
+  "id": "br",
+  "sectorId": "latam",
+  "name": "Brazil",
+  "language": "Portuguese (Brazilian)",
+  "languageCode": "pt-BR",
+  "toneOfVoice": "Warm, conversational, and respectful. Use 'você' (informal you) throughout — Brazilian workplaces are direct and friendly. Avoid the formal 'senhor/senhora' except in formal policy documents. Keep sentences short and direct. Brazilian Portuguese, not European. Use natural rhythms and avoid stiff translated-from-English phrasing.",
+  "contentStrategy": "Prioritize content that reflects Brazilian workplace culture: collaboration, relationships, and clear practical guidance. Lead with what the reader needs to DO. Reference local PepsiCo operations (Elma Chips, Toddy, Quaker BR) when contextually relevant. Where the topic has legal implications, cite the relevant Brazilian law (CLT, LGPD) rather than assuming readers know it.",
+  "contentGuidelines": "1. Localize all examples to São Paulo / Brazilian context, BRL currency, DD/MM/YYYY dates. 2. Acronyms like 'HR' must be expanded to 'Recursos Humanos' on first use. 3. Do not directly translate US English structures — adapt to Brazilian conventions. 4. For payroll content, reference Brazilian terms (13º salário, férias, FGTS, vale-refeição). 5. Use proper Portuguese accents (não, está, você).",
+  "terminology": {
+    "soda": "refrigerante",
+    "chips": "salgadinhos",
+    "employee": "colaborador",
+    "team member": "colaborador",
+    "manager": "gerente",
+    "HR": "Recursos Humanos",
+    "payroll": "folha de pagamento"
+  },
+  "bannedTerms": [
+    "pessoal"
+  ],
+  "regulatoryNotes": "Reference the LGPD (Lei Geral de Proteção de Dados) for privacy and data-handling content. For HR content, ground in the CLT (Consolidação das Leis do Trabalho) and reference standards like NR-1 (general OSH) where relevant. For product-labeling content, reference RDC 429/2020 (ANVISA nutritional labeling). Always involve the local legal team when content touches on these areas.",
+  "dateFormat": "DD/MM/YYYY",
+  "currency": "BRL",
+  "reviewers": [
+    "m.silva@pepsico.com",
+    "portal-gov-br@pepsico.com"
+  ],
+  "availableLanguages": [
+    "pt-BR",
+    "en-US"
+  ],
+  "seoNotes": "Funcionários no Brasil pesquisam em português, com forte foco em direitos trabalhistas (CLT) e benefícios. Títulos que mencionem o benefício específico (\"vale-refeição\", \"PLR\") rankeiam melhor que termos genéricos.",
+  "commonSearchTerms": [
+    "férias",
+    "PLR",
+    "vale-refeição",
+    "13º salário",
+    "MyPepsiCo",
+    "holerite",
+    "FGTS",
+    "plano de saúde"
+  ],
+  "defaultCountries": [
+    "BR"
+  ]
+}

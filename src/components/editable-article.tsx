@@ -446,7 +446,7 @@ function HoverableSection({
             gap: 0.5,
           }}
         >
-          {issues!.map((iss, i) => (
+          {issues!.map(({ issue: iss }, i) => (
             <Box
               key={i}
               sx={{
@@ -498,7 +498,7 @@ function HoverableSection({
         <AiFixCard
           articleId={articleId}
           sectionMarkdown={markdown}
-          sectionIssues={issues ?? []}
+          sectionIssues={issues?.map(({ issue }) => issue) ?? []}
           globalIssues={globalIssues}
           severity={hasIssues ? highest : extraHighlightSeverity}
           onApply={onApplyAiFix}
@@ -514,7 +514,7 @@ function HoverableSection({
         markdown={markdown}
         highlightExcerpts={[
           ...(issues
-            ?.map((i) => i.excerpt)
+            ?.map(({ issue }) => issue.excerpt)
             .filter((e): e is string => !!e && e.trim().length > 0) ?? []),
           ...extraHighlightExcerpts,
         ]}

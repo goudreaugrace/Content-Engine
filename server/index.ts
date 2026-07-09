@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import fs from "node:fs";
 import { jobsRouter } from "./routes/jobs";
 import { articlesRouter } from "./routes/articles";
 import { marketsRouter } from "./routes/markets";
@@ -37,6 +40,23 @@ app.use("/api/audiences", audiencesRouter);
 app.use("/api/countries", countriesRouter);
 app.use("/api/emails", emailsRouter);
 app.use("/api/uploads", uploadsRouter);
+
+// ── Production: serve the built React app + SPA fallback ──
+// In dev, Vite serves the client on port 5173 and proxies /api to us.
+// In prod (Railway, Render, etc.) one Node process serves both the built
+// bundle and the API from the same origin, so relative /api/... URLs on
+// the client just work with no CORS.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const distDir = path.resolve(__dirname, "..", "dist");
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+  // SPA fallback — any non-/api path returns index.html so React Router
+  // can handle the route on the client.
+  app.get(/^\/(?!api\/).*/, (_req, res) => {
+    res.sendFile(path.join(distDir, "index.html"));
+  });
+  console.log(`[server] serving built client from ${distDir}`);
+}
 
 app.listen(PORT, () => {
   console.log(`[server] listening on http://localhost:${PORT}`);

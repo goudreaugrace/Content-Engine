@@ -13,7 +13,7 @@ export type ArticleStatus =
   | "rejected"
   | "published";
 
-export type ContentType = "FAQ" | "Policy" | "How-To" | "Topic Page";
+export type ContentType = "FAQ" | "Policy" | "Knowledge Article" | "Topic Page";
 
 export type Market = "US" | "MX" | "BR" | "UK" | "IN" | "Global";
 
@@ -33,7 +33,9 @@ export type AgentName =
   | "router"
   | "market"
   | "compliance"
-  | "revision";
+  | "revision"
+  | "consolidation"
+  | "migration";
 
 export type TraceEntry = {
   agent: AgentName;
@@ -163,6 +165,8 @@ export type Article = {
   globalJustification?: string;
   /** If this submission replaces an existing article (Phase B), the id of the replaced one. */
   replacesArticleId?: string;
+  /** Articles deliberately consolidated into this draft. */
+  replacesArticleIds?: string[];
   body: string;
   submittedBy: { name: string; email: string };
   submittedAt: string;
@@ -502,6 +506,12 @@ export type PublishedArticle = {
   archivedAt?: string;
   /** Display name of the admin who archived it (for the staleness panel). */
   archivedBy?: string;
+  /** Plain-English reason captured when an action agent archives or replaces the article. */
+  archivedReason?: string;
+  /** Draft or published article that supersedes this article. */
+  replacedByArticleId?: string;
+  /** Source articles that were consolidated into this article. */
+  replacesArticleIds?: string[];
 };
 
 /**
@@ -531,9 +541,12 @@ export type StubbedEmail = {
   subject: string;
   body: string;
   sentAt: string;
-  kind: "clarification" | "stakeholder-notification";
+  kind: "clarification" | "stakeholder-notification" | "owner-alert";
   jobId?: string;
   /** The specific article this email refers to. Set at creation time so the
    * log can be filtered/joined without ambiguity for multi-article jobs. */
   articleId?: string;
+  market?: Market;
+  articleStatus?: ArticleStatus;
+  articleTitle?: string;
 };

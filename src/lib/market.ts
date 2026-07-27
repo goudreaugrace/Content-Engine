@@ -18,18 +18,18 @@ const LOCALE_BY_MARKET_ID: Record<string, string> = {
   both: "en-US + es-MX",
 };
 
-/** Article.market → locale code for chips and headers. */
+/** Article.country → locale code for chips and headers. */
 export function localeFor(market: Market): string {
   return LOCALE_BY_MARKET[market] ?? "global";
 }
 
-/** JobInput.market id → locale code shown on in-flight rows and meta rows. */
-export function localeForJobMarket(marketId: string): string {
-  return LOCALE_BY_MARKET_ID[marketId] ?? marketId;
+/** JobInput.country id → locale code shown on in-flight rows and meta rows. */
+export function localeForJobMarket(countryId: string): string {
+  return LOCALE_BY_MARKET_ID[countryId] ?? countryId;
 }
 
 /**
- * Curated catalog of supported output locales. Drives the market editor's
+ * Curated catalog of supported output locales. Drives the country editor's
  * "Available languages" multiselect and the article-detail language toggle.
  * Keep ordered from most to least common in PepsiCo's actual operations.
  */

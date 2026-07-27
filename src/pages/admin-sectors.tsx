@@ -21,21 +21,21 @@ import { api, type MarketProfile, type SectorProfile } from "../lib/api";
 /**
  * Admin › Sectors.
  *
- * Sector is the corporate tier above Market. This page shows every sector
+ * Sector is the corporate tier above Country. This page shows every sector
  * as an expandable row. Inside each sector: sector-level fields at a
- * glance, plus the markets belonging to that sector as nested rows with
- * an "Edit market" affordance. Edit for the sector itself opens the
+ * glance, plus the countrys belonging to that sector as nested rows with
+ * an "Edit country" affordance. Edit for the sector itself opens the
  * sector editor.
  *
- * Markets deliberately live INSIDE the sector view (per user direction —
- * no separate markets list page).
+ * Countries deliberately live INSIDE the sector view (per user direction —
+ * no separate countrys list page).
  */
 export default function AdminSectors() {
   const navigate = useNavigate();
   const theme = useTheme();
   const t = theme.palette.tokens;
   const [sectors, setSectors] = useState<SectorProfile[]>([]);
-  const [markets, setMarkets] = useState<MarketProfile[]>([]);
+  const [countrys, setCountrys] = useState<MarketProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -44,21 +44,21 @@ export default function AdminSectors() {
     Promise.all([api.listSectors(), api.listMarkets()])
       .then(([s, m]) => {
         setSectors(s);
-        setMarkets(m);
+        setCountrys(m);
       })
       .catch((e) => setError(e?.message ?? String(e)))
       .finally(() => setLoading(false));
   }, []);
 
-  const marketsBySector = useMemo(() => {
+  const countrysBySector = useMemo(() => {
     const map = new Map<string, MarketProfile[]>();
-    for (const m of markets) {
+    for (const m of countrys) {
       const key = m.sectorId ?? "__orphan";
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(m);
     }
     return map;
-  }, [markets]);
+  }, [countrys]);
 
   const toggle = (id: string) =>
     setExpanded((s) => {
@@ -74,9 +74,9 @@ export default function AdminSectors() {
         Sector Profiles
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 0.75, mb: 4, maxWidth: "60ch" }}>
-        Sectors are the corporate tier above markets. Sector guidelines set
-        the overall framing; each market inside a sector layers on locale-
-        specific rules. Click a sector to see its details and the markets it
+        Sectors are the corporate tier above countrys. Sector guidelines set
+        the overall framing; each country inside a sector layers on locale-
+        specific rules. Click a sector to see its details and the countrys it
         owns.
       </Typography>
 
@@ -94,7 +94,7 @@ export default function AdminSectors() {
         <Stack spacing={1.25}>
           {sectors.map((s) => {
             const open = expanded.has(s.id);
-            const kids = marketsBySector.get(s.id) ?? [];
+            const kids = countrysBySector.get(s.id) ?? [];
             return (
               <Card key={s.id} variant="outlined">
                 <CardActionArea
@@ -122,7 +122,7 @@ export default function AdminSectors() {
                           letterSpacing: "0.02em",
                         }}
                       >
-                        {kids.length} {kids.length === 1 ? "market" : "markets"}
+                        {kids.length} {kids.length === 1 ? "country" : "countrys"}
                       </Typography>
                     </Stack>
                     <Stack direction="row" alignItems="center" spacing={0.5}>
@@ -168,33 +168,33 @@ export default function AdminSectors() {
                           value={s.bannedTerms.length}
                           accentIfPositive
                         />
-                        <Stat label="Markets" value={kids.length} />
+                        <Stat label="Countries" value={kids.length} />
                       </Stack>
 
                       <Divider sx={{ my: 0.5 }} />
 
-                      {/* ─── Markets inside this sector ─── */}
+                      {/* ─── Countries inside this sector ─── */}
                       <Box>
                         <Typography
                           variant="overline"
                           sx={{ display: "block", mb: 1.25 }}
                         >
-                          Markets in this sector
+                          Countries in this sector
                         </Typography>
                         {kids.length === 0 ? (
                           <Typography
                             sx={{ fontSize: "0.875rem", color: t.slate, fontStyle: "italic" }}
                           >
-                            No markets assigned to this sector yet.
+                            No countries assigned to this sector yet.
                           </Typography>
                         ) : (
                           <Stack spacing={0.75}>
                             {kids.map((m) => (
-                              <MarketRow
+                              <CountryRow
                                 key={m.id}
                                 market={m}
                                 onEdit={() =>
-                                  navigate(`/admin/markets/${m.id}`)
+                                  navigate(`/admin/countrys/${m.id}`)
                                 }
                               />
                             ))}
@@ -252,17 +252,17 @@ export default function AdminSectors() {
             );
           })}
 
-          {/* Any market not assigned to a sector — surface it so it's easy to fix. */}
-          {(marketsBySector.get("__orphan") ?? []).length > 0 && (
+          {/* Any country not assigned to a sector — surface it so it's easy to fix. */}
+          {(countrysBySector.get("__orphan") ?? []).length > 0 && (
             <Alert severity="warning" sx={{ mt: 2 }}>
               <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
-                Markets without a sector
+                Countries without a sector
               </Typography>
               <Typography sx={{ fontSize: "0.8125rem", mt: 0.5 }}>
-                {(marketsBySector.get("__orphan") ?? [])
+                {(countrysBySector.get("__orphan") ?? [])
                   .map((m) => m.name)
                   .join(", ")}{" "}
-                — assign a sector on each market profile.
+                — assign a sector on each country profile.
               </Typography>
             </Alert>
           )}
@@ -273,11 +273,11 @@ export default function AdminSectors() {
 }
 
 /**
- * A market row nested inside its parent sector. Compact single-line
- * layout — click "Edit" to open the full market editor at
- * /admin/markets/:id.
+ * A country row nested inside its parent sector. Compact single-line
+ * layout — click "Edit" to open the full country editor at
+ * /admin/countrys/:id.
  */
-function MarketRow({
+function CountryRow({
   market,
   onEdit,
 }: {

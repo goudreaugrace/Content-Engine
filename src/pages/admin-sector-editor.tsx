@@ -24,8 +24,8 @@ import SourceManager from "../components/source-manager";
  * Admin › Sector editor.
  *
  * Sector-level fields only. Language / currency / date format stay on
- * the market profile. The markets belonging to this sector are listed
- * at the bottom with a link to each market's own editor.
+ * the country profile. The countrys belonging to this sector are listed
+ * at the bottom with a link to each country's own editor.
  */
 export default function AdminSectorEditor() {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +35,7 @@ export default function AdminSectorEditor() {
 
   const [original, setOriginal] = useState<SectorProfile | null>(null);
   const [form, setForm] = useState<SectorProfile | null>(null);
-  const [markets, setMarkets] = useState<MarketProfile[]>([]);
+  const [countrys, setCountrys] = useState<MarketProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -48,7 +48,7 @@ export default function AdminSectorEditor() {
       .then(([p, ms]) => {
         setOriginal(p);
         setForm(p);
-        setMarkets(ms);
+        setCountrys(ms);
       })
       .catch((e) => setError(e?.message ?? String(e)))
       .finally(() => setLoading(false));
@@ -144,8 +144,8 @@ export default function AdminSectorEditor() {
       </Typography>
       <Typography color="text.secondary" sx={{ maxWidth: "62ch", mb: 5 }}>
         Sector-level content strategy. These guidelines apply on top of every
-        market in this sector — the market agent reads the sector first
-        (corporate framing) then layers on market-specific rules.
+        country in this sector — the country agent reads the sector first
+        (corporate framing) then layers on country-specific rules.
       </Typography>
 
       {error && (
@@ -166,7 +166,7 @@ export default function AdminSectorEditor() {
               value={form.name}
               onChange={(e) => update("name", e.target.value)}
               fullWidth
-              helperText="Displayed in the UI and used by the market agent in its system prompt."
+              helperText="Displayed in the UI and used by the country agent in its system prompt."
             />
             <TextField
               label="Summary"
@@ -182,7 +182,7 @@ export default function AdminSectorEditor() {
 
         <Section
           title="Content strategy and guidelines"
-          subtitle="Sector-wide direction. Applies to every market in this sector before market rules kick in."
+          subtitle="Sector-wide direction. Applies to every country in this sector before country rules kick in."
           number="02"
         >
           <Stack spacing={2.5}>
@@ -193,7 +193,7 @@ export default function AdminSectorEditor() {
               fullWidth
               multiline
               minRows={3}
-              helperText="Corporate tone conventions. Markets can layer locale-specific tone on top."
+              helperText="Corporate tone conventions. Countries can layer locale-specific tone on top."
             />
             <TextField
               label="Content strategy"
@@ -211,7 +211,7 @@ export default function AdminSectorEditor() {
               fullWidth
               multiline
               minRows={4}
-              helperText="Sector-wide do's and don'ts. Markets override on collision."
+              helperText="Sector-wide do's and don'ts. Countries override on collision."
             />
             <TextField
               label="Regulatory notes"
@@ -227,7 +227,7 @@ export default function AdminSectorEditor() {
 
         <Section
           title="Terminology"
-          subtitle="Sector-wide word swaps. Market terminology unions on top; if the market defines the same source term, market wins."
+          subtitle="Sector-wide word swaps. Country terminology unions on top; if the country defines the same source term, country wins."
           number="03"
         >
           <TerminologyEditor
@@ -238,7 +238,7 @@ export default function AdminSectorEditor() {
 
         <Section
           title="Banned terms"
-          subtitle="Words the agent must never use in any market inside this sector. Combined with each market's own banned list."
+          subtitle="Words the agent must never use in any country inside this sector. Combined with each country's own banned list."
           number="04"
         >
           <TagInput
@@ -251,7 +251,7 @@ export default function AdminSectorEditor() {
 
         <Section
           title="SEO & search"
-          subtitle="Sector-level search guidance. Markets layer locale-specific SEO on top."
+          subtitle="Sector-level search guidance. Countries layer locale-specific SEO on top."
           number="05"
         >
           <Stack spacing={2.5}>
@@ -263,7 +263,7 @@ export default function AdminSectorEditor() {
               multiline
               minRows={3}
               placeholder="e.g. Sector-wide brand terms, canonical spellings, or portfolio names to reference exactly."
-              helperText="Guidance the agent uses when drafting for any market inside this sector."
+              helperText="Guidance the agent uses when drafting for any country inside this sector."
             />
             <Box>
               <Box sx={{ fontSize: "0.875rem", fontWeight: 500, color: t.ink, mb: 0.5 }}>
@@ -271,7 +271,7 @@ export default function AdminSectorEditor() {
               </Box>
               <Box sx={{ fontSize: "0.75rem", color: t.slate, mb: 1 }}>
                 Sector-wide search intents. The agent weaves these in
-                naturally alongside market-specific terms.
+                naturally alongside country-specific terms.
               </Box>
               <TagInput
                 value={form.commonSearchTerms ?? []}
@@ -285,7 +285,7 @@ export default function AdminSectorEditor() {
 
         <Section
           title="Reference sources"
-          subtitle="Authoritative documents the agent grounds sector-wide drafts in. URLs, PDFs, or hand-authored notes. Combined with each market's own sources at draft time."
+          subtitle="Authoritative documents the agent grounds sector-wide drafts in. URLs, PDFs, or hand-authored notes. Combined with each country's own sources at draft time."
           number="06"
         >
           <SourceManager
@@ -295,17 +295,17 @@ export default function AdminSectorEditor() {
         </Section>
 
         <Section
-          title="Markets in this sector"
-          subtitle="Every market inherits this sector's guidelines. Open a market to edit its locale-specific fields (language, currency, date format, reviewers)."
+          title="Countries in this sector"
+          subtitle="Every country inherits this sector's guidelines. Open a country to edit its locale-specific fields (language, currency, date format, reviewers)."
           number="07"
         >
-          {markets.length === 0 ? (
+          {countrys.length === 0 ? (
             <Typography sx={{ fontSize: "0.9375rem", color: t.slate, fontStyle: "italic" }}>
-              No markets assigned to this sector yet.
+              No countries assigned to this sector yet.
             </Typography>
           ) : (
             <Stack spacing={0.75}>
-              {markets.map((m) => (
+              {countrys.map((m) => (
                 <Box
                   key={m.id}
                   sx={{
@@ -346,16 +346,16 @@ export default function AdminSectorEditor() {
                   </Stack>
                   <Button
                     size="small"
-                    onClick={() => navigate(`/admin/markets/${m.id}`)}
+                    onClick={() => navigate(`/admin/countrys/${m.id}`)}
                   >
-                    Edit market
+                    Edit country
                   </Button>
                 </Box>
               ))}
               <Divider sx={{ my: 1 }} />
               <Typography sx={{ fontSize: "0.75rem", color: t.slate }}>
-                To add a market to this sector, open the market and set its
-                sector on the market profile. (New-market onboarding UI is not
+                To add a country to this sector, open the country and set its
+                sector on the country profile. (New-country onboarding UI is not
                 built into this POC.)
               </Typography>
             </Stack>

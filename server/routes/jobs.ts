@@ -28,13 +28,13 @@ async function validateJobInput(
   // Markets: at least one selected; "global" is allowed as a meta-id.
   const markets = readMarkets(input);
   if (markets.length === 0) {
-    return { field: "markets", message: "At least one market is required." };
+    return { field: "markets", message: "At least one country is required." };
   }
   const unknownMarkets = markets.filter((m) => !VALID_MARKET_IDS.has(m));
   if (unknownMarkets.length > 0) {
     return {
       field: "markets",
-      message: `Unknown market(s): ${unknownMarkets.join(", ")}`,
+      message: `Unknown country/countries: ${unknownMarkets.join(", ")}`,
     };
   }
 
@@ -66,7 +66,7 @@ async function validateJobInput(
       return {
         field: "globalJustification",
         message:
-          "Global market needs a justification (≥10 chars). Most articles should target a specific market.",
+          "Global country context needs a justification (≥10 chars). Most articles should target a specific country.",
       };
     }
   }

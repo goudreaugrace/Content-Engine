@@ -47,7 +47,7 @@ export default function AdminAudiences() {
         Audience Profiles
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 0.75, mb: 4, maxWidth: "62ch" }}>
-        Personas the market agent writes for. Click an audience to see the full profile, or
+        Personas the country agent writes for. Click an audience to see the full profile, or
         open Edit to tune the tone, reading context, or guidelines.
       </Typography>
 

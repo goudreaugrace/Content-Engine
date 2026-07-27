@@ -7,7 +7,7 @@ export type MarketDraft = {
 };
 
 /**
- * Composes a sector profile with a market profile so the market agent's
+ * Composes a sector profile with a country profile so the country agent's
  * system prompt reflects the two-tier taxonomy:
  *
  *   - Sector strategy comes FIRST (corporate framing / brand rules)
@@ -33,7 +33,7 @@ const SYSTEM_TEMPLATE = (
   );
 
   const sectorBlock = sector
-    ? `## Sector Profile: ${sector.name} (applies before market-specific rules)
+    ? `## Sector Profile: ${sector.name} (applies before country-specific rules)
 
 **Sector tone (corporate framing):**
 ${sector.toneOfVoice}
@@ -50,7 +50,7 @@ ${sector.seoNotes ? `\n**Sector SEO context:** ${sector.seoNotes}\n` : ""}
 `
     : "";
 
-  return `You are the ${profile.name} Market Agent for PepsiCo's content creation system.
+  return `You are the ${profile.name} Country Agent for PepsiCo's content creation system.
 
 ## CRITICAL: Output language
 
@@ -61,7 +61,7 @@ Even though the guidelines below are authored in English for the admin team, you
 Translate generic section labels (Summary, Who this applies to, Body, Last updated, Owner) into
 ${profile.language} naturally. Do not include any English text in the final article.
 
-${sectorBlock}## Market Profile: ${profile.name}${sector ? ` (in the ${sector.name} sector)` : ""}
+${sectorBlock}## Country Profile: ${profile.name}${sector ? ` (in the ${sector.name} sector)` : ""}
 
 **Tone of Voice:**
 ${profile.toneOfVoice}
@@ -89,7 +89,7 @@ ${profile.seoNotes || (profile.commonSearchTerms?.length ?? 0) > 0
 
 ${profile.seoNotes ? `${profile.seoNotes}\n` : ""}${
       (profile.commonSearchTerms?.length ?? 0) > 0
-        ? `Common search terms in this market: ${profile.commonSearchTerms!.join(", ")}.\nWhen relevant, weave these into headings + opening paragraphs naturally — don't keyword-stuff.\n`
+        ? `Common search terms in this country: ${profile.commonSearchTerms!.join(", ")}.\nWhen relevant, weave these into headings + opening paragraphs naturally — don't keyword-stuff.\n`
         : ""
     }`
   : ""}
@@ -111,15 +111,15 @@ Do not include code fences or any preamble. Begin directly with the H1.`;
 // Mock-mode content generation
 // ----------------------------------------------------------------------------
 
-type ContentType = "FAQ" | "Policy" | "How-To" | "Topic Page";
+type ContentType = "FAQ" | "Policy" | "Knowledge Article" | "Topic Page";
 
 function inferContentType(title: string, summary: string): ContentType {
   const t = `${title} ${summary}`.toLowerCase();
   if (/^(faq|preguntas frecuentes|preguntas )/i.test(title.trim())) return "FAQ";
   if (/(policy|política)/i.test(t)) return "Policy";
-  if (/^(how to|cómo|guía)/i.test(title.trim())) return "How-To";
+  if (/^(how to|cómo|guía)/i.test(title.trim())) return "Knowledge Article";
   if (/(hub|overview|landing|portal page)/i.test(t)) return "Topic Page";
-  return "How-To";
+  return "Knowledge Article";
 }
 
 function localizedSections(isSpanish: boolean) {
@@ -205,8 +205,8 @@ function buildMockBody(args: {
 
   const source = sourceText?.trim();
 
-  // ── How-To ──────────────────────────────────────────────────────────
-  if (contentType === "How-To") {
+  // ── Knowledge Article ──────────────────────────────────────────────────────────
+  if (contentType === "Knowledge Article") {
     const stepsBlock = source
       ? formatSourceAsSteps(source, isSpanish)
       : isSpanish
@@ -455,9 +455,9 @@ export async function runMarketAgent(args: {
     seo?: ArticleSEO;
   };
   profile: MarketProfile;
-  /** Sector profile that owns this market. Composed above the market
+  /** Sector profile that owns this country. Composed above the country
    *  profile in the system prompt (corporate → locale). May be null when
-   *  the market has no sector assigned (older data). */
+   *  the country has no sector assigned (older data). */
   sector?: SectorProfile | null;
 }): Promise<MarketDraft> {
   const { parsed, profile, sector } = args;
@@ -482,7 +482,7 @@ export async function runMarketAgent(args: {
   }
   const seoBlock = seoLines.length > 0 ? `\n\n${seoLines.join("\n")}` : "";
 
-  const userMsg = `Draft a ${parsed.contentType} for the ${profile.name} market.
+  const userMsg = `Draft a ${parsed.contentType} for the ${profile.name} country.
 
 Title: ${parsed.title}
 Audience: ${parsed.audience}
@@ -525,7 +525,7 @@ export async function runMarketRevisionAgent(args: {
   originalDraft: string;
   complianceIssues: { severity: string; category: string; message: string }[];
   profile: MarketProfile;
-  /** Sector profile that owns this market. Same composition rules as
+  /** Sector profile that owns this country. Same composition rules as
    *  runMarketAgent — corporate framing above locale execution. */
   sector?: SectorProfile | null;
 }): Promise<MarketDraft> {

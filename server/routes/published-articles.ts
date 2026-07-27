@@ -1,12 +1,18 @@
+import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import { loadAll, loadById, mutate, upsert } from "../lib/storage";
 import { computeStaleness } from "../lib/staleness";
+import { evaluate as evaluateApprovalRules } from "../lib/approval-rules";
+import { runConsolidationAgent } from "../agents/consolidation-agent";
 import { metricsSource } from "../lib/metrics-source";
 import { findSimilar } from "../lib/similarity";
 import { recommend, type Recommendation } from "../lib/recommendation";
 import type {
+  Article,
+  Job,
   PublishedArticle,
   Staleness,
+  TraceEntry,
 } from "../lib/types";
 
 /**
@@ -103,7 +109,13 @@ async function withSimilarAndRecommendation(
 
 publishedArticlesRouter.get("/", async (_req, res) => {
   const all = await loadAll<PublishedArticle>("publishedArticles");
-  const enriched = await Promise.all(all.map(withStaleness));
+  const enriched = await Promise.all(
+    all.map(async (article) => {
+      const base = await withStaleness(article);
+      const extras = await withSimilarAndRecommendation(article, base.staleness);
+      return { ...base, recommendation: extras.recommendation };
+    }),
+  );
   // Default order: most-recently-published first.
   enriched.sort(
     (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt),
@@ -120,6 +132,156 @@ publishedArticlesRouter.get("/:id", async (req, res) => {
   const base = await withStaleness(article);
   const extras = await withSimilarAndRecommendation(article, base.staleness);
   res.json({ ...base, ...extras });
+});
+
+function now() {
+  return new Date().toISOString();
+}
+
+function trace(agent: TraceEntry["agent"], label: string, output: unknown): TraceEntry {
+  const at = now();
+  return {
+    agent,
+    label,
+    startedAt: at,
+    endedAt: at,
+    durationMs: 1,
+    status: "success",
+    output,
+  };
+}
+
+async function sourceSet(primaryId: string, ids: string[]): Promise<PublishedArticle[]> {
+  const uniqueIds = Array.from(new Set([primaryId, ...ids]));
+  const sources = await Promise.all(
+    uniqueIds.map((id) => loadById<PublishedArticle>("publishedArticles", id)),
+  );
+  return sources.filter((a): a is PublishedArticle => !!a);
+}
+
+publishedArticlesRouter.post("/:id/consolidation-preview", async (req, res) => {
+  const primary = await loadById<PublishedArticle>("publishedArticles", req.params.id);
+  if (!primary) return res.status(404).json({ error: "not found" });
+  const base = await withStaleness(primary);
+  const extras = await withSimilarAndRecommendation(primary, base.staleness);
+  const bodyIds = req.body?.articleIds as string[] | undefined;
+  const recommendedIds =
+    extras.recommendation.apply.kind === "generate-draft"
+      ? extras.recommendation.apply.candidateIds ?? []
+      : [];
+  const ids = bodyIds ?? recommendedIds;
+  const sources = await sourceSet(primary.id, ids);
+  const draft = await runConsolidationAgent({ primary, sources: sources.filter((s) => s.id !== primary.id) });
+  res.json({
+    primary,
+    sources,
+    previewTitle: draft.title,
+    coverage: draft.coverage,
+    conflicts: draft.conflicts,
+    evidence: extras.recommendation.evidence,
+  });
+});
+
+publishedArticlesRouter.post("/:id/consolidate", async (req, res) => {
+  try {
+    const primary = await loadById<PublishedArticle>("publishedArticles", req.params.id);
+    if (!primary) return res.status(404).json({ error: "not found" });
+    const ids = (req.body?.articleIds as string[] | undefined) ?? [];
+    const sources = await sourceSet(primary.id, ids);
+    if (sources.length < 2) {
+      return res.status(400).json({ error: "Select at least one additional article to consolidate." });
+    }
+    const draft = await runConsolidationAgent({
+      primary,
+      sources: sources.filter((s) => s.id !== primary.id),
+    });
+    const articleId = `ka-${randomUUID().slice(0, 8)}`;
+    const jobId = `job-${randomUUID().slice(0, 8)}`;
+    const baseArticle: Article = {
+      id: articleId,
+      jobId,
+      title: draft.title,
+      contentType: primary.contentType,
+      sector: primary.sector,
+      market: primary.market,
+      countries: Array.from(new Set(sources.flatMap((s) => s.countries ?? []))),
+      seo: draft.seo,
+      replacesArticleIds: sources.map((s) => s.id),
+      body: draft.body,
+      submittedBy: { name: "Consolidation Agent", email: "content-agent@pepsico.com" },
+      submittedAt: now(),
+      status: "needs-review",
+      complianceIssues: [],
+    };
+    const ruling = evaluateApprovalRules(baseArticle);
+    const article: Article = {
+      ...baseArticle,
+      approvalResults: ruling.reasons,
+      autoApproveCandidate: ruling.decision === "auto-approve-candidate",
+      ...(ruling.decision === "needs-info"
+        ? {
+            status: "needs-info" as const,
+            infoNeeded: ruling.reasons
+              .filter((r) => r.severity === "error")
+              .map((r) => `- ${r.label}${r.reason ? ` - ${r.reason}` : ""}`)
+              .join("\n"),
+          }
+        : {}),
+    };
+    const job: Job = {
+      id: jobId,
+      status: "complete",
+      createdAt: now(),
+      updatedAt: now(),
+      input: {
+        title: draft.title,
+        contentType: primary.contentType,
+        summary: `Consolidate ${sources.length} overlapping published articles into one master article.`,
+        audience: "All employees",
+        markets: [primary.market.toLowerCase()],
+        sectors: primary.sector ? [primary.sector] : [],
+        sourceText: sources.map((s) => `${s.title}\n${s.body}`).join("\n\n---\n\n"),
+        submittedBy: article.submittedBy,
+        countries: article.countries,
+        seo: draft.seo,
+      },
+      articleIds: [article.id],
+      trace: [
+        trace("consolidation", "Detected overlap", {
+          sourceCount: sources.length,
+          sources: sources.map((s) => ({ id: s.id, title: s.title })),
+        }),
+        trace("consolidation", "Selected canonical source", {
+          id: primary.id,
+          title: primary.title,
+        }),
+        trace("consolidation", "Generated master draft", {
+          title: draft.title,
+          coverage: draft.coverage,
+          conflicts: draft.conflicts,
+        }),
+        trace("compliance", "Validated metadata and review cadence", {
+          summary: ruling.decision,
+          issues: ruling.reasons.filter((r) => r.severity !== "ok"),
+        }),
+      ],
+    };
+
+    await upsert("articles", article);
+    await upsert("jobs", job);
+    await Promise.all(
+      sources.map((source) =>
+        mutate<PublishedArticle>("publishedArticles", source.id, (cur) => ({
+          ...cur,
+          replacedByArticleId: article.id,
+          archivedReason: `Consolidation draft ${article.id} generated from this source. Publish the master article before archiving.`,
+        })),
+      ),
+    );
+    res.status(201).json({ job, article });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message ?? String(e) });
+  }
 });
 
 publishedArticlesRouter.patch("/:id", async (req, res) => {
@@ -168,6 +330,7 @@ publishedArticlesRouter.patch("/:id/archive", async (req, res) => {
             ...cur,
             archivedAt: cur.archivedAt ?? new Date().toISOString(),
             archivedBy: cur.archivedBy ?? archivedBy ?? cur.archivedBy,
+            archivedReason: cur.archivedReason ?? "Manual lifecycle action.",
           };
         }
         // Unarchive: drop both fields cleanly so JSON serialization doesn't
@@ -175,6 +338,7 @@ publishedArticlesRouter.patch("/:id/archive", async (req, res) => {
         const next = { ...cur };
         delete next.archivedAt;
         delete next.archivedBy;
+        delete next.archivedReason;
         return next;
       },
     );

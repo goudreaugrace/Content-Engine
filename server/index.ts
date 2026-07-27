@@ -15,6 +15,7 @@ import { attentionRouter } from "./routes/attention";
 import { activityRouter } from "./routes/activity";
 import { sectorsRouter } from "./routes/sectors";
 import { uploadsRouter } from "./routes/uploads";
+import { migrationsRouter } from "./routes/migrations";
 import { isMockMode } from "./lib/claude";
 
 dotenv.config();
@@ -40,6 +41,7 @@ app.use("/api/audiences", audiencesRouter);
 app.use("/api/countries", countriesRouter);
 app.use("/api/emails", emailsRouter);
 app.use("/api/uploads", uploadsRouter);
+app.use("/api/migrations", migrationsRouter);
 
 // ── Production: serve the built React app + SPA fallback ──
 // In dev, Vite serves the client on port 5173 and proxies /api to us.

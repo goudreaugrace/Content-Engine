@@ -17,6 +17,11 @@ import {
   IconButton,
   CircularProgress,
   Alert,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Tabs,
   Tab,
   Tooltip,
@@ -35,9 +40,12 @@ import ViewListOutlinedIcon from "@mui/icons-material/ViewListOutlined";
 import ViewKanbanOutlinedIcon from "@mui/icons-material/ViewKanbanOutlined";
 import {
   api,
+  type Article,
+  type ArticleStatus,
   type PublishedArticle,
 } from "../lib/api";
 import { localeFor } from "../lib/market";
+import { usePersonaMode } from "../lib/persona";
 import { sectorShortLabel } from "../lib/sector";
 import {
   ARTICLE_TABLE_COL_WIDTHS as W,
@@ -45,12 +53,68 @@ import {
   ARTICLE_TABLE_SX,
 } from "../lib/article-table";
 import { KpiRow, KpiItem } from "../components/kpi-row";
-import PrePublishedTab from "./articles-tab-pre-published";
-import { NeedsReviewTab } from "./articles-dashboard";
 import FilterSelect from "../components/filter-select";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
 
 type StalenessFilter = "all" | "fresh" | "aging" | "stale" | "archived";
+type ActionFilter = "all" | "consolidate" | "standardize" | "archive" | "mark-reviewed" | "noop";
+type AdminHealthFilter = "watchlist" | "critical" | "extremely-old" | "low-traffic" | "declining" | "all";
+type AdminAlertAction = "review" | "update" | "archive" | "consolidate";
+
+type NonAdminWorkflowStatus = ArticleStatus | "stale";
+type NonAdminStatusFilter = "all" | NonAdminWorkflowStatus;
+
+const NON_ADMIN_USER = "Demo User";
+const NON_ADMIN_REPORTS = new Set(["Test", "Demo", "Test Author"]);
+const NON_ADMIN_AUTHORS = new Set([NON_ADMIN_USER, ...NON_ADMIN_REPORTS]);
+const NON_ADMIN_OWNER_LABELS: Record<string, string> = {
+  "Demo User": "Maya Johnson",
+  Test: "Jordan Lee",
+  Demo: "Avery Patel",
+  "Test Author": "Sofia Ramirez",
+};
+const NON_ADMIN_TRANSFER_OWNERS = [
+  { name: "Demo User", email: "content-owner@pepsico.com" },
+  { name: "Test", email: "jordan.lee@pepsico.com" },
+  { name: "Demo", email: "avery.patel@pepsico.com" },
+  { name: "Test Author", email: "sofia.ramirez@pepsico.com" },
+];
+
+function nonAdminOwnerLabel(owner: string): string {
+  return NON_ADMIN_OWNER_LABELS[owner] ?? owner;
+}
+
+function nonAdminStatusLabel(status: NonAdminWorkflowStatus): string {
+  return {
+    "needs-review": "In review",
+    stale: "Stale",
+    "needs-info": "Update requested",
+    rejected: "Rejected",
+    published: "Published",
+  }[status];
+}
+
+function nonAdminWorkflowStatus(
+  article: Article,
+  publishedById: Map<string, PublishedArticle>,
+  publishedBySourceId: Map<string, PublishedArticle>,
+): NonAdminWorkflowStatus {
+  if (article.status !== "published") return article.status;
+  const published =
+    (article.publishedArticleId ? publishedById.get(article.publishedArticleId) : undefined) ??
+    publishedBySourceId.get(article.id);
+  return published?.staleness.level === "stale" ? "stale" : "published";
+}
+
+const NON_ADMIN_STATUS_ORDER: NonAdminWorkflowStatus[] = [
+  "needs-review",
+  "stale",
+  "published",
+  "needs-info",
+  "rejected",
+];
 
 function daysAgo(iso: string): string {
   const diff = Math.floor(
@@ -71,15 +135,91 @@ function formatDate(iso: string): string {
   });
 }
 
+function daysSinceDate(iso?: string): number {
+  if (!iso) return Number.POSITIVE_INFINITY;
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+function adminReviewAge(article: PublishedArticle): number {
+  return daysSinceDate(article.lastReviewedAt ?? article.publishedAt);
+}
+
+function adminIsExtremelyOld(article: PublishedArticle): boolean {
+  return adminReviewAge(article) >= 365;
+}
+
+function adminIsLowTraffic(article: PublishedArticle): boolean {
+  return article.metrics.views30d < 30;
+}
+
+function adminIsCritical(article: PublishedArticle): boolean {
+  return (
+    article.staleness.level === "stale" ||
+    adminIsExtremelyOld(article) ||
+    (article.metrics.views30d < 10 && article.metrics.trend === "down")
+  );
+}
+
+function adminNeedsWatch(article: PublishedArticle): boolean {
+  if (article.staleness.level === "archived") return false;
+  return (
+    adminIsCritical(article) ||
+    article.staleness.level === "aging" ||
+    adminIsLowTraffic(article) ||
+    article.metrics.trend === "down" ||
+    ["archive", "mark-reviewed", "consolidate", "standardize"].includes(article.recommendation?.kind ?? "")
+  );
+}
+
+function adminHealthSignals(article: PublishedArticle): Array<{ label: string; severity: "high" | "medium" | "low" }> {
+  const signals: Array<{ label: string; severity: "high" | "medium" | "low" }> = [];
+  const reviewAge = adminReviewAge(article);
+  if (article.staleness.level === "stale") signals.push({ label: "Stale", severity: "high" });
+  else if (article.staleness.level === "aging") signals.push({ label: "Review due soon", severity: "medium" });
+  if (reviewAge >= 365 && Number.isFinite(reviewAge)) signals.push({ label: `${Math.round(reviewAge / 30)}mo since review`, severity: "high" });
+  if (article.metrics.views30d < 10) signals.push({ label: "Very low traffic", severity: "high" });
+  else if (article.metrics.views30d < 30) signals.push({ label: "Below traffic target", severity: "medium" });
+  if (article.metrics.trend === "down") signals.push({ label: "Declining", severity: "medium" });
+  if (article.recommendation?.kind === "archive") signals.push({ label: "Archive candidate", severity: "high" });
+  if (article.recommendation?.kind === "consolidate") signals.push({ label: "Duplicate overlap", severity: "medium" });
+  if (article.recommendation?.kind === "standardize") signals.push({ label: "Needs standardization", severity: "medium" });
+  return signals.length > 0 ? signals : [{ label: "Healthy", severity: "low" }];
+}
+
+function defaultAdminAlertAction(article: PublishedArticle): AdminAlertAction {
+  if (article.recommendation?.kind === "archive" || article.metrics.views30d < 10) return "archive";
+  if (article.recommendation?.kind === "consolidate") return "consolidate";
+  if (article.staleness.level === "stale" || adminIsExtremelyOld(article)) return "review";
+  return "update";
+}
+
+function adminAlertActionLabel(action: AdminAlertAction): string {
+  return {
+    review: "Review article",
+    update: "Update article",
+    archive: "Remove or archive",
+    consolidate: "Consolidate duplicates",
+  }[action];
+}
+
+function defaultAdminAlertReason(article: PublishedArticle, action: AdminAlertAction): string {
+  const signals = adminHealthSignals(article)
+    .filter((signal) => signal.label !== "Healthy")
+    .slice(0, 3)
+    .map((signal) => signal.label.toLowerCase())
+    .join(", ");
+  const intro = signals || "content health review needed";
+  return `This article was flagged for ${intro}. Please ${adminAlertActionLabel(action).toLowerCase()} and confirm the right next step.`;
+}
+
 /**
  * Phase F — tabbed Articles shell. "Published" lost its top-level page status
  * when we collapsed the two browse surfaces (drafts + published) into a single
  * "Articles" tab in the sidebar. This file now exports:
  *   - PublishedLibrary  → the page shell with sub-tabs + shared header
  *   - PublishedTab      → the existing published-articles list (header removed)
- * Pre-published tab lives in articles-tab-pre-published.tsx.
  */
-type ArticlesSubTab = "needs-review" | "pre-published" | "published";
+type ArticlesSubTab = "my-articles" | "published";
 
 export default function PublishedLibrary() {
   const theme = useTheme();
@@ -88,29 +228,27 @@ export default function PublishedLibrary() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ── URL-synced tab state ──
-  // Reads ?tab=needs-review|pre-published|published. Default =
-  // "needs-review" — the merged Review Cycle experience is the highest-
-  // priority landing surface on this combined page.
+  // Reads ?tab=my-articles|published. Default = published health, since
+  // admins monitor live article health before drilling into their own work.
   const tabParam = searchParams.get("tab");
   const activeTab: ArticlesSubTab =
-    tabParam === "pre-published"
-      ? "pre-published"
-      : tabParam === "published"
-        ? "published"
-        : "needs-review";
+    tabParam === "my-articles" || tabParam === "needs-review" ? "my-articles" : "published";
 
   const setTab = (next: ArticlesSubTab) => {
     const sp = new URLSearchParams(searchParams);
-    if (next === "needs-review") sp.delete("tab");
+    if (next === "published") sp.delete("tab");
     else sp.set("tab", next);
     setSearchParams(sp, { replace: true });
   };
 
-  // Each tab reports its own row count so we can show "(N)" badges in the
-  // tab labels. Useful at a glance — "Needs review (11) · Pre-published (12) · Published (5)".
-  const [needsCount, setNeedsCount] = useState<number | null>(null);
-  const [preCount, setPreCount] = useState<number | null>(null);
+  // Each tab reports its own row count so we can show compact badges in labels.
+  const [myCount, setMyCount] = useState<number | null>(null);
   const [pubCount, setPubCount] = useState<number | null>(null);
+  const [personaMode] = usePersonaMode();
+
+  if (personaMode === "non-admin") {
+    return <NonAdminArticlesPage />;
+  }
 
   return (
     <Box sx={{ maxWidth: 1280, mx: "auto" }}>
@@ -129,11 +267,10 @@ export default function PublishedLibrary() {
             All Articles
           </Typography>
           {/* Subtitle trimmed to a single sentence (M3 medium app-bar pattern).
-              The tab labels do the work of distinguishing pre-published vs
-              published; the paragraph-length explanation read as docs, not
-              chrome. */}
+              The tab labels distinguish monitoring from owned/team work; the
+              paragraph-length explanation read as docs, not chrome. */}
           <Typography color="text.secondary" sx={{ mt: 0.75, maxWidth: "62ch" }}>
-            All knowledge articles, organized by lifecycle stage.
+            Monitor content health at scale, spot owner follow-ups, and keep published knowledge current without opening every article.
           </Typography>
         </Box>
         {/* Persistent action row — always visible regardless of active tab.
@@ -149,11 +286,11 @@ export default function PublishedLibrary() {
           <Button
             variant="outlined"
             size="small"
-            startIcon={<PlayArrowRoundedIcon sx={{ fontSize: 16 }} />}
-            onClick={() => navigate("/review")}
+            startIcon={<EmailOutlinedIcon sx={{ fontSize: 16 }} />}
+            onClick={() => navigate("/admin/emails")}
             sx={{ whiteSpace: "nowrap" }}
           >
-            Start review cycle
+            Email log
           </Button>
           <Button
             variant="contained"
@@ -193,30 +330,10 @@ export default function PublishedLibrary() {
           }}
         >
           <Tab
-            value="pre-published"
-            label={
-              <Stack direction="row" spacing={1} alignItems="baseline">
-                <span>Pre-published</span>
-                {preCount !== null && (
-                  <Box
-                    component="span"
-                    sx={{
-                      fontFamily: theme.palette.fonts.mono,
-                      fontSize: "0.6875rem",
-                      color: t.granite,
-                    }}
-                  >
-                    {preCount}
-                  </Box>
-                )}
-              </Stack>
-            }
-          />
-          <Tab
             value="published"
             label={
               <Stack direction="row" spacing={1} alignItems="baseline">
-                <span>Published</span>
+                <span>Published health</span>
                 {pubCount !== null && (
                   <Box
                     component="span"
@@ -233,21 +350,21 @@ export default function PublishedLibrary() {
             }
           />
           <Tab
-            value="needs-review"
+            value="my-articles"
             label={
               <Stack direction="row" spacing={1} alignItems="baseline">
-                <span>Needs review</span>
-                {needsCount !== null && needsCount > 0 && (
+                <span>My articles</span>
+                {myCount !== null && (
                   <Box
                     component="span"
                     sx={{
                       fontFamily: theme.palette.fonts.mono,
                       fontSize: "0.6875rem",
-                      color: t.ember,
+                      color: t.granite,
                       fontWeight: 600,
                     }}
                   >
-                    {needsCount}
+                    {myCount}
                   </Box>
                 )}
               </Stack>
@@ -257,15 +374,537 @@ export default function PublishedLibrary() {
       </Box>
 
       {/* ─── Active tab body ─── */}
-      {activeTab === "needs-review" ? (
-        <NeedsReviewTab onLoaded={setNeedsCount} />
-      ) : activeTab === "pre-published" ? (
-        <PrePublishedTab onLoaded={setPreCount} />
+      {activeTab === "my-articles" ? (
+        <NonAdminArticlesPage embedded onLoaded={setMyCount} />
       ) : (
         <PublishedTab onLoaded={setPubCount} />
       )}
     </Box>
   );
+}
+
+// ────────────────────────────────────────────────────────────
+// NonAdminArticlesPage — POC writer / manager view. One scoped table only:
+// own articles + direct reports, with lifecycle represented as Status.
+// ────────────────────────────────────────────────────────────
+function NonAdminArticlesPage({
+  embedded = false,
+  onLoaded,
+}: {
+  embedded?: boolean;
+  onLoaded?: (count: number) => void;
+} = {}) {
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [publishedArticles, setPublishedArticles] = useState<PublishedArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<NonAdminStatusFilter>("all");
+  const [ownerFilter, setOwnerFilter] = useState("all");
+  const [transferArticle, setTransferArticle] = useState<Article | null>(null);
+  const [transferOwner, setTransferOwner] = useState(NON_ADMIN_USER);
+  const [transferSaving, setTransferSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [draftData, publishedData] = await Promise.all([
+        api.listArticles(),
+        api.listPublishedArticles(),
+      ]);
+      setArticles(draftData);
+      setPublishedArticles(publishedData);
+      setError(null);
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const publishedById = useMemo(() => {
+    return new Map(publishedArticles.map((article) => [article.id, article]));
+  }, [publishedArticles]);
+
+  const publishedBySourceId = useMemo(() => {
+    return new Map(publishedArticles.map((article) => [article.sourceArticleId, article]));
+  }, [publishedArticles]);
+
+  const scoped = useMemo(() => {
+    const priority: Record<NonAdminWorkflowStatus, number> = {
+      "needs-review": 0,
+      stale: 1,
+      published: 2,
+      "needs-info": 3,
+      rejected: 4,
+    };
+    return articles
+      .filter((a) => NON_ADMIN_AUTHORS.has(a.submittedBy?.name ?? ""))
+      .sort((a, b) => {
+        const reportA = NON_ADMIN_REPORTS.has(a.submittedBy?.name ?? "") ? -1 : 0;
+        const reportB = NON_ADMIN_REPORTS.has(b.submittedBy?.name ?? "") ? -1 : 0;
+        const statusA = nonAdminWorkflowStatus(a, publishedById, publishedBySourceId);
+        const statusB = nonAdminWorkflowStatus(b, publishedById, publishedBySourceId);
+        if (statusA === "needs-review" && statusB !== "needs-review") return -1;
+        if (statusB === "needs-review" && statusA !== "needs-review") return 1;
+        if (statusA === "stale" && statusB !== "stale") return -1;
+        if (statusB === "stale" && statusA !== "stale") return 1;
+        if (reportA !== reportB) return reportA - reportB;
+        if (priority[statusA] !== priority[statusB]) return priority[statusA] - priority[statusB];
+        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+      })
+      .slice(0, 15);
+  }, [articles, publishedById, publishedBySourceId]);
+
+  useEffect(() => {
+    onLoaded?.(scoped.length);
+  }, [onLoaded, scoped.length]);
+
+  const counts = useMemo(
+    () => ({
+      total: scoped.length,
+      approvals: scoped.filter(
+        (a) =>
+          nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "needs-review" &&
+          NON_ADMIN_REPORTS.has(a.submittedBy?.name ?? ""),
+      ).length,
+      stale: scoped.filter(
+        (a) => nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "stale",
+      ).length,
+      published: scoped.filter(
+        (a) => nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "published",
+      ).length,
+    }),
+    [scoped, publishedById, publishedBySourceId],
+  );
+
+  const availableStatuses = useMemo(() => {
+    const set = new Set<NonAdminWorkflowStatus>();
+    scoped.forEach((a) => set.add(nonAdminWorkflowStatus(a, publishedById, publishedBySourceId)));
+    return NON_ADMIN_STATUS_ORDER.filter((status) => set.has(status));
+  }, [scoped, publishedById, publishedBySourceId]);
+
+  const availableOwners = useMemo(() => {
+    const set = new Set<string>();
+    scoped.forEach((a) => set.add(a.submittedBy?.name ?? "Unknown"));
+    return Array.from(set).sort((a, b) =>
+      nonAdminOwnerLabel(a).localeCompare(nonAdminOwnerLabel(b)),
+    );
+  }, [scoped]);
+
+  const filtered = useMemo(() => {
+    const term = search.toLowerCase().trim();
+    return scoped.filter((a) => {
+      const owner = a.submittedBy?.name ?? "Unknown";
+      const status = nonAdminWorkflowStatus(a, publishedById, publishedBySourceId);
+      if (statusFilter !== "all" && status !== statusFilter) return false;
+      if (ownerFilter !== "all" && owner !== ownerFilter) return false;
+      if (term) {
+        const hay = `${a.title} ${a.contentType} ${owner} ${nonAdminOwnerLabel(owner)} ${nonAdminStatusLabel(status)} ${a.market}`.toLowerCase();
+        if (!hay.includes(term)) return false;
+      }
+      return true;
+    });
+  }, [scoped, search, statusFilter, ownerFilter, publishedById, publishedBySourceId]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setOwnerFilter("all");
+  };
+
+  const hasFilters = search.trim() !== "" || statusFilter !== "all" || ownerFilter !== "all";
+
+  const openTransfer = (article: Article) => {
+    const currentOwner = article.submittedBy?.name ?? "";
+    const nextOwner =
+      NON_ADMIN_TRANSFER_OWNERS.find((owner) => owner.name !== currentOwner)?.name ??
+      NON_ADMIN_USER;
+    setTransferArticle(article);
+    setTransferOwner(nextOwner);
+  };
+
+  const closeTransfer = () => {
+    if (transferSaving) return;
+    setTransferArticle(null);
+  };
+
+  const confirmTransfer = async () => {
+    if (!transferArticle) return;
+    const target = NON_ADMIN_TRANSFER_OWNERS.find((owner) => owner.name === transferOwner);
+    if (!target) return;
+    setTransferSaving(true);
+    try {
+      const updated = await api.transferArticleOwner(transferArticle.id, target);
+      setArticles((prev) => prev.map((article) => (article.id === updated.id ? updated : article)));
+      setError(null);
+      setTransferArticle(null);
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
+    } finally {
+      setTransferSaving(false);
+    }
+  };
+
+  const transferTargets = transferArticle
+    ? NON_ADMIN_TRANSFER_OWNERS.filter(
+        (owner) => owner.name !== (transferArticle.submittedBy?.name ?? ""),
+      )
+    : NON_ADMIN_TRANSFER_OWNERS;
+
+  return (
+    <Box sx={{ maxWidth: embedded ? "none" : 1120, mx: embedded ? 0 : "auto" }}>
+      {!embedded && (
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          alignItems={{ xs: "flex-start", md: "flex-end" }}
+          justifyContent="space-between"
+          spacing={2}
+        >
+          <Box>
+            <Typography variant="h4" component="h1">
+              My Articles
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 0.75, maxWidth: "62ch" }}>
+              Track Maya Johnson's articles plus direct-report articles that need manager approval.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+            onClick={() => navigate("/new")}
+            sx={{ whiteSpace: "nowrap" }}
+          >
+            New article
+          </Button>
+        </Stack>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ mt: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Box sx={{ mt: embedded ? 0 : 4 }}>
+        <KpiRow>
+        <KpiItem label="Visible articles" value={counts.total} />
+        <KpiItem
+          label="Team approvals"
+          value={counts.approvals}
+          accent={counts.approvals > 0 ? t.ember : undefined}
+        />
+        <KpiItem
+          label="Stale reviews"
+          value={counts.stale}
+          accent={counts.stale > 0 ? t.errorInk : undefined}
+        />
+        <KpiItem label="Published" value={counts.published} />
+      </KpiRow>
+      </Box>
+
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        spacing={1}
+        alignItems={{ md: "center" }}
+        sx={{ mt: 4, mb: 1.5 }}
+      >
+        <FilterSelect
+          label="Status"
+          value={statusFilter}
+          onChange={(v) => setStatusFilter(v as NonAdminStatusFilter)}
+          options={[
+            { value: "all", label: `All statuses (${scoped.length})` },
+            ...availableStatuses.map((status) => ({
+              value: status,
+              label: `${nonAdminStatusLabel(status)} (${
+                scoped.filter(
+                  (a) => nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === status,
+                ).length
+              })`,
+            })),
+          ]}
+        />
+        <FilterSelect
+          label="Owner"
+          value={ownerFilter}
+          onChange={setOwnerFilter}
+          options={[
+            { value: "all", label: `All owners (${scoped.length})` },
+            ...availableOwners.map((owner) => ({
+              value: owner,
+              label: `${nonAdminOwnerLabel(owner)} (${
+                scoped.filter((a) => (a.submittedBy?.name ?? "Unknown") === owner).length
+              })`,
+            })),
+          ]}
+        />
+        {hasFilters && (
+          <Button size="small" onClick={clearFilters} sx={{ color: t.slate }}>
+            Clear
+          </Button>
+        )}
+        <Box sx={{ flex: 1 }} />
+        <TextField
+          size="small"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ width: { xs: "100%", md: 240 } }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ fontSize: 16, color: t.slate }} />
+              </InputAdornment>
+            ),
+            endAdornment: search ? (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  onClick={() => setSearch("")}
+                  sx={{ p: 0.5, mr: -0.5 }}
+                >
+                  <CloseOutlinedIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          }}
+        />
+        <IconButton onClick={load} disabled={loading} size="small" title="Refresh">
+          <RefreshIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+      </Stack>
+
+      <TableContainer>
+        <Table sx={ARTICLE_TABLE_SX}>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ width: W.article }}>Article</TableCell>
+              <TableCell sx={{ width: W.status }}>Status</TableCell>
+              <TableCell sx={{ width: W.submittedBy }}>Owner</TableCell>
+              <TableCell sx={{ width: W.market }}>Sector</TableCell>
+              <TableCell sx={{ width: W.when }}>Updated</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {loading && articles.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
+                  <CircularProgress size={20} sx={{ color: t.slate }} />
+                </TableCell>
+              </TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
+                  <Typography color="text.secondary" variant="body2">
+                    No articles match your filters.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((article) => {
+                const status = nonAdminWorkflowStatus(article, publishedById, publishedBySourceId);
+                const published =
+                  (article.publishedArticleId ? publishedById.get(article.publishedArticleId) : undefined) ??
+                  publishedBySourceId.get(article.id);
+                return (
+                  <NonAdminArticleRow
+                    key={article.id}
+                    article={article}
+                    status={status}
+                    onTransfer={() => openTransfer(article)}
+                    onOpen={() =>
+                      status === "stale" && published
+                        ? navigate(`/library/${published.id}`)
+                        : navigate(`/articles/${article.id}`)
+                    }
+                  />
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Dialog open={Boolean(transferArticle)} onClose={closeTransfer} maxWidth="xs" fullWidth>
+        <DialogTitle>Transfer ownership</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Reassign this article when an owner changes roles or leaves the team.
+          </Typography>
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label="New owner"
+            value={transferOwner}
+            onChange={(e) => setTransferOwner(e.target.value)}
+            sx={{ mt: 2 }}
+          >
+            {transferTargets.map((owner) => (
+              <MenuItem key={owner.name} value={owner.name}>
+                {nonAdminOwnerLabel(owner.name)}
+              </MenuItem>
+            ))}
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeTransfer} disabled={transferSaving}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={confirmTransfer}
+            disabled={transferSaving || !transferOwner}
+          >
+            Transfer
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+}
+
+function NonAdminArticleRow({
+  article,
+  status,
+  onTransfer,
+  onOpen,
+}: {
+  article: Article;
+  status: NonAdminWorkflowStatus;
+  onTransfer: () => void;
+  onOpen: () => void;
+}) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const owner = article.submittedBy?.name ?? "Unknown";
+  const displayOwner = nonAdminOwnerLabel(owner);
+  const needsApproval =
+    status === "needs-review" && NON_ADMIN_REPORTS.has(owner);
+  const needsStaleReview = status === "stale";
+
+  return (
+    <TableRow hover sx={{ cursor: "pointer" }} onClick={onOpen}>
+      <TableCell sx={{ maxWidth: ARTICLE_CELL_MAX_WIDTH }}>
+        <Typography sx={{ fontSize: "0.9375rem", fontWeight: 500, color: t.ink }}>
+          {article.title}
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: theme.palette.fonts.mono,
+            fontSize: "0.6875rem",
+            color: t.granite,
+            mt: 0.25,
+          }}
+        >
+          {article.id} · {article.contentType}
+          {article.sector ? ` · ${sectorShortLabel(article.sector)}` : ""}
+        </Typography>
+      </TableCell>
+      <TableCell>
+        <ArticleStatusChip status={status} urgent={needsApproval || needsStaleReview} />
+      </TableCell>
+      <TableCell>
+        <Stack direction="row" spacing={0.5} alignItems="center">
+          <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
+            {displayOwner}
+          </Typography>
+          {owner !== NON_ADMIN_USER && (
+            <Tooltip title="Transfer ownership">
+              <IconButton
+                size="small"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onTransfer();
+                }}
+                sx={{ p: 0.25, color: t.slate }}
+              >
+                <SwapHorizRoundedIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Stack>
+      </TableCell>
+      <TableCell>
+        <Box
+          component="span"
+          sx={{
+            fontFamily: theme.palette.fonts.mono,
+            fontSize: "0.6875rem",
+            color: t.slate,
+          }}
+        >
+          {sectorShortLabel(article.sector)}
+        </Box>
+      </TableCell>
+      <TableCell>
+        <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
+          {daysAgo(article.submittedAt)}
+        </Typography>
+        <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
+          {formatDate(article.submittedAt)}
+        </Typography>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function ArticleStatusChip({
+  status,
+  urgent,
+}: {
+  status: NonAdminWorkflowStatus;
+  urgent?: boolean;
+}) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const config: Record<NonAdminWorkflowStatus, { label: string; color: string; bg: string }> = {
+    "needs-review": {
+      label: urgent ? "Approval needed" : "In review",
+      color: urgent ? t.emberStrong : t.ember,
+      bg: t.emberBg,
+    },
+    stale: {
+      label: "Stale",
+      color: t.errorInk,
+      bg: t.errorBg,
+    },
+    "needs-info": { label: "Update requested", color: t.granite, bg: t.surfaceContainerLow },
+    rejected: { label: "Rejected", color: t.errorInk, bg: t.errorBg },
+    published: { label: "Published", color: t.successInk, bg: t.successBg },
+  };
+  const c = config[status];
+  return (
+    <Chip
+      size="small"
+      label={c.label}
+      sx={{
+        height: 22,
+        bgcolor: c.bg,
+        color: c.color,
+        fontSize: "0.6875rem",
+        fontWeight: 600,
+      }}
+    />
+  );
+}
+
+function statusLabel(status: ArticleStatus): string {
+  return {
+    "needs-review": "In review",
+    "needs-info": "Needs info",
+    rejected: "Rejected",
+    published: "Published",
+  }[status];
 }
 
 // ────────────────────────────────────────────────────────────
@@ -288,9 +927,16 @@ function PublishedTab({
 
   // Filters
   const [search, setSearch] = useState("");
-  const [marketFilter, setMarketFilter] = useState<string>("all");
+  const [countryFilter, setMarketFilter] = useState<string>("all");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
+  const [healthFilter, setHealthFilter] = useState<AdminHealthFilter>("watchlist");
   const [stalenessFilter, setStalenessFilter] = useState<StalenessFilter>("all");
+  const [actionFilter, setActionFilter] = useState<ActionFilter>("all");
+  const [alertArticle, setAlertArticle] = useState<PublishedArticle | null>(null);
+  const [alertAction, setAlertAction] = useState<AdminAlertAction>("review");
+  const [alertReason, setAlertReason] = useState("");
+  const [alertSaving, setAlertSaving] = useState(false);
+  const [alertedIds, setAlertedIds] = useState<Set<string>>(() => new Set());
 
   /**
    * Table / Board view toggle, mirroring the Pre-published tab. Persisted
@@ -301,7 +947,7 @@ function PublishedTab({
   const [viewMode, setViewMode] = useState<"table" | "board">(() => {
     if (typeof window === "undefined") return "table";
     try {
-      return localStorage.getItem("published-view-v1") === "board"
+      return localStorage.getItem("published-health-view-v1") === "board"
         ? "board"
         : "table";
     } catch {
@@ -310,7 +956,7 @@ function PublishedTab({
   });
   useEffect(() => {
     try {
-      localStorage.setItem("published-view-v1", viewMode);
+      localStorage.setItem("published-health-view-v1", viewMode);
     } catch {
       /* localStorage unavailable — non-fatal */
     }
@@ -334,7 +980,7 @@ function PublishedTab({
     load();
   }, [load]);
 
-  const availableMarkets = useMemo(() => {
+  const availableCountries = useMemo(() => {
     const set = new Set<string>();
     articles.forEach((a) => set.add(a.market));
     return Array.from(set).sort();
@@ -353,12 +999,19 @@ function PublishedTab({
         if (!hay.includes(term)) return false;
       }
       if (sectorFilter !== "all" && a.sector !== sectorFilter) return false;
-      if (marketFilter !== "all" && a.market !== marketFilter) return false;
+      if (countryFilter !== "all" && a.market !== countryFilter) return false;
+      if (healthFilter === "watchlist" && !adminNeedsWatch(a)) return false;
+      if (healthFilter === "critical" && !adminIsCritical(a)) return false;
+      if (healthFilter === "extremely-old" && !adminIsExtremelyOld(a)) return false;
+      if (healthFilter === "low-traffic" && !adminIsLowTraffic(a)) return false;
+      if (healthFilter === "declining" && a.metrics.trend !== "down") return false;
       if (stalenessFilter !== "all" && a.staleness.level !== stalenessFilter)
+        return false;
+      if (actionFilter !== "all" && (a.recommendation?.kind ?? "noop") !== actionFilter)
         return false;
       return true;
     });
-  }, [articles, search, marketFilter, sectorFilter, stalenessFilter]);
+  }, [articles, search, countryFilter, sectorFilter, healthFilter, stalenessFilter, actionFilter]);
 
   const counts = useMemo(
     () => ({
@@ -367,21 +1020,75 @@ function PublishedTab({
       aging: articles.filter((a) => a.staleness.level === "aging").length,
       stale: articles.filter((a) => a.staleness.level === "stale").length,
       archived: articles.filter((a) => a.staleness.level === "archived").length,
+      watchlist: articles.filter(adminNeedsWatch).length,
+      critical: articles.filter(adminIsCritical).length,
+      extremelyOld: articles.filter(adminIsExtremelyOld).length,
+      lowTraffic: articles.filter(adminIsLowTraffic).length,
+      declining: articles.filter((a) => a.metrics.trend === "down").length,
+      ownerAlerts: articles.filter((a) => adminNeedsWatch(a) && !alertedIds.has(a.id)).length,
+      consolidate: articles.filter((a) => a.recommendation?.kind === "consolidate").length,
+      standardize: articles.filter((a) => a.recommendation?.kind === "standardize").length,
+      archiveAction: articles.filter((a) => a.recommendation?.kind === "archive").length,
+      reviewAction: articles.filter((a) => a.recommendation?.kind === "mark-reviewed").length,
+      noAction: articles.filter((a) => (a.recommendation?.kind ?? "noop") === "noop").length,
     }),
-    [articles],
+    [articles, alertedIds],
   );
 
   const hasAnyFilter =
     search.trim() !== "" ||
-    marketFilter !== "all" ||
+    countryFilter !== "all" ||
     sectorFilter !== "all" ||
-    stalenessFilter !== "all";
+    healthFilter !== "watchlist" ||
+    stalenessFilter !== "all" ||
+    actionFilter !== "all";
 
   const clearFilters = () => {
     setSearch("");
     setMarketFilter("all");
     setSectorFilter("all");
+    setHealthFilter("watchlist");
     setStalenessFilter("all");
+    setActionFilter("all");
+  };
+
+  const openOwnerAlert = (article: PublishedArticle) => {
+    const action = defaultAdminAlertAction(article);
+    setAlertArticle(article);
+    setAlertAction(action);
+    setAlertReason(defaultAdminAlertReason(article, action));
+  };
+
+  const closeOwnerAlert = () => {
+    if (alertSaving) return;
+    setAlertArticle(null);
+  };
+
+  const updateAlertAction = (next: AdminAlertAction) => {
+    setAlertAction(next);
+    if (alertArticle) setAlertReason(defaultAdminAlertReason(alertArticle, next));
+  };
+
+  const sendOwnerAlert = async () => {
+    if (!alertArticle) return;
+    setAlertSaving(true);
+    try {
+      await api.sendOwnerAlert({
+        articleId: alertArticle.sourceArticleId,
+        articleTitle: alertArticle.title,
+        ownerName: alertArticle.originalSubmittedBy.name,
+        to: [alertArticle.originalSubmittedBy.email],
+        action: alertAction,
+        reason: alertReason,
+      });
+      setAlertedIds((prev) => new Set(prev).add(alertArticle.id));
+      setAlertArticle(null);
+      setError(null);
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
+    } finally {
+      setAlertSaving(false);
+    }
   };
 
   return (
@@ -392,17 +1099,42 @@ function PublishedTab({
         </Alert>
       )}
 
-      {/* ─── KPI row — published lifecycle buckets ─── */}
       <KpiRow>
-        <KpiItem label="Total published" value={counts.total} />
-        <KpiItem label="Fresh" value={counts.fresh} />
-        <KpiItem label="Aging" value={counts.aging} />
-        <KpiItem
-          label="Stale"
-          value={counts.stale}
-          accent={counts.stale > 0 ? t.ember : undefined}
-        />
+        <KpiItem label="Watchlist" value={counts.watchlist} accent={counts.watchlist > 0 ? t.ember : undefined} />
+        <KpiItem label="Critical" value={counts.critical} accent={counts.critical > 0 ? t.errorInk : undefined} />
+        <KpiItem label="Extremely old" value={counts.extremelyOld} accent={counts.extremelyOld > 0 ? t.errorInk : undefined} />
+        <KpiItem label="Owner alerts" value={counts.ownerAlerts} accent={counts.ownerAlerts > 0 ? t.pepsiBlue : undefined} />
       </KpiRow>
+
+      <Box
+        sx={{
+          mt: 3,
+          p: 2,
+          border: `1px solid ${t.border}`,
+          borderRadius: 1,
+          bgcolor: t.surfaceContainerLow,
+        }}
+      >
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          alignItems={{ xs: "flex-start", md: "center" }}
+          justifyContent="space-between"
+        >
+          <Box>
+            <Typography sx={{ fontWeight: 600, color: t.ink, fontSize: "0.9375rem" }}>
+              Owner follow-up queue
+            </Typography>
+            <Typography sx={{ color: t.slate, fontSize: "0.8125rem", mt: 0.25 }}>
+              Default view shows stale, old, low-traffic, declining, and recommendation-backed articles first.
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Chip size="small" label={`${counts.lowTraffic} low traffic`} sx={{ bgcolor: t.mist, color: t.ink, fontSize: "0.6875rem" }} />
+            <Chip size="small" label={`${counts.declining} declining`} sx={{ bgcolor: t.mist, color: t.ink, fontSize: "0.6875rem" }} />
+          </Stack>
+        </Stack>
+      </Box>
 
       {/* ─── Filter strip ─── */}
       <Stack
@@ -418,8 +1150,19 @@ function PublishedTab({
           flexWrap="wrap"
           useFlexGap
         >
-          {/* Staleness filter — same dropdown pattern as Needs Review and
-              Pre-published so all three tabs share one filter shape. */}
+          <FilterSelect
+            label="Health"
+            value={healthFilter}
+            onChange={(v) => setHealthFilter(v as AdminHealthFilter)}
+            options={[
+              { value: "watchlist", label: `Watchlist (${counts.watchlist})` },
+              { value: "critical", label: `Critical (${counts.critical})` },
+              { value: "extremely-old", label: `Extremely old (${counts.extremelyOld})` },
+              { value: "low-traffic", label: `Low traffic (${counts.lowTraffic})` },
+              { value: "declining", label: `Declining (${counts.declining})` },
+              { value: "all", label: `All articles (${counts.total})` },
+            ]}
+          />
           <FilterSelect
             label="Staleness"
             value={stalenessFilter}
@@ -430,6 +1173,19 @@ function PublishedTab({
               { value: "aging", label: `Aging (${counts.aging})` },
               { value: "stale", label: `Stale (${counts.stale})` },
               { value: "archived", label: `Archived (${counts.archived})` },
+            ]}
+          />
+          <FilterSelect
+            label="Recommended next step"
+            value={actionFilter}
+            onChange={(v) => setActionFilter(v as ActionFilter)}
+            options={[
+              { value: "all", label: `All actions (${counts.total})` },
+              { value: "consolidate", label: `Consolidate (${counts.consolidate})` },
+              { value: "standardize", label: `Standardize (${counts.standardize})` },
+              { value: "archive", label: `Archive (${counts.archiveAction})` },
+              { value: "mark-reviewed", label: `Review (${counts.reviewAction})` },
+              { value: "noop", label: `No action (${counts.noAction})` },
             ]}
           />
           <FilterSelect
@@ -445,12 +1201,12 @@ function PublishedTab({
             ]}
           />
           <FilterSelect
-            label="Market"
-            value={marketFilter}
+            label="Country"
+            value={countryFilter}
             onChange={setMarketFilter}
             options={[
-              { value: "all", label: "All markets" },
-              ...availableMarkets.map((m) => ({
+              { value: "all", label: "All countries" },
+              ...availableCountries.map((m) => ({
                 value: m,
                 label: `${m} · ${localeFor(m as any)}`,
               })),
@@ -550,7 +1306,7 @@ function PublishedTab({
       <TableContainer>
         <Table sx={ARTICLE_TABLE_SX}>
           {/* Canonical column order — shared with the Review Cycle and
-              Pre-published Articles tables. Cols 1-5 (Article · Market ·
+              Pre-published Articles tables. Cols 1-5 (Article · Country ·
               Staleness · Submitted by · When) are identical across all
               three; Views (30d) is this table's specialty. Archived state
               is now expressed via the Staleness chip, not a separate
@@ -558,13 +1314,11 @@ function PublishedTab({
           <TableHead>
             <TableRow>
               <TableCell sx={{ width: W.article }}>Article</TableCell>
-              <TableCell sx={{ width: W.market }}>Market</TableCell>
-              <TableCell sx={{ width: W.status }}>Staleness</TableCell>
-              <TableCell sx={{ width: W.submittedBy }}>Submitted by</TableCell>
+              <TableCell sx={{ width: W.submittedBy }}>Owner</TableCell>
+              <TableCell sx={{ width: 220 }}>Watchouts</TableCell>
               <TableCell sx={{ width: W.when }}>Last reviewed</TableCell>
-              <TableCell align="right" sx={{ width: W.trailing }}>
-                Views (30d)
-              </TableCell>
+              <TableCell align="right" sx={{ width: W.trailing }}>Views (30d)</TableCell>
+              <TableCell align="right" sx={{ width: W.trailing }}>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -591,7 +1345,7 @@ function PublishedTab({
               </TableRow>
             ) : (
               filtered.map((a) => (
-                <PublishedRow key={a.id} article={a} />
+                <PublishedRow key={a.id} article={a} onAlert={openOwnerAlert} alerted={alertedIds.has(a.id)} />
               ))
             )}
           </TableBody>
@@ -607,12 +1361,55 @@ function PublishedTab({
           onCardClick={(a) => navigate(`/library/${a.id}`)}
         />
       )}
+
+      <Dialog open={Boolean(alertArticle)} onClose={closeOwnerAlert} maxWidth="sm" fullWidth>
+        <DialogTitle>Send owner alert</DialogTitle>
+        <DialogContent>
+          {alertArticle && (
+            <Stack spacing={2} sx={{ mt: 0.5 }}>
+              <Typography variant="body2" color="text.secondary">
+                Send a focused follow-up to {alertArticle.originalSubmittedBy.name} for {alertArticle.title}.
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="Requested action"
+                value={alertAction}
+                onChange={(e) => updateAlertAction(e.target.value as AdminAlertAction)}
+              >
+                <MenuItem value="review">Review article</MenuItem>
+                <MenuItem value="update">Update article</MenuItem>
+                <MenuItem value="archive">Remove or archive</MenuItem>
+                <MenuItem value="consolidate">Consolidate duplicates</MenuItem>
+              </TextField>
+              <TextField
+                fullWidth
+                multiline
+                minRows={3}
+                size="small"
+                label="Message"
+                value={alertReason}
+                onChange={(e) => setAlertReason(e.target.value)}
+              />
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeOwnerAlert} disabled={alertSaving}>Cancel</Button>
+          <Button variant="contained" onClick={sendOwnerAlert} disabled={alertSaving || !alertReason.trim()}>
+            Send alert
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 
-  function PublishedRow({ article }: { article: PublishedArticle }) {
+  function PublishedRow({ article, onAlert, alerted }: { article: PublishedArticle; onAlert: (article: PublishedArticle) => void; alerted: boolean }) {
     const theme = useTheme();
     const t = theme.palette.tokens;
+    const signals = adminHealthSignals(article);
+    const canAlert = adminNeedsWatch(article) && article.staleness.level !== "archived";
     return (
       <TableRow
         hover
@@ -635,38 +1432,53 @@ function PublishedTab({
             {article.id} · v{article.version} · {article.contentType}
             {article.sector ? ` · ${sectorShortLabel(article.sector)}` : ""}
           </Typography>
-        </TableCell>
-        {/* 2 · Market — locale + countries. */}
-        <TableCell>
-          <Box
-            component="span"
-            sx={{
-              fontFamily: theme.palette.fonts.mono,
-              fontSize: "0.6875rem",
-              color: t.slate,
-            }}
-          >
-            {localeFor(article.market)}
-          </Box>
-          {article.countries.length > 0 && (
-            <Typography sx={{ fontSize: "0.6875rem", color: t.granite, mt: 0.25 }}>
-              {article.countries.join(", ")}
-            </Typography>
+          {article.recommendation && article.recommendation.kind !== "noop" && (
+            <Chip
+              size="small"
+              label={article.recommendation.actionLabel ?? article.recommendation.title}
+              sx={{ mt: 0.75, height: 20, fontSize: "0.625rem", bgcolor: t.pepsiBlueSubtle, color: t.pepsiBlueStrong, fontWeight: 600 }}
+            />
           )}
         </TableCell>
-        {/* 3 · Staleness — status-equivalent chip for published articles. */}
-        <TableCell>
-          <StalenessChip staleness={article.staleness} />
-        </TableCell>
-        {/* 4 · Submitted by — original author of the source draft. Same
-            field other tables use for their Submitted by column. */}
         <TableCell>
           <Typography sx={{ fontSize: "0.875rem", color: t.ink, lineHeight: 1.3 }}>
             {article.originalSubmittedBy.name}
           </Typography>
+          <Typography sx={{ fontSize: "0.6875rem", color: t.granite, mt: 0.25 }}>
+            {article.originalSubmittedBy.email}
+          </Typography>
         </TableCell>
-        {/* 5 · Last reviewed — when this published article was last
-            confirmed accurate. */}
+        <TableCell>
+          <Stack spacing={0.75} alignItems="flex-start">
+            <StalenessChip staleness={article.staleness} />
+            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+              {signals.slice(0, 3).map((signal) => (
+                <Chip
+                  key={signal.label}
+                  size="small"
+                  label={signal.label}
+                  sx={{
+                    height: 20,
+                    fontSize: "0.625rem",
+                    bgcolor:
+                      signal.severity === "high"
+                        ? t.errorBg
+                        : signal.severity === "medium"
+                          ? t.emberBg
+                          : t.mist,
+                    color:
+                      signal.severity === "high"
+                        ? t.errorInk
+                        : signal.severity === "medium"
+                          ? t.emberStrong
+                          : t.slate,
+                    fontWeight: 600,
+                  }}
+                />
+              ))}
+            </Stack>
+          </Stack>
+        </TableCell>
         <TableCell>
           {article.lastReviewedAt ? (
             <>
@@ -678,11 +1490,9 @@ function PublishedTab({
               </Typography>
             </>
           ) : (
-            <Typography sx={{ fontSize: "0.875rem", color: t.granite }}>—</Typography>
+            <Typography sx={{ fontSize: "0.875rem", color: t.granite }}>Never</Typography>
           )}
         </TableCell>
-        {/* 6 · Views (30d) — table-specific metric. Right-aligned for
-            numeric scannability. */}
         <TableCell align="right">
           <Stack
             direction="row"
@@ -699,8 +1509,21 @@ function PublishedTab({
             {article.metrics.viewsAllTime.toLocaleString()} all-time
           </Typography>
         </TableCell>
-        {/* Lifecycle column removed — archived state is now part of the
-            Staleness chip in column 3. */}
+        <TableCell align="right">
+          <Button
+            size="small"
+            variant={alerted ? "text" : "outlined"}
+            disabled={!canAlert || alerted}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAlert(article);
+            }}
+            startIcon={!alerted ? <EmailOutlinedIcon sx={{ fontSize: 15 }} /> : undefined}
+            sx={{ whiteSpace: "nowrap" }}
+          >
+            {alerted ? "Sent" : "Alert"}
+          </Button>
+        </TableCell>
       </TableRow>
     );
   }
@@ -1128,7 +1951,7 @@ function PublishedBoardCard({
         {article.title}
       </Typography>
 
-      {/* Countries — only when set. Quiet chips row mirroring the Market
+      {/* Countries — only when set. Quiet chips row mirroring the Country
           column's secondary line in the table. */}
       {article.countries.length > 0 && (
         <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>

@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { Router } from "express";
-import { loadAll } from "../lib/storage";
+import { loadAll, upsert } from "../lib/storage";
 import type { Article, Job, StubbedEmail } from "../lib/types";
 
 export const emailsRouter = Router();
@@ -32,12 +33,49 @@ emailsRouter.get("/", async (_req, res) => {
     }
     return {
       ...e,
-      market: article?.market,
-      articleStatus: article?.status,
-      articleTitle: article?.title,
+      market: article?.market ?? e.market,
+      articleStatus: article?.status ?? e.articleStatus,
+      articleTitle: article?.title ?? e.articleTitle,
     };
   });
 
   enriched.sort((a, b) => +new Date(b.sentAt) - +new Date(a.sentAt));
   res.json(enriched);
+});
+
+
+emailsRouter.post("/owner-alert", async (req, res) => {
+  const { articleId, articleTitle, ownerName, to, action, reason } = req.body as {
+    articleId?: string;
+    articleTitle?: string;
+    ownerName?: string;
+    to?: string[];
+    action?: string;
+    reason?: string;
+  };
+
+  if (!articleId || !articleTitle || !ownerName || !Array.isArray(to) || to.length === 0 || !action || !reason?.trim()) {
+    return res.status(400).json({ error: "articleId, articleTitle, ownerName, to, action, and reason are required" });
+  }
+
+  const actionLabel = {
+    review: "review",
+    update: "update",
+    archive: "remove or archive",
+    consolidate: "consolidate",
+  }[action] ?? action;
+
+  const email: StubbedEmail = {
+    id: randomUUID(),
+    to,
+    subject: `Action requested: ${articleTitle}`,
+    body: `Hi ${ownerName},\n\nDEEx content monitoring flagged "${articleTitle}" and requests that you ${actionLabel} this article.\n\nReason: ${reason.trim()}\n\nPlease review the article health signals and confirm the next step in DEEx.`,
+    sentAt: new Date().toISOString(),
+    kind: "owner-alert",
+    articleId,
+    articleTitle,
+  };
+
+  await upsert("emails", email);
+  res.status(201).json(email);
 });

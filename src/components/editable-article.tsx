@@ -581,7 +581,7 @@ const QUICK_ACTIONS = [
   { label: "Make shorter", instruction: "Make this section shorter and more concise." },
   { label: "Add detail", instruction: "Expand this section with more concrete detail and examples." },
   { label: "Simpler language", instruction: "Rewrite in simpler, plainer language." },
-  { label: "Fix tone", instruction: "Adjust the tone to match the market's voice." },
+  { label: "Fix tone", instruction: "Adjust the tone to match the country's voice." },
   { label: "Active voice", instruction: "Rewrite this section in active voice. Avoid passive constructions." },
   { label: "Add bullets", instruction: "Convert dense paragraphs in this section into bullet lists where it improves scannability." },
   { label: "Add example", instruction: "Add one concrete example that illustrates the main point of this section." },

@@ -4,7 +4,7 @@
   "name": "United Kingdom",
   "language": "English (British)",
   "languageCode": "en-GB",
-  "toneOfVoice": "Professional and measured. Slightly more formal than US English, but never stiff. Use plain, direct language and address the reader as 'you'. British spelling and idiom throughout. Avoid Americanisms and overly casual phrasing in policy documents; light warmth is welcome in FAQs and how-to guides.",
+  "toneOfVoice": "Professional and measured. Slightly more formal than US English, but never stiff. Use plain, direct language and address the reader as 'you'. British spelling and idiom throughout. Avoid Americanisms and overly casual phrasing in policy documents; light warmth is welcome in FAQs and knowledge articles.",
   "contentStrategy": "Lead with what the reader needs to know or do, in true BLUF style. UK readers expect competence and brevity; padding undermines trust. Reference local PepsiCo UK operations (Walkers, Quaker UK, Tropicana UK) where contextually relevant. For HR and benefits content, default to plain English with legalese reserved for the citations.",
   "contentGuidelines": "1. Use British spelling consistently (colour, behaviour, organisation, prioritise, programme). 2. Dates as DD/MM/YYYY, currency in GBP with £ prefix. 3. Numeric values: spell out one through nine; use numerals for 10+. 4. Use single quotation marks for the outer pair, double for nested. 5. Reference UK law (UK GDPR, Equality Act 2010, Working Time Regulations) where relevant. 6. Avoid US-specific terms — see terminology below.",
   "terminology": {

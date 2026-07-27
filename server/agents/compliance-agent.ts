@@ -7,7 +7,7 @@ export type ComplianceResult = {
 };
 
 const SYSTEM = (rules: DEExRules) => `You are the Compliance Agent. You check content requests
-(and drafts when available) against PepsiCo's DEEx guidelines and flag issues for the market agent.
+(and drafts when available) against PepsiCo's DEEx guidelines and flag issues for the country agent.
 
 ## DEEx Rules
 
@@ -124,7 +124,7 @@ Flag any DEEx issues. Return JSON.`;
     summary:
       mockIssues.length === 0
         ? "No DEEx issues detected in the request. Safe to proceed."
-        : `${mockIssues.length} issue(s) found. Market agent should address during drafting.`,
+        : `${mockIssues.length} issue(s) found. Country agent should address during drafting.`,
   });
 
   const text = await callClaude({

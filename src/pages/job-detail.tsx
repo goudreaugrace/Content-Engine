@@ -37,9 +37,11 @@ const agentLabel: Record<TraceEntry["agent"], string> = {
   intake: "intake",
   clarifier: "clarifier",
   router: "router",
-  market: "market",
+  market: "country",
   compliance: "compliance",
   revision: "revision",
+  consolidation: "consolidation",
+  migration: "migration",
 };
 
 export default function JobDetail() {
@@ -140,15 +142,15 @@ export default function JobDetail() {
       <Stack direction="row" spacing={4} flexWrap="wrap" rowGap={2} sx={{ mb: 4 }}>
         <Meta label="Submitted by" value={job.input.submittedBy.name} />
         <Meta
-          label="Market"
+          label="Country"
           value={
             <Box
               component="span"
               sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.8125rem" }}
             >
-              {/* Pick the primary market label for the job header. With
+              {/* Pick the primary country label for the job header. With
                   multi-select, this collapses to "Global" or the first
-                  selected market — good enough for the meta strip. */}
+                  selected country — good enough for the meta strip. */}
               {localeForJobMarket(
                 job.input.markets && job.input.markets.length > 0
                   ? (job.input.markets.includes("global") ||
@@ -422,7 +424,7 @@ function TraceOutput({ entry }: { entry: TraceEntry }) {
       </Box>
     );
   }
-  if ((entry.agent === "market" || entry.agent === "revision") && out?.title) {
+  if ((entry.agent === "market" || entry.agent === "revision" || entry.agent === "consolidation" || entry.agent === "migration") && out?.title) {
     return (
       <Typography sx={{ ...textSx, mt: 0.5 }}>
         Drafted{" "}

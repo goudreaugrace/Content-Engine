@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/app-layout";
 import ArticleDetail from "./pages/article-detail";
 import NewRequest from "./pages/new-request";
@@ -22,6 +22,7 @@ export default function App() {
         <Route path="/articles/:id" element={<ArticleDetail />} />
         <Route path="/review" element={<ReviewQueue />} />
         <Route path="/new" element={<NewRequest />} />
+        <Route path="/migration" element={<Navigate to="/new?mode=import" replace />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/admin/sectors" element={<AdminSectors />} />
         <Route path="/admin/sectors/:id" element={<AdminSectorEditor />} />

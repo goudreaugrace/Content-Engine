@@ -1,7 +1,7 @@
 /**
  * GEO (Generative Engine Optimization) agent.
  *
- * Runs after the market agent drafts the body. Derives three fields that
+ * Runs after the country agent drafts the body. Derives three fields that
  * help RAG / enterprise-LLM retrieval surface and cite the article:
  *
  *   - summary       : 2-3 sentence factual extract LLMs can lift verbatim
@@ -111,7 +111,7 @@ function extractMockQuestions(body: string, contentType: ContentType): string[] 
     } else if (/before you start|requirements/.test(lower)) {
       out.push("What do I need before starting?");
     } else if (/steps|how to|procedure/.test(lower)) {
-      out.push(`How do I ${contentType === "How-To" ? "do this" : "complete this"}?`);
+      out.push(`How do I ${contentType === "Knowledge Article" ? "do this" : "complete this"}?`);
     } else if (/troubleshoot|common situations|common issues/.test(lower)) {
       out.push("What if something goes wrong?");
     } else if (/exception/.test(lower)) {
@@ -145,7 +145,7 @@ function extractMockQuestions(body: string, contentType: ContentType): string[] 
 
 function extractMockEntities(body: string, market: string): string[] {
   // Naive proper-noun extraction: 2-4 capitalized words in a row, not
-  // including section headings. Plus the market name itself as a baseline.
+  // including section headings. Plus the country name itself as a baseline.
   const text = body
     .split("\n")
     .filter((line) => !line.trim().startsWith("#"))
@@ -211,7 +211,7 @@ function extractMockEntities(body: string, market: string): string[] {
     .sort((a, b) => b[1] - a[1])
     .map(([k]) => k)
     .slice(0, 6);
-  // Always include the market as an anchor (e.g. "US", "MX") if present.
+  // Always include the country as an anchor (e.g. "US", "MX") if present.
   if (market && !ranked.includes(market)) ranked.push(market);
   return ranked.slice(0, 6);
 }

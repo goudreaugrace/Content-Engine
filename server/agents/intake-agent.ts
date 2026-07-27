@@ -26,7 +26,7 @@ and identify any missing required information.
 
 Required fields for a complete request:
 - title (clear, descriptive)
-- contentType (FAQ, Policy, How-To, or Topic Page)
+- contentType (FAQ, Policy, Knowledge Article, or Topic Page)
 - summary (one paragraph describing what the article is about)
 - audience (who should read this)
 - markets (one or more of us, mx, br, uk, in, or global)

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -22,12 +22,15 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Tabs,
+  Tab,
   useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesomeOutlined";
+import AutoFixHighOutlinedIcon from "@mui/icons-material/AutoFixHighOutlined";
 import PublicIcon from "@mui/icons-material/PublicOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -64,8 +67,8 @@ const contentTypes = [
     example: "e.g. 'Remote work policy — North America 2026'",
   },
   {
-    value: "How-To",
-    label: "How-to",
+    value: "Knowledge Article",
+    label: "Knowledge article",
     description: "Step-by-step instructions to complete a task.",
     example: "e.g. 'How to submit an expense report'",
   },
@@ -94,6 +97,7 @@ const MARKET_LABELS: Record<string, { label: string; code: string }> = {
 // index reference. Three steps: basics, content, SEO & submit.
 const STEP_LABELS = ["Basics", "Content", "SEO & submit"] as const;
 type StepIndex = 0 | 1 | 2;
+type ArticleEntryMode = "new" | "import";
 
 // ────────────────────────────────────────────────────────────
 // SEO suggestion heuristics
@@ -129,7 +133,7 @@ function suggestSeoTitle(input: SeoSuggestionInput): string {
         ? " — answers & FAQ"
         : input.contentType === "Policy"
           ? " — policy overview"
-          : input.contentType === "How-To"
+          : input.contentType === "Knowledge Article"
             ? " — step-by-step guide"
             : " — topic guide";
     const candidate = base + suffix;
@@ -149,7 +153,7 @@ function suggestMetaDescription(input: SeoSuggestionInput): string {
       ? "Answers"
       : input.contentType === "Policy"
         ? "Policy details"
-        : input.contentType === "How-To"
+        : input.contentType === "Knowledge Article"
           ? "Step-by-step"
           : "Overview";
   const audienceTail = audience ? ` Written for ${audience}.` : "";
@@ -219,7 +223,7 @@ function suggestKeywords(input: SeoSuggestionInput): string[] {
 const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
   FAQ: ["Question", "Answer", "Related"],
   Policy: ["Overview", "Policy", "Effective date", "Contact"],
-  "How-To": ["Overview", "Steps", "Troubleshooting"],
+  "Knowledge Article": ["Overview", "Steps", "Troubleshooting"],
   "Topic Page": ["Overview", "Details", "Resources"],
 };
 
@@ -228,8 +232,22 @@ const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
 // ────────────────────────────────────────────────────────────
 export default function NewRequest() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const [entryMode, setEntryMode] = useState<ArticleEntryMode>(() =>
+    searchParams.get("mode") === "import" ? "import" : "new",
+  );
+
+  useEffect(() => {
+    setEntryMode(searchParams.get("mode") === "import" ? "import" : "new");
+  }, [searchParams]);
+
+  const handleEntryModeChange = (_: React.SyntheticEvent, mode: ArticleEntryMode) => {
+    setEntryMode(mode);
+    setError(null);
+    setSearchParams(mode === "import" ? { mode: "import" } : {});
+  };
 
   const [form, setForm] = useState({
     title: "",
@@ -260,6 +278,24 @@ export default function NewRequest() {
     entities: [] as string[],
     globalJustification: "",
   });
+  const [migrationForm, setMigrationForm] = useState({
+    sourceTitle: "",
+    sourceContent: "",
+    contentType: "Knowledge Article" as ContentType,
+    marketId: "us",
+    sectorId: "pfna",
+    countries: ["US"] as string[],
+  });
+  const [migrationSubmitting, setMigrationSubmitting] = useState(false);
+  const [migrationUploading, setMigrationUploading] = useState(false);
+  const [migrationUpload, setMigrationUpload] = useState<{
+    id: string;
+    kind: "pdf" | "doc";
+    title: string;
+    fileName: string;
+    filePath: string;
+    mimeType: string;
+  } | null>(null);
   const [keywordDraft, setKeywordDraft] = useState("");
   const [questionDraft, setQuestionDraft] = useState("");
   const [entityDraft, setEntityDraft] = useState("");
@@ -335,7 +371,7 @@ export default function NewRequest() {
   const singleMarket =
     !isGlobal && form.markets.length === 1 ? form.markets[0] : null;
 
-  // Phase D — when the user picks exactly one specific market AND the country
+  // Phase D — when the user picks exactly one specific market AND the market
   // picker is empty, seed it with that market's defaultCountries
   // (admin-configured). Multi-market or Global stays manual.
   useEffect(() => {
@@ -364,6 +400,10 @@ export default function NewRequest() {
 
   const update = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
+  const updateMigration = <K extends keyof typeof migrationForm>(
+    k: K,
+    v: (typeof migrationForm)[K],
+  ) => setMigrationForm((f) => ({ ...f, [k]: v }));
 
   // ───────────── Country filtering ─────────────
   // Default the country picker to the countries that map to the selected
@@ -373,6 +413,31 @@ export default function NewRequest() {
     if (showAllCountries || !singleMarket) return countryCatalog;
     return countryCatalog.filter((c) => c.defaultMarketId === singleMarket);
   }, [countryCatalog, singleMarket, showAllCountries]);
+
+  const selectedMigrationMarket = marketProfiles.find(
+    (m) => m.id === migrationForm.marketId,
+  );
+
+  const countriesForProfiles = (profileIds: string[]) => {
+    if (profileIds.includes("global")) return countryCatalog.map((c) => c.code);
+    const codes = profileIds.flatMap((id) => {
+      const fromProfile = marketProfiles.find((p) => p.id === id)?.defaultCountries;
+      if (fromProfile?.length) return fromProfile;
+      return countryCatalog
+        .filter((country) => country.defaultMarketId === id)
+        .map((country) => country.code);
+    });
+    return Array.from(new Set(codes));
+  };
+
+  const derivedCountries = useMemo(
+    () => countriesForProfiles(form.markets),
+    [countryCatalog, form.markets, marketProfiles],
+  );
+  const derivedMigrationCountries = useMemo(
+    () => countriesForProfiles([migrationForm.marketId]),
+    [countryCatalog, migrationForm.marketId, marketProfiles],
+  );
 
   // When the (single) market changes, prune countries that no longer belong
   // to its default set. Skipped in multi-market / Global / "show all" modes.
@@ -412,7 +477,7 @@ export default function NewRequest() {
         const res = await api.findSimilarArticles({
           title,
           summary,
-          countries: form.countries,
+          countries: derivedCountries,
         });
         setSimilarMatches(res.matches);
       } catch {
@@ -423,7 +488,7 @@ export default function NewRequest() {
       }
     }, 600);
     return () => clearTimeout(handle);
-  }, [form.title, form.summary, form.countries, similarDismissed]);
+  }, [form.title, form.summary, derivedCountries, similarDismissed]);
 
   // Any change to the title or summary re-opens the panel — the user's
   // earlier dismissal applied to a different query.
@@ -523,7 +588,7 @@ export default function NewRequest() {
     form.markets.length > 0 &&
     (!isGlobal || form.globalJustification.trim().length >= 10) &&
     form.audience.length > 0 &&
-    form.countries.length > 0;
+    derivedCountries.length > 0;
 
   const step1Valid =
     !!(form.summary.trim() || form.sourceText.trim());
@@ -659,6 +724,71 @@ export default function NewRequest() {
       form.entities.filter((x) => x !== e),
     );
 
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error ?? new Error("Unable to read file"));
+      reader.readAsDataURL(file);
+    });
+
+  const handleMigrationFile = async (file: File | undefined) => {
+    if (!file) return;
+    setMigrationUploading(true);
+    setError(null);
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const title = migrationForm.sourceTitle.trim() || file.name.replace(/\.[^.]+$/, "");
+      const uploaded = await api.uploadSourceFile({
+        title,
+        fileName: file.name,
+        mimeType: file.type || "text/plain",
+        dataUrl,
+      });
+      setMigrationUpload(uploaded);
+      setMigrationForm((f) => ({
+        ...f,
+        sourceTitle: f.sourceTitle.trim() ? f.sourceTitle : title,
+        sourceContent: [
+          f.sourceContent.trim(),
+          `Uploaded source document: ${uploaded.fileName}`,
+          `Source type: ${uploaded.kind.toUpperCase()}`,
+          `Stored source reference: ${uploaded.filePath}`,
+          "Use this uploaded document as the migrated source to standardize into the selected DEEx template. Preserve the source reference in the draft audit trail.",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      }));
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
+    } finally {
+      setMigrationUploading(false);
+    }
+  };
+
+  const canStandardize =
+    migrationForm.sourceContent.trim().length >= 40 &&
+    derivedMigrationCountries.length > 0;
+
+  const submitStandardization = async () => {
+    setMigrationSubmitting(true);
+    setError(null);
+    try {
+      const result = await api.standardizeMigration({
+        ...migrationForm,
+        countries: derivedMigrationCountries,
+        sourceTitle:
+          migrationForm.sourceTitle.trim() || "Migrated source content",
+        sourceContent: migrationForm.sourceContent.trim(),
+        submittedBy: currentUser(),
+      });
+      navigate(`/articles/${result.article.id}`);
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
+      setMigrationSubmitting(false);
+    }
+  };
+
   // ───────────── Submit ─────────────
   const submit = async () => {
     setSubmitting(true);
@@ -687,7 +817,7 @@ export default function NewRequest() {
         sectors: [form.sector],
         sourceText: form.sourceText.trim(),
         submittedBy: currentUser(),
-        countries: form.countries,
+        countries: derivedCountries,
         seo: {
           title: form.seoTitle.trim(),
           metaDescription: form.metaDescription.trim(),
@@ -719,13 +849,248 @@ export default function NewRequest() {
       </Typography>
       <Typography
         color="text.secondary"
-        sx={{ mt: 0.75, mb: 5, maxWidth: "60ch" }}
+        sx={{ mt: 0.75, mb: 3, maxWidth: "64ch" }}
       >
-        Tell the agent what to create. It drafts in the sector's corporate
-        framing and the market's locale voice, checks DEEx guidelines, and runs
-        SEO checks before the article appears for review.
+        Start from a blank request or import existing source content and let the
+        agent standardize it into a DEEx-ready draft for review.
       </Typography>
 
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+        <Tabs
+          value={entryMode}
+          onChange={handleEntryModeChange}
+          centered
+          sx={{
+            minHeight: 0,
+            p: 0.35,
+            border: `1px solid ${t.border}`,
+            borderRadius: 999,
+            bgcolor: t.surfaceContainerLow,
+            boxShadow: "0 1px 2px rgba(42,37,29,0.04)",
+            "& .MuiTabs-flexContainer": { gap: 0.5 },
+            "& .MuiTabs-indicator": { display: "none" },
+            "& .MuiTab-root": {
+              minHeight: 30,
+              minWidth: { xs: 104, sm: 124 },
+              px: 1.5,
+              borderRadius: 999,
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              textTransform: "none",
+              color: t.slate,
+              transition: "background-color 150ms ease, color 150ms ease, box-shadow 150ms ease",
+              "&:hover": { bgcolor: t.surface },
+            },
+            "& .Mui-selected": {
+              bgcolor: t.pepsiBlue,
+              color: "#FFFFFF !important",
+              boxShadow: "0 1px 3px rgba(0,75,147,0.20)",
+            },
+          }}
+        >
+          <Tab value="new" label="New article" />
+          <Tab value="import" label="Import article" />
+        </Tabs>
+      </Box>
+
+      {entryMode === "import" && (
+        <Stack spacing={3.5}>
+          <Stack direction="row" spacing={1.25} alignItems="center">
+            <AutoFixHighOutlinedIcon sx={{ color: t.pepsiBlue }} />
+            <Box>
+              <Typography sx={{ fontSize: "1.125rem", fontWeight: 600, color: t.ink }}>
+                Import and standardize article
+              </Typography>
+              <Typography sx={{ fontSize: "0.875rem", color: t.slate, mt: 0.25 }}>
+                Upload the migrated article as a PDF or document, or paste source text when upload is not available. Choose the country context, then the agent will condense it into the selected DEEx template and send it to review.
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2.5 }}>
+            <Field label="Source title" hint="Use the imported article's current title, or leave blank and the agent will infer one.">
+              <TextField
+                fullWidth
+                placeholder="e.g. Well-being benefits overview"
+                value={migrationForm.sourceTitle}
+                onChange={(e) => updateMigration("sourceTitle", e.target.value)}
+              />
+            </Field>
+            <Field label="Target content type" required>
+              <TextField
+                select
+                fullWidth
+                value={migrationForm.contentType}
+                onChange={(e) => updateMigration("contentType", e.target.value as ContentType)}
+              >
+                {contentTypes.map((type) => (
+                  <MenuItem key={type.value} value={type.value}>
+                    {type.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Field>
+            <Field label="Target sector" required>
+              <TextField
+                select
+                fullWidth
+                value={migrationForm.sectorId}
+                onChange={(e) => {
+                  const sectorId = e.target.value;
+                  updateMigration("sectorId", sectorId);
+                  const firstMarket = marketProfiles.find((m) => m.sectorId === sectorId);
+                  if (firstMarket) {
+                    setMigrationForm((f) => ({
+                      ...f,
+                      sectorId,
+                      marketId: firstMarket.id,
+                      countries: firstMarket.defaultCountries?.length ? firstMarket.defaultCountries : f.countries,
+                    }));
+                  }
+                }}
+              >
+                {sectorProfiles.map((sector) => (
+                  <MenuItem key={sector.id} value={sector.id}>
+                    {sector.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Field>
+            <Field label="Country" required>
+              <TextField
+                select
+                fullWidth
+                value={migrationForm.marketId}
+                onChange={(e) => {
+                  const marketId = e.target.value;
+                  const market = marketProfiles.find((m) => m.id === marketId);
+                  setMigrationForm((f) => ({
+                    ...f,
+                    marketId,
+                    sectorId: market?.sectorId ?? f.sectorId,
+                    countries: market?.defaultCountries?.length ? market.defaultCountries : f.countries,
+                  }));
+                }}
+              >
+                {marketProfiles
+                  .filter((market) => market.sectorId === migrationForm.sectorId || migrationForm.sectorId === "global")
+                  .map((market) => (
+                    <MenuItem key={market.id} value={market.id}>
+                      {market.name}
+                    </MenuItem>
+                  ))}
+              </TextField>
+            </Field>
+          </Box>
+
+          <Field
+            label="Source document or pasted content"
+            required
+            hint="Upload the migrated article as a PDF, Word doc, or text file. Paste source text below when upload is not available."
+          >
+            <Box
+              sx={{
+                p: 2,
+                border: `1px dashed ${migrationUpload ? t.pepsiBlue : t.border}`,
+                borderRadius: 2,
+                bgcolor: migrationUpload ? t.pepsiBlueSubtle : t.surfaceContainerLow,
+              }}
+            >
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1.5}
+                alignItems={{ xs: "stretch", sm: "center" }}
+                justifyContent="space-between"
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: t.ink }}>
+                    {migrationUpload ? migrationUpload.fileName : "Upload source document"}
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.75rem", color: t.slate, mt: 0.25 }}>
+                    {migrationUpload
+                      ? `${migrationUpload.kind.toUpperCase()} attached as source evidence`
+                      : "PDF, DOC, DOCX, or TXT from SharePoint/exported source"}
+                  </Typography>
+                </Box>
+                <Button
+                  variant={migrationUpload ? "outlined" : "contained"}
+                  component="label"
+                  size="small"
+                  disabled={migrationUploading}
+                  startIcon={
+                    migrationUploading ? (
+                      <CircularProgress size={14} color="inherit" />
+                    ) : (
+                      <AttachFileIcon sx={{ fontSize: 14 }} />
+                    )
+                  }
+                  sx={{ alignSelf: { xs: "flex-start", sm: "center" }, whiteSpace: "nowrap" }}
+                >
+                  {migrationUploading ? "Uploading..." : migrationUpload ? "Replace file" : "Upload file"}
+                  <input
+                    type="file"
+                    hidden
+                    accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                    onChange={(e) => handleMigrationFile(e.target.files?.[0])}
+                  />
+                </Button>
+              </Stack>
+            </Box>
+            <TextField
+              fullWidth
+              multiline
+              minRows={6}
+              placeholder="Or paste the source article, SharePoint export, or migration summary here..."
+              value={migrationForm.sourceContent}
+              onChange={(e) => updateMigration("sourceContent", e.target.value)}
+              sx={{ mt: 1.5 }}
+            />
+          </Field>
+
+
+          <Box sx={{ p: 1.75, borderRadius: 2, bgcolor: t.surfaceContainerLow }}>
+            <Typography variant="overline" sx={{ display: "block", mb: 1, color: t.slate }}>
+              DEEx template requirements
+            </Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              {REQUIRED_SECTIONS[migrationForm.contentType].map((section) => (
+                <Stack key={section} direction="row" spacing={0.5} alignItems="center" sx={{ fontSize: "0.8125rem", color: t.slate }}>
+                  <CheckCircleOutlineIcon sx={{ fontSize: 14, color: t.pepsiBlue }} />
+                  <span>{section}</span>
+                </Stack>
+              ))}
+            </Stack>
+            <Typography sx={{ fontSize: "0.75rem", color: t.granite, mt: 1.25, lineHeight: 1.5 }}>
+              The generated draft will include metadata, owner, last-updated cadence, country, sector, SEO/GEO fields, and review status.
+            </Typography>
+          </Box>
+
+          <Divider />
+
+          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
+            <Button onClick={() => navigate("/")} disabled={migrationSubmitting}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={submitStandardization}
+              disabled={!canStandardize || migrationSubmitting}
+              startIcon={
+                migrationSubmitting ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : (
+                  <AutoFixHighOutlinedIcon sx={{ fontSize: 16 }} />
+                )
+              }
+            >
+              {migrationSubmitting ? "Standardizing..." : "Standardize for DEEx"}
+            </Button>
+          </Stack>
+        </Stack>
+      )}
+
+      {entryMode === "new" && (
+        <>
       {/* ─── Wizard stepper ─── */}
       {/* Three steps: Basics → Content → SEO & submit. Clicking a completed
           step jumps back; forward jumps allowed only when prior steps are
@@ -859,7 +1224,7 @@ export default function NewRequest() {
             sx={{ flex: 1 }}
             hint={
               isGlobal
-                ? "Corporate content — one version, no market-specific drafting."
+                ? "Corporate content — one version, no country-specific drafting."
                 : "PepsiCo tier that owns this content. Sets the corporate framing."
             }
           >
@@ -898,15 +1263,15 @@ export default function NewRequest() {
             </TextField>
           </Field>
 
-          {/* ─── Markets (cascades from Sector) ─── */}
+          {/* ─── Countries (cascade from Sector) ─── */}
           {!isGlobal && (
             <Field
-              label="Markets"
+              label="Country"
               sx={{ flex: 1 }}
               hint={
                 marketsInSector.length === 0
-                  ? "No markets assigned to this sector yet."
-                  : "One or more markets inside this sector."
+                  ? "No countries assigned to this sector yet."
+                  : "Choose the country context for this article. Country tags are applied automatically."
               }
             >
               <TextField
@@ -923,7 +1288,7 @@ export default function NewRequest() {
                     if (vals.length === 0) {
                       return (
                         <Typography component="span" sx={{ color: t.granite }}>
-                          Select markets…
+                          Select countries...
                         </Typography>
                       );
                     }
@@ -1045,93 +1410,6 @@ export default function NewRequest() {
           </TextField>
         </Field>
 
-        {/* ─────────── Countries ─────────── */}
-        <Field
-          label="Countries"
-          required
-          hint={
-            isGlobal || !singleMarket
-              ? "Pick every country this article actually applies to."
-              : "Defaults to countries grouped under the selected market. Toggle 'Show all' to include others."
-          }
-        >
-          <TextField
-            select
-            fullWidth
-            value={form.countries}
-            onChange={(e) =>
-              update(
-                "countries",
-                typeof e.target.value === "string"
-                  ? e.target.value.split(",")
-                  : (e.target.value as unknown as string[]),
-              )
-            }
-            SelectProps={{
-              multiple: true,
-              displayEmpty: true,
-              renderValue: (selected) => {
-                const codes = selected as string[];
-                if (codes.length === 0) {
-                  return (
-                    <Typography component="span" sx={{ color: t.granite }}>
-                      Select countries…
-                    </Typography>
-                  );
-                }
-                return (
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                    {codes.map((c) => (
-                      <Chip key={c} label={c} size="small" />
-                    ))}
-                  </Box>
-                );
-              },
-              MenuProps: { PaperProps: { sx: { maxHeight: 360 } } },
-            }}
-          >
-            {visibleCountries.map((c) => (
-              <MenuItem key={c.code} value={c.code} sx={{ py: 0.5 }}>
-                <Checkbox
-                  size="small"
-                  checked={form.countries.includes(c.code)}
-                  sx={{ mr: 1, p: 0.5 }}
-                />
-                <ListItemText
-                  primary={c.name}
-                  secondary={c.code}
-                  primaryTypographyProps={{ fontSize: "0.875rem" }}
-                  secondaryTypographyProps={{
-                    fontSize: "0.6875rem",
-                    fontFamily: theme.palette.fonts.mono,
-                  }}
-                />
-              </MenuItem>
-            ))}
-          </TextField>
-          {/* "Show all countries" toggle only makes sense when filtering to
-              a single market's defaults. Multi-market / Global already shows
-              everything. */}
-          {singleMarket && (
-            <FormControlLabel
-              sx={{ mt: 0.5, ml: -0.5 }}
-              control={
-                <Switch
-                  size="small"
-                  checked={showAllCountries}
-                  onChange={(e) => setShowAllCountries(e.target.checked)}
-                />
-              }
-              label={
-                <Typography
-                  sx={{ fontSize: "0.75rem", color: t.slate }}
-                >
-                  Show all countries
-                </Typography>
-              }
-            />
-          )}
-        </Field>
       </Stack>
       )}
 
@@ -1825,6 +2103,9 @@ Audience is route drivers in the US, often on a phone between stops.`}
         </Stack>
       </Stack>
 
+        </>
+      )}
+
       {/* ─────────── Global market confirmation dialog ─────────── */}
       <Dialog
         open={globalConfirmOpen}
@@ -1848,7 +2129,7 @@ Audience is route drivers in the US, often on a phone between stops.`}
             }}
           >
             Most articles should belong to a specific sector so the right
-            market agents draft locale-tuned versions. The Global sector is
+            country-specific agents draft locale-tuned versions. The Global sector is
             reserved for corporate content that applies identically across
             sectors and triggers an extra human review. Briefly explain why
             this content really is cross-sector.

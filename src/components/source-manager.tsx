@@ -21,7 +21,7 @@ import { api, currentUser, type ProfileSource } from "../lib/api";
 
 /**
  * NotebookLM-style source manager. Sits inside a profile editor
- * (sector / market / audience) and lets the admin attach reference
+ * (sector / country / audience) and lets the admin attach reference
  * sources the agent will ground its drafts in.
  *
  * Three source kinds today:

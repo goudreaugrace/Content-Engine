@@ -120,7 +120,7 @@ export async function orchestrate(jobId: string): Promise<void> {
         us: "US", mx: "MX", br: "BR", uk: "UK", in: "IN",
         both: "Global", global: "Global",
       };
-      // Use the first selected market for the needs-info placeholder. If
+      // Use the first selected country for the needs-info placeholder. If
       // multiple were selected, picking the first is good enough — the
       // author will pick up where they left off when they resubmit.
       const selectedMarkets = (job.input.markets && job.input.markets.length > 0)
@@ -174,7 +174,7 @@ export async function orchestrate(jobId: string): Promise<void> {
     }
 
     // ---- Step 2b: Router ----
-    const router = await runStep(jobId, "router", "Routing to market agent(s)", () =>
+    const router = await runStep(jobId, "router", "Routing to country agent(s)", () =>
       runRouterAgent(intake.parsedRequest),
     );
 
@@ -185,11 +185,11 @@ export async function orchestrate(jobId: string): Promise<void> {
 
     for (const marketId of router.markets) {
       const profile = await loadMarketProfile(marketId);
-      if (!profile) throw new Error(`Market profile '${marketId}' not found`);
+      if (!profile) throw new Error(`Country profile '${marketId}' not found`);
 
-      // Load the sector that owns this market so the market agent can
+      // Load the sector that owns this country so the country agent can
       // compose corporate framing above locale execution. `sectorId` is
-      // optional on older market profiles — a null sector is a no-op in
+      // optional on older country profiles — a null sector is a no-op in
       // the prompt template.
       const sector = profile.sectorId
         ? await loadSectorProfile(profile.sectorId)
@@ -314,7 +314,7 @@ export async function orchestrate(jobId: string): Promise<void> {
         id: `email-${randomUUID().slice(0, 8)}`,
         to: ["portal-gov@pepsico.com", "search-seo@pepsico.com", "deex-design@pepsico.com"],
         subject: `New article ready for review: ${article.title}`,
-        body: `A new ${article.contentType} for the ${article.market} market has been drafted and is pending review.\n\nTitle: ${article.title}\nAuthor: ${job.input.submittedBy.name}\nID: ${article.id}\n\nReview at: /articles/${article.id}`,
+        body: `A new ${article.contentType} for the ${article.market} country has been drafted and is pending review.\n\nTitle: ${article.title}\nAuthor: ${job.input.submittedBy.name}\nID: ${article.id}\n\nReview at: /articles/${article.id}`,
         sentAt: now(),
         kind: "stakeholder-notification",
         jobId,

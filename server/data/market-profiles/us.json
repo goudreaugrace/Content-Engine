@@ -4,7 +4,7 @@
   "name": "United States",
   "language": "English",
   "languageCode": "en-US",
-  "toneOfVoice": "Professional but approachable. Use plain, conversational language. Keep sentences short. Address the reader directly using 'you'. Avoid corporate jargon and acronyms unless defined on first use. Use active voice. Policy documents skew slightly more formal; FAQs and how-to guides can be more casual.",
+  "toneOfVoice": "Professional but approachable. Use plain, conversational language. Keep sentences short. Address the reader directly using 'you'. Avoid corporate jargon and acronyms unless defined on first use. Use active voice. Policy documents skew slightly more formal; FAQs and knowledge articles can be more casual.",
   "contentStrategy": "Lead with the action — what does the reader need to DO? Use second-person voice. Surface the most important information in the first sentence (BLUF — bottom line up front). For benefits, payroll, and HR topics, default to plain language over legalese, with footnotes or links to detailed policy where needed. Prioritize content that addresses common day-to-day questions over rarely-referenced edge cases.",
   "contentGuidelines": "1. Use US spelling (color, behavior, optimize). 2. Numeric values: spell out one through nine; use numerals for 10+. 3. Currency in USD with $ prefix. 4. Reference US laws (FLSA, FMLA, ADA) where relevant. 5. For state-specific content (CA, NY, IL), call out the state explicitly and flag for legal review. 6. Use Oxford comma. 7. Sentence-case headings (not Title Case).",
   "terminology": {

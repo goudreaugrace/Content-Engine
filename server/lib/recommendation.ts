@@ -1,63 +1,42 @@
-/**
- * Recommendation engine for published articles.
- *
- * Given a PublishedArticle (with its computed staleness) plus the list of
- * similar published articles, return a single suggested next action with
- * a short human-readable reason and the lifecycle action — if any — that
- * a one-click "Apply" should set.
- *
- * The rules are deliberately layered so the most specific match wins:
- *
- *   1. lifecycleAction already set → "Action queued: …" (informational)
- *   2. stale + similar found       → consolidate with the top match
- *   3. stale + very low views      → archive (low engagement)
- *   4. stale (any other)           → mark reviewed (keep alive)
- *   5. aging + similar found       → flag for review & consolidate
- *   6. aging                       → soft "review soon" reminder
- *   7. fresh                       → no action — explicitly say "you're good"
- *
- * Severity drives the recommendation card color in the UI:
- *   - high   = take action soon (stale / strong consolidate hint)
- *   - medium = aging signals
- *   - low    = fresh, or action already queued
- */
-
-import type {
-  PublishedArticle,
-  Staleness,
-} from "./types";
+import type { PublishedArticle, Staleness } from "./types";
 import type { SimilarityMatch } from "./similarity";
 
 export type RecommendationSeverity = "high" | "medium" | "low";
+export type RecommendationKind =
+  | "consolidate"
+  | "standardize"
+  | "replace"
+  | "archive"
+  | "mark-reviewed"
+  | "noop";
+
+export type RecommendationEvidence = {
+  signal: string;
+  label: string;
+  detail: string;
+  severity: RecommendationSeverity;
+};
 
 export type ApplyOperation =
-  /** Archive via PATCH /:id/archive. Removes from search and rotation. */
+  | { kind: "generate-draft"; draftKind: "consolidation" | "standardization"; candidateIds?: string[] }
   | { kind: "archive" }
-  /** Reset the cadence via PATCH /:id/review. */
   | { kind: "mark-reviewed" }
-  /** No backend call — the article is healthy or already archived. */
   | { kind: "noop" };
 
 export type Recommendation = {
-  /** Short user-facing label rendered on the card heading. */
+  kind: RecommendationKind;
   title: string;
-  /** One-sentence explanation of why we recommend this. */
   reason: string;
   severity: RecommendationSeverity;
-  /** What clicking "Apply" should do. The UI builds the button label from `kind`. */
+  evidence: RecommendationEvidence[];
+  actionLabel?: string;
   apply: ApplyOperation;
-  /**
-   * Optional reference to the similar article this recommendation cites
-   * (only set when the rule used a similar-article signal). The UI deep-links
-   * to it from the recommendation card.
-   */
   similarRef?: {
     id: string;
     title: string;
   };
 };
 
-/** Threshold for "very low" 30-day views — copied from the user's UXR feedback. */
 const LOW_VIEWS_THRESHOLD = 5;
 
 export function recommend(
@@ -65,85 +44,186 @@ export function recommend(
   staleness: Staleness,
   similars: SimilarityMatch[],
 ): Recommendation {
-  // ---- 1. Already archived — nothing to recommend. ----
   if (staleness.level === "archived") {
     return {
+      kind: "noop",
       title: "Archived",
-      reason:
-        "This article is out of rotation. Unarchive from the staleness panel if it needs to come back into search.",
+      reason: "This article is out of rotation. No action is needed unless it should come back into search.",
       severity: "low",
+      evidence: [
+        {
+          signal: "lifecycle",
+          label: "Archived",
+          detail: article.archivedReason ?? "The article has been removed from active search results.",
+          severity: "low",
+        },
+      ],
       apply: { kind: "noop" },
     };
   }
 
   const topSimilar = similars[0];
+  const strongSimilar = topSimilar && topSimilar.score >= 0.3;
+  const candidateIds = similars
+    .filter((m) => m.score >= 0.3)
+    .slice(0, 4)
+    .map((m) => m.item.id);
 
-  // ---- 2-3. Stale ----
-  if (staleness.level === "stale") {
-    if (article.metrics.views30d <= LOW_VIEWS_THRESHOLD) {
-      return {
-        title: "Archive — low engagement",
-        reason: `Only ${article.metrics.views30d} views in the last 30 days and it's been ${daysSince(staleness)}+ days since the last review. Archiving removes it from search without deleting the source.`,
-        severity: "high",
-        apply: { kind: "archive" },
-      };
-    }
+  if ((staleness.level === "stale" || staleness.level === "aging") && strongSimilar) {
     return {
-      title:
-        topSimilar && topSimilar.score >= 0.3
-          ? `Refresh and mark reviewed (similar to "${truncate(topSimilar.item.title, 50)}")`
-          : "Refresh and mark reviewed",
-      reason:
-        topSimilar && topSimilar.score >= 0.3
-          ? `Stale (score ${staleness.score}/100) but still getting traffic. A similar article exists (${Math.round(topSimilar.score * 100)}% match) — consider merging during the refresh.`
-          : `Stale (score ${staleness.score}/100) but still getting traffic. Confirm the content is current, then reset the cadence clock.`,
+      kind: "consolidate",
+      title: `Generate one master article from ${candidateIds.length + 1} overlapping articles`,
+      reason: `"${truncate(topSimilar.item.title, 60)}" overlaps strongly with this article. Generate a consolidated draft and keep the source audit trail.`,
+      severity: staleness.level === "stale" ? "high" : "medium",
+      evidence: [
+        {
+          signal: "similarity",
+          label: `${Math.round(topSimilar.score * 100)}% overlap`,
+          detail: `Strongest match: ${topSimilar.item.title}`,
+          severity: "high",
+        },
+        {
+          signal: "staleness",
+          label: `${capitalize(staleness.level)} - ${staleness.score}/100`,
+          detail: staleness.reasons[0] ?? "Lifecycle review signal detected.",
+          severity: staleness.level === "stale" ? "high" : "medium",
+        },
+        {
+          signal: "traffic",
+          label: `${article.metrics.views30d} views in 30d`,
+          detail: "Traffic indicates whether consolidation will affect active employee journeys.",
+          severity: article.metrics.views30d > LOW_VIEWS_THRESHOLD ? "medium" : "low",
+        },
+      ],
+      actionLabel: "Generate master draft",
+      apply: { kind: "generate-draft", draftKind: "consolidation", candidateIds },
+      similarRef: { id: topSimilar.item.id, title: topSimilar.item.title },
+    };
+  }
+
+  if (staleness.level === "stale" && article.metrics.views30d <= LOW_VIEWS_THRESHOLD) {
+    return {
+      kind: "archive",
+      title: "Archive low-engagement stale article",
+      reason: `Only ${article.metrics.views30d} views in the last 30 days and the review score is ${staleness.score}/100.`,
       severity: "high",
-      apply: { kind: "mark-reviewed" },
-      similarRef:
-        topSimilar && topSimilar.score >= 0.3
-          ? { id: topSimilar.item.id, title: topSimilar.item.title }
-          : undefined,
+      evidence: [
+        {
+          signal: "traffic",
+          label: "Low engagement",
+          detail: `${article.metrics.views30d} views in the last 30 days.`,
+          severity: "high",
+        },
+        {
+          signal: "staleness",
+          label: `Stale - ${staleness.score}/100`,
+          detail: staleness.reasons.join(" "),
+          severity: "high",
+        },
+      ],
+      actionLabel: "Archive",
+      apply: { kind: "archive" },
     };
   }
 
-  // ---- 4. Aging ----
-  if (staleness.level === "aging") {
+  if (needsStandardization(article)) {
     return {
-      title:
-        topSimilar && topSimilar.score >= 0.4
-          ? `Review soon — and a similar article exists`
-          : "Review soon to reset the cadence",
-      reason:
-        topSimilar && topSimilar.score >= 0.4
-          ? `Approaching the review cadence. "${truncate(topSimilar.item.title, 60)}" is a strong match (${Math.round(topSimilar.score * 100)}%); consider merging when you refresh.`
-          : `Articles should be reviewed 2–3× per year. Score ${staleness.score}/100 — getting close to stale.`,
-      severity: "medium",
-      apply: { kind: "mark-reviewed" },
-      similarRef:
-        topSimilar && topSimilar.score >= 0.4
-          ? { id: topSimilar.item.id, title: topSimilar.item.title }
-          : undefined,
+      kind: "standardize",
+      title: "Standardize this article for DEEx",
+      reason: "The article appears migrated or under-structured. Generate a DEEx-compliant draft with required sections, metadata, and owner fields.",
+      severity: staleness.level === "fresh" ? "medium" : "high",
+      evidence: standardizationEvidence(article),
+      actionLabel: "Standardize for DEEx",
+      apply: { kind: "generate-draft", draftKind: "standardization" },
     };
   }
 
-  // ---- 5. Fresh ----
+  if (staleness.level === "stale" || staleness.level === "aging") {
+    return {
+      kind: "mark-reviewed",
+      title: staleness.level === "stale" ? "Refresh and mark reviewed" : "Review soon to reset cadence",
+      reason: `This article is ${staleness.level} but no strong consolidation opportunity was found.`,
+      severity: staleness.level === "stale" ? "high" : "medium",
+      evidence: [
+        {
+          signal: "staleness",
+          label: `${capitalize(staleness.level)} - ${staleness.score}/100`,
+          detail: staleness.reasons.join(" "),
+          severity: staleness.level === "stale" ? "high" : "medium",
+        },
+      ],
+      actionLabel: "Mark as reviewed",
+      apply: { kind: "mark-reviewed" },
+    };
+  }
+
   return {
+    kind: "noop",
     title: "No action needed",
-    reason: `Fresh (score ${staleness.score}/100), recent review, and traffic is ${article.metrics.trend === "down" ? "trending down — keep an eye on it" : "healthy"}.`,
+    reason: `Fresh (score ${staleness.score}/100), recent review, and no strong consolidation or standardization signals.`,
     severity: "low",
+    evidence: [
+      {
+        signal: "health",
+        label: "Fresh",
+        detail: "No lifecycle action is recommended right now.",
+        severity: "low",
+      },
+    ],
     apply: { kind: "noop" },
   };
 }
 
-function truncate(s: string, n: number): string {
-  return s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s;
+function needsStandardization(article: PublishedArticle): boolean {
+  const body = article.body.toLowerCase();
+  return (
+    !article.body.trim().startsWith("#") ||
+    body.includes("owner - to be confirmed") ||
+    body.includes("owner to be confirmed") ||
+    body.includes("replace this placeholder") ||
+    body.includes("migrated from") ||
+    (article.seo?.summary ?? "").trim().length === 0
+  );
 }
 
-/** Pull the days-since-review number out of the staleness reasons array. */
-function daysSince(staleness: Staleness): number {
-  for (const r of staleness.reasons) {
-    const m = r.match(/Not reviewed in (\d+) days/);
-    if (m) return parseInt(m[1], 10);
+function standardizationEvidence(article: PublishedArticle): RecommendationEvidence[] {
+  const out: RecommendationEvidence[] = [];
+  if (!article.body.trim().startsWith("#")) {
+    out.push({
+      signal: "structure",
+      label: "Missing H1",
+      detail: "The body does not start with a canonical article title.",
+      severity: "medium",
+    });
   }
-  return 0;
+  if (article.body.toLowerCase().includes("owner")) {
+    out.push({
+      signal: "governance",
+      label: "Owner metadata needs review",
+      detail: "Owner fields appear incomplete or migrated from source.",
+      severity: "high",
+    });
+  }
+  if ((article.seo?.summary ?? "").trim().length === 0) {
+    out.push({
+      signal: "metadata",
+      label: "AI discovery summary missing",
+      detail: "GEO metadata helps Now Assist and other copilots cite the right article.",
+      severity: "medium",
+    });
+  }
+  return out.length ? out : [{
+    signal: "format",
+    label: "Structure review",
+    detail: "Article should be checked against DEEx template and length guidance.",
+    severity: "medium",
+  }];
+}
+
+function truncate(s: string, n: number): string {
+  return s.length > n ? s.slice(0, n - 1).trimEnd() + "..." : s;
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }

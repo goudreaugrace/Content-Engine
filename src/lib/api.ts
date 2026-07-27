@@ -11,7 +11,7 @@ export type ArticleStatus =
   | "needs-info"
   | "rejected"
   | "published";
-export type ContentType = "FAQ" | "Policy" | "How-To" | "Topic Page";
+export type ContentType = "FAQ" | "Policy" | "Knowledge Article" | "Topic Page";
 export type Market = "US" | "MX" | "BR" | "UK" | "IN" | "Global";
 
 export type JobStatus =
@@ -30,7 +30,9 @@ export type AgentName =
   | "router"
   | "market"
   | "compliance"
-  | "revision";
+  | "revision"
+  | "consolidation"
+  | "migration";
 
 export type TraceEntry = {
   agent: AgentName;
@@ -209,15 +211,34 @@ export type Staleness = {
 // ── Recommendation engine + similar-published surfaces (detail-page only) ──
 export type RecommendationSeverity = "high" | "medium" | "low";
 
+export type RecommendationKind =
+  | "consolidate"
+  | "standardize"
+  | "replace"
+  | "archive"
+  | "mark-reviewed"
+  | "noop";
+
+export type RecommendationEvidence = {
+  signal: string;
+  label: string;
+  detail: string;
+  severity: RecommendationSeverity;
+};
+
 export type RecommendationApply =
+  | { kind: "generate-draft"; draftKind: "consolidation" | "standardization"; candidateIds?: string[] }
   | { kind: "archive" }
   | { kind: "mark-reviewed" }
   | { kind: "noop" };
 
 export type PublishedRecommendation = {
+  kind: RecommendationKind;
   title: string;
   reason: string;
   severity: RecommendationSeverity;
+  evidence: RecommendationEvidence[];
+  actionLabel?: string;
   apply: RecommendationApply;
   similarRef?: { id: string; title: string };
 };
@@ -270,6 +291,9 @@ export type PublishedArticle = {
    *  level to "archived" regardless of metrics. */
   archivedAt?: string;
   archivedBy?: string;
+  archivedReason?: string;
+  replacedByArticleId?: string;
+  replacesArticleIds?: string[];
 
   // Server-computed
   staleness: Staleness;
@@ -306,6 +330,8 @@ export type Article = {
   seo: ArticleSEO;
   globalJustification?: string;
   replacesArticleId?: string;
+  /** Published articles intentionally consolidated into this draft. */
+  replacesArticleIds?: string[];
   body: string;
   submittedBy: { name: string; email: string };
   submittedAt: string;
@@ -346,7 +372,7 @@ export type StubbedEmail = {
   subject: string;
   body: string;
   sentAt: string;
-  kind: "clarification" | "stakeholder-notification";
+  kind: "clarification" | "stakeholder-notification" | "owner-alert";
   jobId?: string;
   articleId?: string;
   // Enriched by the server via the linked article (not persisted):
@@ -489,6 +515,14 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+  transferArticleOwner: (
+    id: string,
+    submittedBy: { name: string; email: string },
+  ) =>
+    request<Article>(`/api/articles/${id}/owner`, {
+      method: "PATCH",
+      body: JSON.stringify({ submittedBy }),
+    }),
   reviseArticle: (id: string, body: { instruction: string }) =>
     request<{ revisedBody: string; explanation: string }>(`/api/articles/${id}/revise`, {
       method: "POST",
@@ -548,6 +582,36 @@ export const api = {
   markPublishedReviewed: (id: string, body: { reviewer?: string } = {}) =>
     request<PublishedArticle>(`/api/published-articles/${id}/review`, {
       method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  getConsolidationPreview: (id: string, body: { articleIds?: string[] } = {}) =>
+    request<{
+      primary: PublishedArticle;
+      sources: PublishedArticle[];
+      previewTitle: string;
+      coverage: string[];
+      conflicts: string[];
+      evidence: RecommendationEvidence[];
+    }>(`/api/published-articles/${id}/consolidation-preview`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  consolidatePublishedArticle: (id: string, body: { articleIds: string[] }) =>
+    request<{ job: Job; article: Article }>(`/api/published-articles/${id}/consolidate`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  standardizeMigration: (body: {
+    sourceTitle: string;
+    sourceContent: string;
+    contentType: ContentType;
+    marketId: string;
+    sectorId: string;
+    countries: string[];
+    submittedBy?: { name: string; email: string };
+  }) =>
+    request<{ job: Job; article: Article }>(`/api/migrations/standardize`, {
+      method: "POST",
       body: JSON.stringify(body),
     }),
   translateArticle: (id: string, body: { target?: string } = {}) =>
@@ -631,4 +695,16 @@ export const api = {
 
   // Emails
   listEmails: () => request<StubbedEmail[]>("/api/emails"),
+  sendOwnerAlert: (body: {
+    articleId: string;
+    articleTitle: string;
+    ownerName: string;
+    to: string[];
+    action: "review" | "update" | "archive" | "consolidate";
+    reason: string;
+  }) =>
+    request<StubbedEmail>("/api/emails/owner-alert", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };

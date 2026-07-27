@@ -736,7 +736,7 @@ function FlowDiagram() {
         {[
           { x: 390, y: 140, label: "intake" },
           { x: 450, y: 140, label: "router" },
-          { x: 510, y: 140, label: "market" },
+          { x: 510, y: 140, label: "country" },
           { x: 390, y: 195, label: "comply" },
           { x: 450, y: 195, label: "revise" },
           { x: 510, y: 195, label: "store" },
@@ -864,17 +864,17 @@ function alphaHex(hex: string, a: number): string {
 const AGENTS = [
   { id: "intake", name: "Intake", role: "Parses the request and checks if it's complete enough to draft.", color: "blue" },
   { id: "clarifier", name: "Clarifier", role: "Drafts the follow-up email when something's missing.", color: "neutral" },
-  { id: "router", name: "Router", role: "Picks which market agent(s) to invoke.", color: "blue" },
-  { id: "market", name: "Market", role: "Writes the article in the market's tone and language, composed on top of its sector's corporate guidelines.", color: "ember" },
+  { id: "router", name: "Router", role: "Picks which country agent(s) to invoke.", color: "blue" },
+  { id: "country", name: "Country", role: "Writes the article in the country's tone and language, composed on top of its sector's corporate guidelines.", color: "ember" },
   { id: "compliance", name: "Compliance", role: "Checks the request against DEEx guidelines in parallel.", color: "blue" },
-  { id: "revision", name: "Revision", role: "Re-runs the market agent when compliance flags errors.", color: "ember" },
+  { id: "revision", name: "Revision", role: "Re-runs the country agent when compliance flags errors.", color: "ember" },
   { id: "translation", name: "Translation", role: "Translates an article into another supported language.", color: "neutral" },
 ] as const;
 
 function StepAgents() {
   const theme = useTheme();
   const t = theme.palette.tokens;
-  const [active, setActive] = useState<string>("market");
+  const [active, setActive] = useState<string>("country");
   // Auto-cycle through agents
   useEffect(() => {
     const id = setInterval(() => {
@@ -1116,7 +1116,7 @@ function StepSequence() {
       <StepHeader
         kicker="04"
         title="Watch one travel"
-        sub="A single article moving through the system. Time flows downward; each vertical lane is an actor. Market and Compliance run side-by-side."
+        sub="A single article moving through the system. Time flows downward; each vertical lane is an actor. Country and Compliance run side-by-side."
       />
       {/* Visual — full width so the diagram has room to breathe. */}
       <Box
@@ -1148,11 +1148,11 @@ function StepSequence() {
         >
           <Insight
             title="Parallel by design"
-            body="Compliance scans the request while the market agent writes. Total time is one agent call, not two."
+            body="Compliance scans the request while the country agent writes. Total time is one agent call, not two."
           />
           <Insight
             title="Conditional revision"
-            body="The market agent only re-runs if compliance found severity=error. Warnings stay attached for the reviewer."
+            body="The country agent only re-runs if compliance found severity=error. Warnings stay attached for the reviewer."
           />
           <Insight
             title="Trace is the receipt"
@@ -1192,7 +1192,7 @@ function SequenceLaneDiagram() {
     { id: "orch", name: "Orchestrator", x: 215 },
     { id: "intake", name: "Intake", x: 335 },
     { id: "router", name: "Router", x: 445 },
-    { id: "market", name: "Market", x: 555 },
+    { id: "country", name: "Country", x: 555 },
     { id: "comply", name: "Compliance", x: 660 },
   ];
   // Vertical positions for messages — generous spacing so labels never collide
@@ -1263,10 +1263,10 @@ function SequenceLaneDiagram() {
       {/* T1 return */}
       <Message x1={xOf("intake")} x2={xOf("orch")} y={t1 + 24} label="complete=true" returnArrow />
       {/* T2: Orchestrator → Router */}
-      <Message x1={xOf("orch")} x2={xOf("router")} y={t2} label="route(market='mx')" color={t.pepsiBlue} />
-      <Message x1={xOf("router")} x2={xOf("orch")} y={t2 + 24} label='markets=["mx"]' returnArrow />
+      <Message x1={xOf("orch")} x2={xOf("router")} y={t2} label="route(country='mx')" color={t.pepsiBlue} />
+      <Message x1={xOf("router")} x2={xOf("orch")} y={t2 + 24} label='countrys=["mx"]' returnArrow />
 
-      {/* T3: Parallel — orchestrator dispatches Market + Compliance.
+      {/* T3: Parallel — orchestrator dispatches Country + Compliance.
           The bar sits well above the first message so its label has its own row. */}
       <ParallelBar
         y={t3 - 28}
@@ -1274,11 +1274,11 @@ function SequenceLaneDiagram() {
         x2={xOf("comply") + 12}
         label="Promise.all"
       />
-      <Message x1={xOf("orch")} x2={xOf("market")} y={t3} label="draft(profile)" color={t.ember} />
+      <Message x1={xOf("orch")} x2={xOf("country")} y={t3} label="draft(profile)" color={t.ember} />
       <Message x1={xOf("orch")} x2={xOf("comply")} y={t3 + 24} label="check(rules)" color={t.ember} />
 
-      {/* T4: Returns from market + compliance */}
-      <Message x1={xOf("market")} x2={xOf("orch")} y={t4} label="draft body" returnArrow />
+      {/* T4: Returns from country + compliance */}
+      <Message x1={xOf("country")} x2={xOf("orch")} y={t4} label="draft body" returnArrow />
       <Message x1={xOf("comply")} x2={xOf("orch")} y={t4 + 24} label="issues=[]" returnArrow />
 
       {/* T5: Orchestrator self-action */}
@@ -1434,7 +1434,7 @@ function ParallelBar({
 function SelfNote({ x, y, text }: { x: number; y: number; text: string }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
-  // The note's text would otherwise cross intake / router / market dashed rails.
+  // The note's text would otherwise cross intake / router / country dashed rails.
   // Paint a paper-colored backing behind the text so the rails read as broken
   // and the text stays legible.
   const textW = text.length * 5.6 + 16;
@@ -1492,13 +1492,13 @@ function StepState({ stats }: { stats: LiveStats }) {
             keep parallel agent work from clobbering anything.
           </Typography>
           <Typography sx={{ fontSize: "0.9375rem", color: t.slate, lineHeight: 1.65, mb: 3 }}>
-            Markets and audiences are the most-tuned files. Edit either through
+            Countries and audiences are the most-tuned files. Edit either through
             the admin pages and the next article submitted picks up your
             changes — no deploy.
           </Typography>
           <Stack direction="row" spacing={2.5} flexWrap="wrap" useFlexGap>
             <BigStat label="Need review" value={stats.needsReview} accent />
-            <BigStat label="Markets" value={stats.markets} />
+            <BigStat label="Countries" value={stats.markets} />
             <BigStat label="Audiences" value={stats.audiences} />
           </Stack>
         </Box>
@@ -1690,7 +1690,7 @@ function StepReady({ onBack }: { onBack: () => void }) {
     {
       icon: <PublicOutlinedIcon />,
       role: "If you're an admin",
-      label: "Edit a sector or market",
+      label: "Edit a sector or country",
       sub: "Tune tone, language, or guidelines at either tier.",
       to: "/admin/sectors",
       cta: "Open sectors",

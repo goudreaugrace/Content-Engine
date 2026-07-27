@@ -8,6 +8,7 @@ import {
   CircularProgress,
   Alert,
   Button,
+  Checkbox,
   useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -24,6 +25,7 @@ import LinkIcon from "@mui/icons-material/Link";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
   api,
+  type Market,
   type PublishedArticle,
   type PublishedRecommendation,
   type PublishedSimilarMatch,
@@ -38,6 +40,17 @@ function formatDate(iso: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function marketIdFor(market: Market): string {
+  return {
+    US: "us",
+    MX: "mx",
+    BR: "br",
+    UK: "uk",
+    IN: "in",
+    Global: "global",
+  }[market];
 }
 
 function daysAgo(iso: string): string {
@@ -61,6 +74,7 @@ export default function PublishedArticleDetail() {
   const [library, setLibrary] = useState<PublishedArticle[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selectedSimilarIds, setSelectedSimilarIds] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -79,6 +93,15 @@ export default function PublishedArticleDetail() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!article) return;
+    const recommended = article.recommendation?.apply.kind === "generate-draft"
+      ? article.recommendation.apply.candidateIds ?? []
+      : [];
+    const fallback = article.similar?.filter((s) => s.score >= 0.3).map((s) => s.id) ?? [];
+    setSelectedSimilarIds(recommended.length ? recommended : fallback);
+  }, [article?.id]);
 
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!article)
@@ -117,15 +140,49 @@ export default function PublishedArticleDetail() {
     }
   };
 
-  /**
-   * Applies the server-provided recommendation. Dispatches to the right
-   * mutation based on the `apply.kind` discriminator.
-   */
+  const generateConsolidation = async () => {
+    if (!article) return;
+    setBusy(true);
+    try {
+      const result = await api.consolidatePublishedArticle(article.id, {
+        articleIds: [article.id, ...selectedSimilarIds],
+      });
+      navigate(`/articles/${result.article.id}`);
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
+      setBusy(false);
+    }
+  };
+
+  const generateStandardizedDraft = async () => {
+    if (!article) return;
+    setBusy(true);
+    try {
+      const result = await api.standardizeMigration({
+        sourceTitle: article.title,
+        sourceContent: article.body,
+        contentType: article.contentType,
+        marketId: marketIdFor(article.market),
+        sectorId: article.sector ?? "pfna",
+        countries: article.countries,
+      });
+      navigate(`/articles/${result.article.id}`);
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
+      setBusy(false);
+    }
+  };
+
+  /** Applies the server-provided recommendation. */
   const applyRecommendation = async () => {
     if (!article.recommendation) return;
     const op = article.recommendation.apply;
     if (op.kind === "noop") return;
     if (op.kind === "mark-reviewed") return markReviewed();
+    if (op.kind === "generate-draft") {
+      if (op.draftKind === "consolidation") return generateConsolidation();
+      return generateStandardizedDraft();
+    }
     if (op.kind === "archive") {
       setBusy(true);
       try {
@@ -439,6 +496,13 @@ export default function PublishedArticleDetail() {
       {article.similar && article.similar.length > 0 && (
         <SimilarPublishedList
           similar={article.similar}
+          selectedIds={selectedSimilarIds}
+          onToggle={(id) =>
+            setSelectedSimilarIds((ids) =>
+              ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
+            )
+          }
+          onGenerate={generateConsolidation}
           onOpen={(id) => navigate(`/library/${id}`)}
           busy={busy}
         />
@@ -522,11 +586,16 @@ function RecommendationCard({
   }[severity];
 
   const buttonLabel =
-    apply.kind === "mark-reviewed"
-      ? "Mark as reviewed"
-      : apply.kind === "archive"
-        ? "Archive"
-        : "";
+    recommendation.actionLabel ??
+    (apply.kind === "generate-draft"
+      ? apply.draftKind === "consolidation"
+        ? "Generate master draft"
+        : "Standardize for DEEx"
+      : apply.kind === "mark-reviewed"
+        ? "Mark as reviewed"
+        : apply.kind === "archive"
+          ? "Archive"
+          : "");
 
   return (
     <Box
@@ -583,6 +652,19 @@ function RecommendationCard({
           >
             {recommendation.reason}
           </Typography>
+          {recommendation.evidence?.length > 0 && (
+            <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mt: 1.25 }}>
+              {recommendation.evidence.map((e) => (
+                <Chip
+                  key={`${e.signal}-${e.label}`}
+                  size="small"
+                  label={`${e.label}`}
+                  title={e.detail}
+                  sx={{ height: 22, fontSize: "0.6875rem", bgcolor: t.paper, color: palette.fg }}
+                />
+              ))}
+            </Stack>
+          )}
           {recommendation.similarRef && (
             <Button
               size="small"
@@ -618,16 +700,19 @@ function RecommendationCard({
 // ════════════════════════════════════════════════════════════
 function SimilarPublishedList({
   similar,
+  selectedIds,
   busy,
+  onToggle,
+  onGenerate,
   onOpen,
 }: {
   similar: PublishedSimilarMatch[];
-  /** Kept for API symmetry with the prior consolidate/redirect actions
-   *  even though only the View button currently uses busy state. */
+  selectedIds: string[];
   busy: boolean;
+  onToggle: (id: string) => void;
+  onGenerate: () => void;
   onOpen: (id: string) => void;
 }) {
-  void busy;
   const theme = useTheme();
   const t = theme.palette.tokens;
   return (
@@ -638,16 +723,25 @@ function SimilarPublishedList({
           variant="overline"
           sx={{ color: t.slate, letterSpacing: "0.08em" }}
         >
-          Similar published articles · {similar.length}
+          Articles to combine · {selectedIds.length} selected
         </Typography>
       </Stack>
       <Typography
         sx={{ fontSize: "0.8125rem", color: t.slate, mb: 2, lineHeight: 1.55 }}
       >
-        Other live articles overlap with this one. If two cover the same ground,
-        consider consolidating into a single entry — search ranks one strong
-        article higher than two split ones.
+        Select the overlapping articles the agent should fold into one master draft. The draft will enter the normal review flow and preserve source IDs for audit.
       </Typography>
+      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1.5 }}>
+        <Button
+          variant="contained"
+          size="small"
+          disabled={busy || selectedIds.length === 0}
+          onClick={onGenerate}
+          startIcon={<AutoAwesomeIcon sx={{ fontSize: 15 }} />}
+        >
+          Generate master draft
+        </Button>
+      </Stack>
       <Stack spacing={1}>
         {similar.map((s) => (
           <Box
@@ -665,6 +759,13 @@ function SimilarPublishedList({
               spacing={1.5}
               alignItems={{ md: "center" }}
             >
+              <Checkbox
+                checked={selectedIds.includes(s.id)}
+                onChange={() => onToggle(s.id)}
+                onClick={(e) => e.stopPropagation()}
+                size="small"
+                sx={{ mt: -0.5 }}
+              />
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography
                   sx={{

@@ -15,10 +15,13 @@ import {
   Tooltip,
   Typography,
   Avatar,
+  MenuItem,
+  TextField,
   useTheme,
   alpha,
 } from "@mui/material";
 import { useActivity } from "../lib/use-activity";
+import { usePersonaMode, type PersonaMode } from "../lib/persona";
 import MenuIcon from "@mui/icons-material/Menu";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
@@ -28,6 +31,8 @@ import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 
 // M3 navigation drawer / rail widths.
 //  - Expanded (272): drawer with icons + labels + section headers.
@@ -51,6 +56,7 @@ type NavItem = {
    * useActivity().
    */
   badgeCount?: number;
+  adminOnly?: boolean;
 };
 
 // "New article" is the writer's primary action — surfaced as the top nav item
@@ -63,9 +69,9 @@ const navItems: NavItem[] = [
   // default "Needs review" tab on the All Articles page, so the sidebar
   // carries a single entry that lands on the merged surface.
   { label: "All Articles", path: "/", icon: <LibraryBooksOutlinedIcon sx={{ fontSize: 20 }} />, exact: true },
-  { label: "Sectors", path: "/admin/sectors", icon: <PublicOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin" },
-  { label: "Audiences", path: "/admin/audiences", icon: <PeopleOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin" },
-  { label: "Email Log", path: "/admin/emails", icon: <EmailOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin" },
+  { label: "Sectors", path: "/admin/sectors", icon: <PublicOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
+  { label: "Audiences", path: "/admin/audiences", icon: <PeopleOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
+  { label: "Email Log", path: "/admin/emails", icon: <EmailOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
   { label: "How It Works", path: "/how-it-works", icon: <AccountTreeOutlinedIcon sx={{ fontSize: 20 }} />, section: "Reference" },
 ];
 
@@ -75,12 +81,23 @@ export default function AppLayout() {
   const theme = useTheme();
   const t = theme.palette.tokens;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [personaMode, setPersonaMode] = usePersonaMode();
+
+  useEffect(() => {
+    if (personaMode === "non-admin" && location.pathname.startsWith("/admin")) {
+      navigate("/", { replace: true });
+    }
+  }, [location.pathname, navigate, personaMode]);
+
   // Drives the unread badge on the All Articles nav item — inherited
   // from the old Review Cycle entry after the two pages were merged.
   const { unreadCount } = useActivity();
   // Build the nav list with the badge count injected. Keeps the base
   // navItems definition declarative + cheap to scan.
-  const navItemsWithBadges: NavItem[] = navItems.map((it) =>
+  const visibleNavItems = navItems.filter(
+    (it) => personaMode === "admin" || !it.adminOnly,
+  );
+  const navItemsWithBadges: NavItem[] = visibleNavItems.map((it) =>
     it.path === "/" ? { ...it, badgeCount: unreadCount } : it,
   );
 
@@ -198,6 +215,12 @@ export default function AppLayout() {
           </Tooltip>
         )}
       </Box>
+
+      <PersonaSwitcher
+        compact={compact}
+        mode={personaMode}
+        onChange={setPersonaMode}
+      />
 
       <List sx={{ flex: 1, px: compact ? 0.5 : 1, py: 0 }}>
         {navItemsWithBadges.map((item, idx) => {
@@ -348,7 +371,7 @@ export default function AppLayout() {
         }}
       >
         {compact ? (
-          <Tooltip title="Demo User · content-owner" placement="right">
+          <Tooltip title={personaMode === "admin" ? "Admin · governance" : "Non Admin · writer-manager"} placement="right">
             <Avatar
               sx={{
                 width: 30,
@@ -388,7 +411,7 @@ export default function AppLayout() {
                 }}
                 noWrap
               >
-                content-owner
+                {personaMode === "admin" ? "admin" : "writer-manager"}
               </Typography>
             </Box>
           </>
@@ -487,6 +510,78 @@ export default function AppLayout() {
         </Box>
       </Box>
 
+    </Box>
+  );
+}
+
+
+function PersonaSwitcher({
+  compact,
+  mode,
+  onChange,
+}: {
+  compact: boolean;
+  mode: PersonaMode;
+  onChange: (mode: PersonaMode) => void;
+}) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+
+  if (compact) {
+    const next = mode === "admin" ? "non-admin" : "admin";
+    return (
+      <Box sx={{ px: 0.5, pb: 1 }}>
+        <Tooltip title={`Switch to ${next === "admin" ? "Admin" : "Non Admin"}`} placement="right">
+          <IconButton
+            size="small"
+            onClick={() => onChange(next)}
+            sx={{
+              width: 48,
+              height: 40,
+              mx: "auto",
+              display: "flex",
+              color: mode === "admin" ? t.pepsiBlueStrong : t.slate,
+              bgcolor: mode === "admin" ? t.pepsiBlueSubtle : "transparent",
+              "&:hover": { bgcolor: alpha(t.ink, 0.04) },
+            }}
+            aria-label="Switch persona"
+          >
+            {mode === "admin" ? (
+              <AdminPanelSettingsOutlinedIcon sx={{ fontSize: 18 }} />
+            ) : (
+              <PersonOutlineOutlinedIcon sx={{ fontSize: 18 }} />
+            )}
+          </IconButton>
+        </Tooltip>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ px: 1.5, pb: 1.5 }}>
+      <TextField
+        select
+        size="small"
+        fullWidth
+        label="POC view"
+        value={mode}
+        onChange={(e) => onChange(e.target.value as PersonaMode)}
+        SelectProps={{ MenuProps: { PaperProps: { sx: { mt: 0.5 } } } }}
+        sx={{
+          "& .MuiInputBase-root": {
+            height: 36,
+            borderRadius: 999,
+            bgcolor: t.surfaceContainerLow,
+            fontSize: "0.75rem",
+            fontWeight: 600,
+          },
+          "& .MuiInputLabel-root": { fontSize: "0.75rem" },
+          "& .MuiSelect-select": { py: 0.75 },
+        }}
+      >
+        <MenuItem value="admin">Admin</MenuItem>
+        <MenuItem value="non-admin">Non Admin</MenuItem>
+      </TextField>
     </Box>
   );
 }

@@ -28,7 +28,7 @@ function formatStamp(iso: string): string {
   });
 }
 
-type TypeFilter = "all" | "clarification" | "stakeholder-notification";
+type TypeFilter = "all" | "clarification" | "stakeholder-notification" | "owner-alert";
 type MarketFilter = "all" | Market;
 type StatusFilter = "all" | ArticleStatus | "no-article";
 
@@ -36,10 +36,11 @@ const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: "all", label: "All types" },
   { value: "clarification", label: "Clarification" },
   { value: "stakeholder-notification", label: "Stakeholder" },
+  { value: "owner-alert", label: "Owner alert" },
 ];
 
 const MARKET_OPTIONS: { value: MarketFilter; label: string }[] = [
-  { value: "all", label: "All markets" },
+  { value: "all", label: "All countries" },
   { value: "US", label: "United States" },
   { value: "MX", label: "Mexico" },
   { value: "BR", label: "Brazil" },
@@ -64,7 +65,7 @@ export default function AdminEmails() {
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-  const [marketFilter, setMarketFilter] = useState<MarketFilter>("all");
+  const [countryFilter, setMarketFilter] = useState<MarketFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   useEffect(() => {
@@ -90,7 +91,7 @@ export default function AdminEmails() {
   const filtered = useMemo(() => {
     return emails.filter((e) => {
       if (typeFilter !== "all" && e.kind !== typeFilter) return false;
-      if (marketFilter !== "all" && e.market !== marketFilter) return false;
+      if (countryFilter !== "all" && e.market !== countryFilter) return false;
       if (statusFilter !== "all") {
         if (statusFilter === "no-article") {
           if (e.articleStatus) return false;
@@ -100,9 +101,9 @@ export default function AdminEmails() {
       }
       return true;
     });
-  }, [emails, typeFilter, marketFilter, statusFilter]);
+  }, [emails, typeFilter, countryFilter, statusFilter]);
 
-  const hasFilters = typeFilter !== "all" || marketFilter !== "all" || statusFilter !== "all";
+  const hasFilters = typeFilter !== "all" || countryFilter !== "all" || statusFilter !== "all";
   const clearFilters = () => {
     setTypeFilter("all");
     setMarketFilter("all");
@@ -143,8 +144,8 @@ export default function AdminEmails() {
           options={TYPE_OPTIONS}
         />
         <FilterSelect
-          label="Market"
-          value={marketFilter}
+          label="Country"
+          value={countryFilter}
           onChange={(v) => setMarketFilter(v as MarketFilter)}
           options={MARKET_OPTIONS}
         />
@@ -315,7 +316,7 @@ function EmailCard({
         <Divider />
         <Box sx={{ px: 2.5, py: 2.5 }}>
           <Stack direction="row" spacing={4} sx={{ mb: 3 }} flexWrap="wrap" rowGap={1.5}>
-            <Meta label="Market" value={email.market ?? "—"} />
+            <Meta label="Country" value={email.market ?? "—"} />
             <Meta
               label="Article status"
               value={statusLabel(email.articleStatus)}

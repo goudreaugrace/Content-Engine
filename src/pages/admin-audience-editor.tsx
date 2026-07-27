@@ -127,7 +127,7 @@ export default function AdminAudienceEditor() {
         {form.label}
       </Typography>
       <Typography color="text.secondary" sx={{ maxWidth: "62ch", mb: 5 }}>
-        Editing the {form.label} audience profile. The market agent reads this when drafting
+        Editing the {form.label} audience profile. The country agent reads this when drafting
         for this persona.
       </Typography>
 
@@ -209,11 +209,11 @@ export default function AdminAudienceEditor() {
         </Section>
 
         {/* Phase D — search intent. Plain-English description of how this
-            persona searches; the market agent uses it to pick SEO-friendly
+            persona searches; the country agent uses it to pick SEO-friendly
             phrasing matched to the audience's actual query patterns. */}
         <Section
           title="Search intent"
-          subtitle="How this persona searches — what they type, on what device, with what context. Used by the market agent to align titles + headings with real query patterns."
+          subtitle="How this persona searches — what they type, on what device, with what context. Used by the country agent to align titles + headings with real query patterns."
           number="05"
         >
           <TextField
@@ -229,7 +229,7 @@ export default function AdminAudienceEditor() {
 
         <Section
           title="Reference sources"
-          subtitle="Persona-specific documents the agent should ground drafts in when writing for this audience. Combined with sector + market sources at draft time."
+          subtitle="Persona-specific documents the agent should ground drafts in when writing for this audience. Combined with sector + country sources at draft time."
           number="06"
         >
           <SourceManager

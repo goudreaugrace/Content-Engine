@@ -128,6 +128,28 @@ articlesRouter.get("/:id", async (req, res) => {
   res.json(article);
 });
 
+
+articlesRouter.patch("/:id/owner", async (req, res) => {
+  const { submittedBy } = req.body as {
+    submittedBy?: { name?: string; email?: string };
+  };
+  const name = submittedBy?.name?.trim();
+  const email = submittedBy?.email?.trim();
+  if (!name || !email) {
+    return res.status(400).json({ error: "submittedBy.name and submittedBy.email are required" });
+  }
+
+  const article = await loadById<Article>("articles", req.params.id);
+  if (!article) return res.status(404).json({ error: "not found" });
+
+  const updated: Article = {
+    ...article,
+    submittedBy: { name, email },
+  };
+  await upsert("articles", updated);
+  res.json(updated);
+});
+
 articlesRouter.patch("/:id", async (req, res) => {
   const { body, title, seo } = req.body as {
     body?: string;

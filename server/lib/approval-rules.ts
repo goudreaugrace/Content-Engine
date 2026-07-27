@@ -40,7 +40,7 @@ export type ApprovalDecision = {
 const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
   FAQ: ["Question", "Answer", "Related"],
   Policy: ["Overview", "Policy", "Effective date", "Contact"],
-  "How-To": ["Overview", "Steps", "Troubleshooting"],
+  "Knowledge Article": ["Overview", "Steps", "Troubleshooting"],
   "Topic Page": ["Overview", "Details", "Resources"],
 };
 
@@ -172,16 +172,16 @@ export function evaluate(article: Article): ApprovalDecision {
     ) {
       reasons.push({
         id: "global-justification",
-        label: "Global market justification provided",
+        label: "Global country-context justification provided",
         severity: "ok",
       });
     } else {
       reasons.push({
         id: "global-justification",
-        label: "Global market without justification",
+        label: "Global country context without justification",
         severity: "error",
         reason:
-          "Global articles must include a justification explaining the cross-market intent.",
+          "Global articles must include a justification explaining the cross-country intent.",
       });
     }
   }

@@ -4,7 +4,7 @@
   "name": "Mexico",
   "language": "Spanish",
   "languageCode": "es-MX",
-  "toneOfVoice": "Professional, warm, and respectful. Use the formal 'usted' form in policy and official communications contexts. For FAQs and how-to guides, the informal 'tú' form is acceptable for a more approachable feel. Keep sentences short, clear, and direct. Avoid anglicisms when a natural Spanish equivalent exists.",
+  "toneOfVoice": "Professional, warm, and respectful. Use the formal 'usted' form in policy and official communications contexts. For FAQs and knowledge articles, the informal 'tú' form is acceptable for a more approachable feel. Keep sentences short, clear, and direct. Avoid anglicisms when a natural Spanish equivalent exists.",
   "contentStrategy": "Prioritize content that reflects Mexican workplace culture: family, respect for hierarchy, and collaboration. Lead with practical, action-oriented language. Reference local PepsiCo operations (e.g., Sabritas, Gamesa) where contextually relevant. Where the topic has regulatory implications, explicitly call out the relevant Mexican law or norm rather than assuming readers know it.",
   "contentGuidelines": "1. Always localize examples (use Mexican cities, MXN currency, and DD/MM/YYYY date format). 2. Acronyms like 'HR' must be expanded to 'Recursos Humanos' on first use. 3. Do not directly translate from US English templates — adapt the structure when it doesn't fit Mexican conventions. 4. For payroll and benefits content, reference Mexican benefit names (aguinaldo, vales de despensa, prima vacacional). 5. Use proper Spanish punctuation including ¿ and ¡ where appropriate.",
   "terminology": {

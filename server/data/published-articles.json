@@ -11,7 +11,7 @@
     "reviewedAt": "2026-07-02T15:04:03.663Z",
     "complianceIssues": [],
     "title": "How to refresh a driver login token",
-    "contentType": "How-To",
+    "contentType": "Knowledge Article",
     "market": "US",
     "countries": [
       "US",
@@ -88,7 +88,7 @@
     "reviewedAt": "2026-06-25T18:51:33.191Z",
     "complianceIssues": [],
     "title": "How to request access",
-    "contentType": "How-To",
+    "contentType": "Knowledge Article",
     "market": "US",
     "countries": [
       "US",
@@ -225,7 +225,7 @@
     "reviewedAt": "2026-06-03T20:32:27.517Z",
     "complianceIssues": [],
     "title": "How to reset your MyPepsiCo password",
-    "contentType": "How-To",
+    "contentType": "Knowledge Article",
     "market": "US",
     "countries": [
       "US",
@@ -234,12 +234,12 @@
     "body": "# How to reset your MyPepsiCo password\n\n## Summary\n\nQuick steps to reset a forgotten password.\n\nThis expanded paragraph adds context, examples, or specific edge cases. Replace this placeholder with the concrete detail your audience needs.\n\n## Who this applies to\n\nAll employees\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Go to passwordreset.pepsico.com.\n2. Enter your employee ID.\n3. Answer security questions.\n4. Set a new password.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 05/28/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
     "seo": {
       "title": "How to reset your MyPepsiCo password",
-      "metaDescription": "How-To for US employees: how to reset your mypepsico password. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the ",
+      "metaDescription": "Knowledge Article for US employees: how to reset your mypepsico password. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the ",
       "keywords": [
         "reset",
         "mypepsico",
         "password",
-        "how-to"
+        "knowledge-article"
       ]
     },
     "publishedAt": "2026-06-22T17:53:44.835Z",
@@ -304,7 +304,7 @@
     "reviewedAt": "2026-05-11T09:30:00Z",
     "complianceIssues": [],
     "title": "IT support: VPN troubleshooting",
-    "contentType": "How-To",
+    "contentType": "Knowledge Article",
     "market": "Global",
     "countries": [
       "US",
@@ -316,11 +316,11 @@
     "body": "## Summary\n\nIf your VPN won't connect or keeps dropping, work through the steps below before opening a ticket. Most issues resolve in under five minutes. PepsiCo uses GlobalProtect (Palo Alto Networks) as the standard VPN client across all geographies.\n\n## Who this applies to\n\nAll PepsiCo employees and contractors with a corporate device who connect remotely to internal systems. Plant-floor users with kiosk-mode access do not use VPN and should follow site-specific guidance.\n\n## Quick diagnostics\n\nBefore anything else, run these three checks:\n\n1. **Is your internet actually working?** Open a non-PepsiCo site like google.com. If that fails, your home network is the issue, not the VPN.\n2. **Is your laptop connected to a corporate network already?** GlobalProtect won't engage if you're on-site at a PepsiCo office or plant. The VPN client deliberately stays idle on internal networks.\n3. **Are you on the latest GlobalProtect version?** Open the client, click the gear icon, and check the version against the [current required version](#). Out-of-date clients are rejected at connection.\n\n## Step-by-step\n\n### 1. Restart the GlobalProtect client\n\nRight-click the GlobalProtect icon in your system tray (Windows) or menu bar (Mac), select **Disable**, wait 10 seconds, then **Enable**. This fixes around 40% of connection issues.\n\n### 2. Check your credentials\n\nIf you recently changed your PepsiCo password, GlobalProtect needs to be re-authenticated. Click **Connect**, enter your new password, and complete the multi-factor prompt.\n\n### 3. Try a different gateway\n\nIf the default gateway is slow or unresponsive:\n\n- Click the gear icon, then **Settings**, then **Gateways**.\n- Select a gateway in a different region (e.g., if you're auto-routed to **us-east**, try **us-central** or **eu-west**).\n\n### 4. Reset the VPN profile\n\nIf nothing else works:\n\n- Open GlobalProtect, gear icon, **Settings**, **Connection**, **Remove Profile**.\n- Re-enter the portal address: **vpn.pepsico.com**.\n- Sign in.\n\n### 5. Network-level checks\n\nIf you're on a hotel, conference, or public Wi-Fi and the VPN fails to connect:\n\n- The network might be blocking VPN traffic. Try tethering to your phone instead.\n- Some captive portals (the splash page on hotel Wi-Fi) need to be completed in a browser before VPN can establish. Open any non-PepsiCo URL first.\n\n## Common error messages\n\n| Message | What's happening | Fix |\n|---|---|---|\n| `Could not connect to portal` | DNS issue, network block, or service outage | Try mobile tether; check status.pepsico.com |\n| `Failed to authenticate` | Wrong password or expired credentials | Sign in to MyPepsiCo to verify your password works; reset if needed |\n| `Gateway is not responding` | Specific gateway is down or congested | Switch gateways (Step 3 above) |\n| `Certificate error` | Device certificate expired | Open MyIT, request **Renew device certificate** |\n| `Your device is non-compliant` | Missing antivirus, OS update, or disk encryption | Open MyIT, then **Check Device Compliance** |\n\n## Still stuck?\n\n- **Self-service**: MyIT, then **VPN Troubleshooter** runs an automated diagnostic.\n- **Open a ticket**: MyIT, then **New Incident**, category **Connectivity / VPN**. Include the exact error message, the gateway you tried, your physical location, and your device's compliance status.\n- **Call**: IT Service Desk at **1-800-PEP-HELP**, 24/7. Have your laptop name (under **About this Mac** or **System**) ready.\n\n## What we'll need from you if you open a ticket\n\nCopy this template into your ticket:\n\n```\nDevice name:\nOS version:\nGlobalProtect version:\nLocation (city/country):\nNetwork type (home / hotel / mobile / office):\nError message (exact text):\nWhat you've already tried:\n```\n\nTickets with this info attached resolve roughly twice as fast.\n\n---\n\n**Last updated:** 05/04/2026 \n**Owner:** IT Connectivity \n**Next review:** 11/01/2026",
     "seo": {
       "title": "IT support: VPN troubleshooting",
-      "metaDescription": "How-To for Global employees: it support: vpn troubleshooting. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
+      "metaDescription": "Knowledge Article for Global employees: it support: vpn troubleshooting. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
       "keywords": [
         "support",
         "troubleshooting",
-        "how-to"
+        "knowledge-article"
       ]
     },
     "publishedAt": "2026-06-08T15:42:59.444Z",
@@ -356,7 +356,7 @@
     ],
     "complianceIssues": [],
     "title": "Cartão corporativo - como solicitar",
-    "contentType": "How-To",
+    "contentType": "Knowledge Article",
     "market": "BR",
     "countries": [
       "BR"
@@ -364,13 +364,13 @@
     "body": "# Cartão corporativo - como solicitar\n\n## Summary\n\nBrief guide for requesting a corporate credit card in Brazil.\n\n## Who this applies to\n\nAll Brazil-based employees\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Submit through MyPepsiCo.\n2. Manager approves.\n3. Card mailed within 10 business days.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 01/06/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
     "seo": {
       "title": "Cartão corporativo - como solicitar",
-      "metaDescription": "How-To for BR employees: cartão corporativo - como solicitar. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
+      "metaDescription": "Knowledge Article for BR employees: cartão corporativo - como solicitar. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
       "keywords": [
         "cart",
         "corporativo",
         "como",
         "solicitar",
-        "how-to"
+        "knowledge-article"
       ]
     },
     "translations": {
@@ -409,7 +409,7 @@
     ],
     "complianceIssues": [],
     "title": "Cartão corporativo - como solicitar",
-    "contentType": "How-To",
+    "contentType": "Knowledge Article",
     "market": "BR",
     "countries": [
       "BR"
@@ -417,13 +417,13 @@
     "body": "# Cartão corporativo - como solicitar\n\n## Summary\n\nBrief guide for requesting a corporate credit card in Brazil.\n\n## Who this applies to\n\nAll Brazil-based employees\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Submit through MyPepsiCo.\n2. Manager approves.\n3. Card mailed within 10 business days.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 01/06/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
     "seo": {
       "title": "Cartão corporativo - como solicitar",
-      "metaDescription": "How-To for BR employees: cartão corporativo - como solicitar. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
+      "metaDescription": "Knowledge Article for BR employees: cartão corporativo - como solicitar. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
       "keywords": [
         "cart",
         "corporativo",
         "como",
         "solicitar",
-        "how-to"
+        "knowledge-article"
       ]
     },
     "translations": {
@@ -454,7 +454,7 @@
     "reviewedAt": "2026-06-03T20:32:27.517Z",
     "complianceIssues": [],
     "title": "How to reset your MyPepsiCo password",
-    "contentType": "How-To",
+    "contentType": "Knowledge Article",
     "market": "US",
     "countries": [
       "US",
@@ -463,12 +463,12 @@
     "body": "# How to reset your MyPepsiCo password\n\n## Summary\n\nQuick steps to reset a forgotten password.\n\nThis expanded paragraph adds context, examples, or specific edge cases. Replace this placeholder with the concrete detail your audience needs.\n\n## Who this applies to\n\nAll employees\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Go to passwordreset.pepsico.com.\n2. Enter your employee ID.\n3. Answer security questions.\n4. Set a new password.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 05/28/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
     "seo": {
       "title": "How to reset your MyPepsiCo password",
-      "metaDescription": "How-To for US employees: how to reset your mypepsico password. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the ",
+      "metaDescription": "Knowledge Article for US employees: how to reset your mypepsico password. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the ",
       "keywords": [
         "reset",
         "mypepsico",
         "password",
-        "how-to"
+        "knowledge-article"
       ]
     },
     "publishedAt": "2025-10-28T17:36:24.626Z",
@@ -496,7 +496,7 @@
     "reviewedAt": "2026-06-02T19:14:12.381Z",
     "complianceIssues": [],
     "title": "How to request a corporate credit card",
-    "contentType": "How-To",
+    "contentType": "Knowledge Article",
     "market": "US",
     "countries": [
       "US",
@@ -505,13 +505,13 @@
     "body": "# How to request a corporate credit card\n\n## Summary\n\nStep-by-stp guide for employees who need a corporate card for travel and expenses.\n\n## Who this applies to\n\nNewly hired managers and senior individual contributors who travel for business\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Submit request through MyPepsiCo.\n2. Manager approves.\n3. Finance team reviews credit limit.\n4. Card mailed in 7-10 business days.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 05/27/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
     "seo": {
       "title": "How to request a corporate credit card",
-      "metaDescription": "How-To for US employees: how to request a corporate credit card. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for th",
+      "metaDescription": "Knowledge Article for US employees: how to request a corporate credit card. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for th",
       "keywords": [
         "request",
         "corporate",
         "credit",
         "card",
-        "how-to"
+        "knowledge-article"
       ]
     },
     "publishedAt": "2025-09-18T17:36:24.626Z",
@@ -581,7 +581,7 @@
     "reviewedAt": "2026-06-02T15:26:08.706Z",
     "complianceIssues": [],
     "title": "How to submit an expense report",
-    "contentType": "How-To",
+    "contentType": "Knowledge Article",
     "market": "US",
     "countries": [
       "US",
@@ -590,12 +590,12 @@
     "body": "## Summary\n\nSubmit your business expense report through Concur within 30 days of the trip end date. Reports must include itemized receipts for any single expense of $25 or more, plus a manager-approved trip purpose. Most reports route automatically and reimburse within five business days of approval.\n\n## Who this applies to\n\nAll U.S. salaried and hourly employees who incur reimbursable business expenses on a corporate card or personal funds. Contractors, interns, and temporary workers follow a different process documented in the Contractor Reimbursement KA.\n\n## Before you start\n\n- Confirm the expense is on the [approved spend categories list](#).\n- Save digital receipts as PDFs or photos. Concur accepts JPG, PNG, and PDF up to 10 MB per file.\n- Have your trip purpose, project code, and (if billable) the client account number ready.\n\n## Steps\n\n1. Sign in to Concur at **concur.pepsico.com** with your PepsiCo SSO.\n2. From the home screen, click **+ Create New Report** in the top right.\n3. Enter a **Report Name** that follows the convention: `[Trip purpose] — [Location] — [Month YYYY]`. Example: *Client meetings — NYC — Oct 2026*.\n4. Set the **Report Date** to the last day of the trip.\n5. Add the **Business Purpose** in one or two sentences. Concur uses this in the audit trail.\n6. Click **Next** and start adding expenses one at a time. For each line, attach the corresponding receipt.\n7. When all expenses are entered, click **Submit Report** at the top right.\n\n## Approval flow\n\n| Report total | Approvers |\n|---|---|\n| Up to $500 | Direct manager only |\n| $501 to $5,000 | Direct manager + functional finance partner |\n| Over $5,000 | Direct manager + functional finance partner + VP sponsor |\n\nApproval typically completes within two to three business days. Reimbursement lands in the same bank account as your paycheck within five business days after the last approver signs off.\n\n## Common issues\n\n**My receipt is missing.** Use the **Missing Receipt Affidavit** option inside the expense line. This is allowed once per report.\n\n**A line is flagged 'Out of policy'.** Open the line and read the flag detail. Most flags resolve by adding a longer business purpose or splitting the expense across project codes.\n\n**I traveled internationally.** Switch the line's currency to the local currency at point of sale. Concur converts using the daily rate; don't pre-convert to USD yourself.\n\n## Need help\n\n- Reach the T&E support team at **te-help@pepsico.com**.\n- Concur runs office hours every Tuesday at 2 PM ET. Join the recurring Teams event in your calendar's *PepsiCo, Operations* channel.\n\n---\n\n**Last updated:** 05/12/2026 \n**Owner:** Travel & Expense, Finance Operations \n**Effective:** Immediately \n**Next review:** 12/01/2026",
     "seo": {
       "title": "How to submit an expense report",
-      "metaDescription": "How-To for US employees: how to submit an expense report. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next ",
+      "metaDescription": "Knowledge Article for US employees: how to submit an expense report. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next ",
       "keywords": [
         "submit",
         "expense",
         "report",
-        "how-to"
+        "knowledge-article"
       ]
     },
     "publishedAt": "2024-12-12T17:36:24.626Z",

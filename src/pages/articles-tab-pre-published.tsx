@@ -126,7 +126,7 @@ export default function PrePublishedTab({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-  const [marketFilter, setMarketFilter] = useState<string>("all");
+  const [countryFilter, setMarketFilter] = useState<string>("all");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
 
   /**
@@ -180,7 +180,7 @@ export default function PrePublishedTab({
   // Reset page whenever filters change.
   useEffect(() => {
     setPage(0);
-  }, [search, statusFilter, typeFilter, marketFilter, sectorFilter]);
+  }, [search, statusFilter, typeFilter, countryFilter, sectorFilter]);
 
   const counts = useMemo(
     () => ({
@@ -197,7 +197,7 @@ export default function PrePublishedTab({
     articles.forEach((a) => set.add(a.contentType));
     return Array.from(set).sort();
   }, [articles]);
-  const availableMarkets = useMemo(() => {
+  const availableCountries = useMemo(() => {
     const set = new Set<Article["market"]>();
     articles.forEach((a) => set.add(a.market));
     return Array.from(set).sort();
@@ -214,7 +214,7 @@ export default function PrePublishedTab({
       if (statusFilter !== "all" && a.status !== statusFilter) return false;
       if (typeFilter !== "all" && a.contentType !== typeFilter) return false;
       if (sectorFilter !== "all" && a.sector !== sectorFilter) return false;
-      if (marketFilter !== "all" && a.market !== marketFilter) return false;
+      if (countryFilter !== "all" && a.market !== countryFilter) return false;
       if (term) {
         const hay =
           `${a.title} ${a.submittedBy.name} ${a.contentType}`.toLowerCase();
@@ -222,7 +222,7 @@ export default function PrePublishedTab({
       }
       return true;
     });
-  }, [articles, search, statusFilter, typeFilter, marketFilter, sectorFilter]);
+  }, [articles, search, statusFilter, typeFilter, countryFilter, sectorFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
@@ -235,7 +235,7 @@ export default function PrePublishedTab({
     search.trim() !== "" ||
     statusFilter !== "all" ||
     typeFilter !== "all" ||
-    marketFilter !== "all" ||
+    countryFilter !== "all" ||
     sectorFilter !== "all";
 
   const clearAll = () => {
@@ -326,12 +326,12 @@ export default function PrePublishedTab({
             ]}
           />
           <FilterSelect
-            label="Market"
-            value={marketFilter}
+            label="Country"
+            value={countryFilter}
             onChange={(v) => setMarketFilter(v as MarketFilter)}
             options={[
-              { value: "all", label: "All markets" },
-              ...availableMarkets.map((m) => ({
+              { value: "all", label: "All countries" },
+              ...availableCountries.map((m) => ({
                 value: m,
                 label: `${m} · ${localeFor(m)}`,
               })),
@@ -442,7 +442,7 @@ export default function PrePublishedTab({
           <TableHead>
             <TableRow>
               <TableCell sx={{ width: W.article }}>Article</TableCell>
-              <TableCell sx={{ width: W.market }}>Market</TableCell>
+              <TableCell sx={{ width: W.market }}>Country</TableCell>
               <TableCell sx={{ width: W.status }}>Status</TableCell>
               <TableCell sx={{ width: W.submittedBy }}>Submitted by</TableCell>
               <TableCell sx={{ width: W.when }}>Submitted</TableCell>
@@ -505,7 +505,7 @@ export default function PrePublishedTab({
                         {a.sector ? ` · ${sectorShortLabel(a.sector)}` : ""}
                       </Typography>
                     </TableCell>
-                    {/* 2 · Market. */}
+                    {/* 2 · Country. */}
                     <TableCell>
                       <Box
                         component="span"

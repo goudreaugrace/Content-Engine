@@ -163,7 +163,7 @@ export function NeedsReviewTab({
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState<KindFilter>("all");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
-  const [marketFilter, setMarketFilter] = useState<string>("all");
+  const [countryFilter, setMarketFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   /**
@@ -240,7 +240,7 @@ export function NeedsReviewTab({
     return out;
   }, [items]);
 
-  const availableMarkets = useMemo(() => {
+  const availableCountries = useMemo(() => {
     const set = new Set<string>();
     items.forEach((i) => set.add(i.market));
     return Array.from(set).sort();
@@ -258,7 +258,7 @@ export function NeedsReviewTab({
       if (kindFilter !== "all" && it.kind !== kindFilter) return false;
       if (statusFilter !== "all" && statusKeyOf(it) !== statusFilter) return false;
       if (sectorFilter !== "all" && it.sector !== sectorFilter) return false;
-      if (marketFilter !== "all" && it.market !== marketFilter) return false;
+      if (countryFilter !== "all" && it.market !== countryFilter) return false;
       if (term) {
         const hay =
           `${it.title} ${it.who} ${it.contentType} ${it.reason}`.toLowerCase();
@@ -266,14 +266,14 @@ export function NeedsReviewTab({
       }
       return true;
     });
-  }, [items, search, kindFilter, statusFilter, sectorFilter, marketFilter]);
+  }, [items, search, kindFilter, statusFilter, sectorFilter, countryFilter]);
 
   const hasAnyFilter =
     search.trim() !== "" ||
     kindFilter !== "all" ||
     statusFilter !== "all" ||
     sectorFilter !== "all" ||
-    marketFilter !== "all";
+    countryFilter !== "all";
 
   const clearAll = () => {
     setSearch("");
@@ -367,12 +367,12 @@ export function NeedsReviewTab({
             ]}
           />
           <FilterSelect
-            label="Market"
-            value={marketFilter}
+            label="Country"
+            value={countryFilter}
             onChange={setMarketFilter}
             options={[
-              { value: "all", label: "All markets" },
-              ...availableMarkets.map((m) => ({
+              { value: "all", label: "All countries" },
+              ...availableCountries.map((m) => ({
                 value: m,
                 label: `${m} · ${localeFor(m as any)}`,
               })),
@@ -485,7 +485,7 @@ export function NeedsReviewTab({
           <TableHead>
             <TableRow>
               <TableCell sx={{ width: W.article }}>Article</TableCell>
-              <TableCell sx={{ width: W.market }}>Market</TableCell>
+              <TableCell sx={{ width: W.market }}>Country</TableCell>
               <TableCell sx={{ width: W.status }}>Status</TableCell>
               <TableCell sx={{ width: W.submittedBy }}>Submitted by</TableCell>
               <TableCell sx={{ width: W.when }}>Updated</TableCell>
@@ -845,7 +845,7 @@ function AttentionRow({ item }: { item: AttentionItem }) {
           {item.sector ? ` · ${sectorShortLabel(item.sector)}` : ""}
         </Typography>
       </TableCell>
-      {/* 2 · Market — locale + countries. */}
+      {/* 2 · Country — locale + countries. */}
       <TableCell>
         <Box
           component="span"
@@ -1010,7 +1010,7 @@ function SourceBadge({ kind }: { kind: AttentionKind }) {
 // ────────────────────────────────────────────────────────────
 // Severity is the primary signal on this page (the metric row above already
 // highlights it), so the board uses it as the grouping axis. Cards carry
-// the same fields as the table row: title + id/type, market locale, the
+// the same fields as the table row: title + id/type, country locale, the
 // reason chip, source badge, who, when.
 // ════════════════════════════════════════════════════════════
 const REVIEW_BOARD_LANE_ORDER: AttentionSeverity[] = [

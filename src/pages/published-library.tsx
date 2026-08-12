@@ -722,8 +722,8 @@ function NonAdminArticlesPage({
                     status={status}
                     onTransfer={() => openTransfer(article)}
                     onOpen={() =>
-                      status === "stale" && published
-                        ? navigate(`/library/${published.id}`)
+                      published
+                        ? navigate(`/my-articles/${published.id}`)
                         : navigate(`/articles/${article.id}`)
                     }
                   />

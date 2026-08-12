@@ -13,6 +13,7 @@ import ReviewQueue from "./pages/review-queue";
 import HowItWorks from "./pages/how-it-works";
 import PublishedLibrary from "./pages/published-library";
 import PublishedArticleDetail from "./pages/published-article-detail";
+import OwnerArticlePerformance from "./pages/owner-article-performance";
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/library" element={<PublishedLibrary />} />
         <Route path="/library/:id" element={<PublishedArticleDetail />} />
+        <Route path="/my-articles/:id" element={<OwnerArticlePerformance />} />
       </Route>
     </Routes>
   );

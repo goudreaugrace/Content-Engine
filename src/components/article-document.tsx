@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme } from "@mui/material";
+import { Box, Tooltip, Typography, useTheme } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Market } from "../lib/api";
@@ -7,6 +7,8 @@ import { localeFor } from "../lib/market";
 type Props = {
   body: string;
   market?: Market;
+  /** Optional owner-view marker, displayed outside the article content. */
+  readDepthPercent?: number;
 };
 
 /**
@@ -15,7 +17,7 @@ type Props = {
  * Gilroy throughout. This is one of two documented exceptions to the
  * Flat-By-Default rule in DESIGN.md (the other is the sticky save bar).
  */
-export default function ArticleDocument({ body, market }: Props) {
+export default function ArticleDocument({ body, market, readDepthPercent }: Props) {
   const theme = useTheme();
   const t = theme.palette.tokens;
 
@@ -97,6 +99,7 @@ export default function ArticleDocument({ body, market }: Props) {
       {/* ───── Document body ───── */}
       <Box
         sx={{
+          position: "relative",
           px: { xs: 3, md: 6 },
           py: { xs: 4, md: 6 },
           fontFamily: theme.palette.fonts.sans,
@@ -247,6 +250,27 @@ export default function ArticleDocument({ body, market }: Props) {
           },
         }}
       >
+        {readDepthPercent !== undefined && (
+          <Tooltip title={`Typical reader depth: ${readDepthPercent}%`} placement="left" arrow>
+            <Box
+              aria-label={`Typical reader depth: ${readDepthPercent}%`}
+              sx={{
+                position: "absolute",
+                top: `${Math.min(94, Math.max(6, readDepthPercent))}%`,
+                right: { xs: 8, md: 15 },
+                transform: "translateY(-50%)",
+                width: 18,
+                height: 18,
+                borderRadius: "50%",
+                bgcolor: t.errorInk,
+                border: "3px solid #FFFFFF",
+                boxShadow: "0 0 0 3px rgba(197,34,31,0.20), 0 2px 5px rgba(197,34,31,0.45)",
+                cursor: "help",
+                zIndex: 1,
+              }}
+            />
+          </Tooltip>
+        )}
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
       </Box>
 

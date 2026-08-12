@@ -9,6 +9,8 @@ import {
   Alert,
   Button,
   Checkbox,
+  IconButton,
+  Tooltip,
   useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -23,6 +25,10 @@ import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import LinkIcon from "@mui/icons-material/Link";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import {
   api,
   type Market,
@@ -516,6 +522,254 @@ export default function PublishedArticleDetail() {
       {/* Convert / Delete-and-redirect dialogs removed — both were part of
           the dropped lifecycle decision matrix. Archive/unarchive is the
           single remaining action and runs inline (no dialog needed). */}
+    </Box>
+  );
+}
+
+function formatDuration(seconds?: number) {
+  if (!seconds) return "—";
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return mins ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
+}
+
+const COUNTRY_LABELS: Record<string, string> = {
+  US: "United States", CA: "Canada", MX: "Mexico", GB: "United Kingdom",
+  IE: "Ireland", SG: "Singapore", BR: "Brazil", IN: "India", DE: "Germany",
+  FR: "France", AU: "Australia", PH: "Philippines",
+};
+
+function countryLabel(code: string) {
+  return COUNTRY_LABELS[code] ?? code;
+}
+
+function MetricHelp({ children }: { children: React.ReactNode }) {
+  return (
+    <Tooltip title={children} arrow enterTouchDelay={0}>
+      <IconButton
+        aria-label="Learn about this metric"
+        size="small"
+        sx={{ p: 0.25, color: "text.secondary", verticalAlign: "middle" }}
+      >
+        <InfoOutlinedIcon sx={{ fontSize: 15 }} />
+      </IconButton>
+    </Tooltip>
+  );
+}
+
+export function ArticlePerformance({ article }: { article: PublishedArticle }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const locations = article.metrics.locations ?? [];
+  const queries = article.metrics.searchQueries ?? [];
+  const totalLocatedViews = locations.reduce((sum, location) => sum + location.views, 0);
+  const expectedCodes = new Set(article.countries);
+  const unexpectedViews = locations
+    .filter((location) => !expectedCodes.has(location.code))
+    .reduce((sum, location) => sum + location.views, 0);
+  const unexpectedShare = totalLocatedViews ? Math.round((unexpectedViews / totalLocatedViews) * 100) : 0;
+  const lowViews = article.metrics.views30d < 30;
+  const quickExits = article.metrics.views30d >= 30 && (article.metrics.averageEngagementSeconds ?? 0) < 45;
+  const insights = [
+    unexpectedShare >= 20
+      ? {
+          title: "Check regional targeting",
+          detail: `${unexpectedShare}% of tracked views came from countries outside this article’s intended audience. Review the audience tags and title before changing the article itself.`,
+          tone: "warning" as const,
+        }
+      : null,
+    quickExits
+      ? {
+          title: "Check audience fit",
+          detail: "Many people opened this article, but readers typically leave quickly. Compare the title and search phrases with the article’s intended region and purpose.",
+          tone: "info" as const,
+        }
+      : null,
+    lowViews
+      ? {
+          title: "Check findability",
+          detail: "Fewer than 30 people viewed this article in the last 30 days. Consider related links, audience tags, and whether this belongs with a broader article.",
+          tone: "info" as const,
+        }
+      : null,
+  ].filter(Boolean) as Array<{ title: string; detail: string; tone: "warning" | "info" }>;
+
+  return (
+    <Box sx={{ mb: 4 }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+        <Typography variant="h6">Article performance</Typography>
+        <Chip label="Last 30 days" size="small" sx={{ bgcolor: t.surfaceContainer, color: t.slate }} />
+      </Stack>
+      <Typography variant="body2" sx={{ color: t.slate, mb: 2.25 }}>
+        A quick read on how colleagues find and use this article.
+      </Typography>
+
+      <Box sx={{ border: `1px solid ${t.border}`, borderRadius: 2, p: { xs: 2, sm: 2.5 }, bgcolor: t.paper, mb: 2 }}>
+          <Typography variant="overline" sx={{ color: t.slate, mb: 1.5, display: "block" }}>Engagement</Typography>
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" }, gap: 2 }}>
+            <PerformanceStat
+              icon={<VisibilityOutlinedIcon sx={{ fontSize: 18 }} />}
+              label="Views (30d)"
+              value={article.metrics.views30d.toLocaleString()}
+              help="Every time this article was opened, whether the reader came from intranet search, a link, or navigation. The initial attention threshold is 30 views in 30 days."
+            />
+            <PerformanceStat
+              icon={<AccessTimeOutlinedIcon sx={{ fontSize: 18 }} />}
+              label="Active reading time"
+              value={formatDuration(article.metrics.averageEngagementSeconds)}
+              help="The average time the article was visible and active in a reader’s browser. It is a stronger signal than time between page loads, which can include an inactive tab."
+            />
+          </Box>
+          <Box sx={{ mt: 2, pt: 1.75, borderTop: `1px solid ${t.surfaceContainer}` }}>
+            <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1.25}>
+              <Box>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography variant="subtitle2">How far readers get</Typography>
+                  <MetricHelp>{"The typical percentage of the article a reader reaches. Low depth can suggest that essential information belongs earlier or the article could be shorter."}</MetricHelp>
+                </Stack>
+                <Typography variant="body2" sx={{ color: t.slate, mt: 0.25 }}>
+                  Typical reader reaches <Box component="strong" sx={{ color: t.ink }}>{article.metrics.scrollDepthPercent ?? 0}%</Box> of this article
+                </Typography>
+              </Box>
+              <Box sx={{ width: { xs: "100%", sm: 180 }, height: 8, bgcolor: t.surfaceContainerHigh, borderRadius: 99, overflow: "hidden", flexShrink: 0 }}>
+                <Box sx={{ width: `${article.metrics.scrollDepthPercent ?? 0}%`, height: "100%", bgcolor: t.pepsiBlue, borderRadius: 99 }} />
+              </Box>
+            </Stack>
+            {article.metrics.cta && (
+              <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1} sx={{ mt: 1.75, pt: 1.5, borderTop: `1px solid ${t.surfaceContainer}` }}>
+                <Box>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Typography variant="subtitle2">Next step in this article</Typography>
+                    <MetricHelp>{"Shown only when this article includes an identifiable next step, such as a form, request, or link. This count measures clicks, not confirmed completion in another system."}</MetricHelp>
+                  </Stack>
+                  <Typography variant="body2" sx={{ color: t.slate, mt: 0.25 }}>{article.metrics.cta.label}</Typography>
+                </Box>
+                <Typography sx={{ fontSize: "1.125rem", fontWeight: 600, color: t.ink, whiteSpace: "nowrap" }}>{article.metrics.cta.clicks} clicks</Typography>
+              </Stack>
+            )}
+          </Box>
+      </Box>
+
+      {insights.length > 0 && (
+        <Box sx={{ display: "grid", gap: 1.25, mb: 2 }}>
+          {insights.map((insight) => {
+            const color = insight.tone === "warning" ? t.emberStrong : t.infoInk;
+            const bg = insight.tone === "warning" ? "rgba(213, 110, 12, 0.09)" : t.infoBg;
+            return (
+              <Box key={insight.title} sx={{ borderLeft: `3px solid ${color}`, bgcolor: bg, borderRadius: 1, px: 2, py: 1.5 }}>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography variant="subtitle2" sx={{ color }}>{insight.title}</Typography>
+                  <MetricHelp>{"This is a suggested place to investigate, not an automatic diagnosis or change."}</MetricHelp>
+                </Stack>
+                <Typography variant="body2" sx={{ color: t.ink, mt: 0.35 }}>{insight.detail}</Typography>
+              </Box>
+            );
+          })}
+        </Box>
+      )}
+
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1.15fr 0.85fr" }, gap: 2 }}>
+        <Box sx={{ border: `1px solid ${t.border}`, borderRadius: 2, p: 2.25, minWidth: 0 }}>
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
+            <PublicOutlinedIcon sx={{ color: t.pepsiBlue, fontSize: 18 }} />
+            <Typography variant="subtitle2">Where this article is read</Typography>
+            <MetricHelp>{"Countries are based on aggregated reader activity. Outlined markers are outside the countries tagged as the article’s intended audience."}</MetricHelp>
+          </Stack>
+          <Stack direction="row" alignItems="baseline" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 1.25 }}>
+            <Typography variant="body2" sx={{ color: t.slate }}>Intended audience</Typography>
+            {article.countries.length ? article.countries.map((code) => (
+              <Chip key={code} label={countryLabel(code)} size="small" sx={{ bgcolor: t.pepsiBlueSubtle, color: t.pepsiBlueStrong, fontWeight: 600 }} />
+            )) : <Typography variant="body2" sx={{ color: t.granite }}>Not specified</Typography>}
+          </Stack>
+          <ReadershipMap locations={locations} expectedCodes={expectedCodes} />
+        </Box>
+
+        <Box sx={{ border: `1px solid ${t.border}`, borderRadius: 2, p: 2.25, minWidth: 0 }}>
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
+            <SearchOutlinedIcon sx={{ color: t.pepsiBlue, fontSize: 18 }} />
+            <Typography variant="subtitle2">Searches that found this article</Typography>
+            <MetricHelp>{"The phrases colleagues typed into the intranet search before opening this article. Small groups should be suppressed in a production analytics connection to protect employee privacy."}</MetricHelp>
+          </Stack>
+          <Typography variant="body2" sx={{ color: t.slate, mb: 1.25 }}>
+            Top phrases by search volume
+          </Typography>
+          <Box sx={{ maxHeight: 207, overflowY: "auto", pr: 0.5 }}>
+            {queries.slice(0, 10).map((query) => (
+              <Stack key={query.phrase} direction="row" justifyContent="space-between" spacing={1.5} sx={{ py: 0.9, borderBottom: `1px solid ${t.surfaceContainer}` }}>
+                <Typography variant="body2" sx={{ color: t.ink, minWidth: 0 }}>{query.phrase}</Typography>
+                <Typography variant="caption" sx={{ color: t.slate, whiteSpace: "nowrap" }}>{query.searches} searches</Typography>
+              </Stack>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+function PerformanceStat({ icon, label, value, help }: { icon: React.ReactNode; label: string; value: string; help: string }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  return (
+    <Box>
+      <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: t.slate, mb: 0.75 }}>
+        {icon}
+        <Typography variant="overline">{label}</Typography>
+        <MetricHelp>{help}</MetricHelp>
+      </Stack>
+      <Typography sx={{ fontSize: "1.5rem", fontWeight: 600, color: t.ink, lineHeight: 1.2 }}>{value}</Typography>
+    </Box>
+  );
+}
+
+function ReadershipMap({ locations, expectedCodes }: { locations: NonNullable<PublishedArticle["metrics"]["locations"]>; expectedCodes: Set<string> }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const max = Math.max(...locations.map((location) => location.views), 1);
+  const points: Record<string, [number, number]> = {
+    US: [106, 88], CA: [101, 57], MX: [104, 117], BR: [161, 169], GB: [288, 76], IE: [278, 80], DE: [305, 86], FR: [293, 99], IN: [380, 126], SG: [412, 157], AU: [455, 187], PH: [437, 139],
+  };
+  return (
+    <Box>
+      <Box component="svg" viewBox="0 0 520 250" role="img" aria-label="World map showing article readership by country" sx={{ display: "block", width: "100%", height: "auto", bgcolor: "#EAF4FB", borderRadius: 1.5 }}>
+        <defs>
+          <pattern id="map-grid" width="52" height="31" patternUnits="userSpaceOnUse"><path d="M 52 0 L 0 0 0 31" fill="none" stroke="rgba(0,75,147,0.10)" strokeWidth="1" /></pattern>
+        </defs>
+        <rect width="520" height="250" fill="url(#map-grid)" />
+        <g fill="#D9E6EF" stroke="#AFC5D4" strokeWidth="1.2" strokeLinejoin="round">
+          <path d="M28 52l19-20 38-6 31 15 20 26-11 27-20 5-12 27-29 5-22-20-15-31 12-20z" />
+          <path d="M125 121l19 4 23 31 4 34-13 37-21 9-17-28 6-27-14-20z" />
+          <path d="M241 46l24-19 44 4 15 18-9 15-19 8-10 16-27-5-20-17z" />
+          <path d="M278 87l35 0 32 24 7 33-12 30-24 17-22-14-9-29-20-24z" />
+          <path d="M343 96l31-12 34 10 25 17 28 10 11 25-23 17-28-7-13-22-27-6-20 12-19-17z" />
+          <path d="M416 183l35 0 34 22-5 22-34 2-28-21z" />
+        </g>
+        <g fill="#6E8797" fontFamily={theme.palette.fonts.sans} fontSize="8" fontWeight="600" letterSpacing="1.1">
+          <text x="62" y="145">AMERICAS</text><text x="266" y="78">EUROPE</text><text x="367" y="178">ASIA–PACIFIC</text>
+        </g>
+        {locations.map((location) => {
+          const point = points[location.code] ?? [260, 130];
+          const intensity = 0.28 + 0.72 * (location.views / max);
+          const expected = expectedCodes.has(location.code);
+          return (
+            <g key={location.code}>
+              <circle cx={point[0]} cy={point[1]} r={8 + 10 * (location.views / max)} fill={`rgba(0, 75, 147, ${intensity})`} stroke="#FFFFFF" strokeWidth="2" />
+              {!expected && <circle cx={point[0]} cy={point[1]} r={12 + 10 * (location.views / max)} fill="none" stroke={t.emberStrong} strokeWidth="2.5" strokeDasharray="3 2" />}
+              <title>{`${location.name}: ${location.views} views${expected ? "" : " (outside intended audience)"}`}</title>
+            </g>
+          );
+        })}
+      </Box>
+      <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
+        <Stack direction="row" spacing={0.75} alignItems="center"><Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: t.pepsiBlue }} /><Typography variant="caption">Intended audience</Typography></Stack>
+        <Stack direction="row" spacing={0.75} alignItems="center"><Box sx={{ width: 12, height: 12, borderRadius: "50%", border: `2px dashed ${t.emberStrong}` }} /><Typography variant="caption">Outside intended audience</Typography></Stack>
+      </Stack>
+      <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mt: 1.25 }}>
+        {locations.slice(0, 5).map((location) => {
+          const unexpected = !expectedCodes.has(location.code);
+          return <Chip key={location.code} size="small" label={`${location.name} · ${location.views}`} sx={{ bgcolor: t.surfaceContainer, color: unexpected ? t.emberStrong : t.ink, border: unexpected ? `1px solid ${t.ember}` : "none" }} />;
+        })}
+      </Stack>
     </Box>
   );
 }

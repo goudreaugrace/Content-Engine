@@ -81,6 +81,8 @@ export type Job = {
 export type JobInput = {
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected by the requester. */
+  knowledgeBase?: string;
   summary: string;
   audience: string;
   /**
@@ -327,6 +329,8 @@ export type PublishedArticle = {
   // Live content
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected at creation time. */
+  knowledgeBase?: string;
   /** Sector id — inherited from the source Article at publish time. */
   sector?: string;
   market: Market;
@@ -391,6 +395,8 @@ export type Article = {
   jobId?: string;
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected at creation time. */
+  knowledgeBase?: string;
   /** Sector id — the tier above Market (Global, PFNA, PBNA, LatAm, etc.).
    *  Optional in the type only for older seed rows; new articles always set it. */
   sector?: string;

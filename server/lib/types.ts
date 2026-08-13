@@ -51,6 +51,8 @@ export type TraceEntry = {
 export type JobInput = {
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected by the requester. */
+  knowledgeBase?: string;
   summary: string;
   audience: string;
   /**
@@ -206,6 +208,8 @@ export type Article = {
   jobId?: string;
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected at creation time. */
+  knowledgeBase?: string;
   /**
    * Sector id — the tier above Market. All articles created after the
    * sector taxonomy migration have this set. Optional in the type only for
@@ -554,6 +558,8 @@ export type PublishedArticle = {
   // ── Live content ──
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected at creation time. */
+  knowledgeBase?: string;
   /** Sector id — inherited from the source Article at publish time. */
   sector?: string;
   market: Market;

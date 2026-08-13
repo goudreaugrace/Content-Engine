@@ -96,6 +96,34 @@ const MARKET_LABELS: Record<string, { label: string; code: string }> = {
 const STEP_LABELS = ["Basics", "Article", "Review"] as const;
 type StepIndex = 0 | 1 | 2;
 
+const knowledgeBases = [
+  {
+    id: "mypepsico-general",
+    name: "mypepsico Knowledge",
+    description: "General employee-facing articles and FAQs.",
+  },
+  {
+    id: "hr-people",
+    name: "HR and People",
+    description: "Benefits, leave, payroll, workplace policies, and manager guidance.",
+  },
+  {
+    id: "it-service",
+    name: "IT Service Desk",
+    description: "Access, devices, applications, security, and technical how-to articles.",
+  },
+  {
+    id: "data-analytics",
+    name: "Data and Analytics",
+    description: "Dashboards, reporting tools, metrics, and data governance guidance.",
+  },
+  {
+    id: "sales-frontline",
+    name: "Sales and Frontline",
+    description: "Field, warehouse, merchandising, route, and customer-facing guidance.",
+  },
+] as const;
+
 const demoPeople = [
   {
     name: "Demo User",
@@ -512,6 +540,7 @@ export default function NewRequest() {
   const [form, setForm] = useState({
     title: "",
     contentType: "FAQ" as ContentType,
+    knowledgeBase: "mypepsico-general",
     // Sector is the corporate tier above market. Sector is single-select
     // and drives the market picker (cascade). Default PFNA matches the
     // default US market so the wizard opens with a valid state.
@@ -928,6 +957,7 @@ export default function NewRequest() {
   // step being mutated via the back nav and breaking).
   const step0Valid =
     !!form.title.trim() &&
+    !!form.knowledgeBase.trim() &&
     form.markets.length > 0 &&
     (!isGlobal || form.globalJustification.trim().length >= 10) &&
     form.audience.length > 0 &&
@@ -1100,6 +1130,9 @@ export default function NewRequest() {
   const selectedSectorLabel =
     sectorProfiles.find((sector) => sector.id === form.sector)?.name ??
     form.sector;
+  const selectedKnowledgeBase =
+    knowledgeBases.find((kb) => kb.id === form.knowledgeBase) ??
+    knowledgeBases[0];
   const articleEvidenceAdded =
     !!form.sourceText.trim() || form.files.length > 0;
   const previewMarket = marketForPreview(form.markets[0]);
@@ -1169,6 +1202,7 @@ export default function NewRequest() {
     },
   };
   const publishingFields = [
+    { label: "Knowledge base", value: selectedKnowledgeBase.name },
     { label: "Detected draft language", value: displayLanguage(detectedDraftLanguage) },
     { label: "Country", value: selectedMarketLabelsWithLanguages.join(", ") },
     { label: "Sector", value: selectedSectorLabel },
@@ -1860,6 +1894,7 @@ export default function NewRequest() {
       const created = await api.createJob({
         title: form.title.trim(),
         contentType: form.contentType,
+        knowledgeBase: form.knowledgeBase,
         summary: form.summary.trim(),
         audience: form.audience
           .map((label) => {
@@ -1878,6 +1913,7 @@ export default function NewRequest() {
         sourceText: [
           "## mypepsico publishing controls",
           publishingFields.map((field) => `- ${field.label}: ${field.value || "Not selected"}`).join("\n"),
+          `- Knowledge base id: ${form.knowledgeBase}`,
           `- Owner: ${me.name} (${me.email})`,
           `- Approver: ${selectedApprover.name} (${selectedApprover.email})`,
           `- askpep ready after approval: ${form.vaReady ? "Yes" : "No"}`,
@@ -2221,6 +2257,36 @@ export default function NewRequest() {
         </Box>
 
         <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
+          <Field
+            label="Knowledge base"
+            required
+            sx={{ flex: 1 }}
+            hint="Choose the destination collection where this article should live."
+          >
+            <TextField
+              select
+              fullWidth
+              value={form.knowledgeBase}
+              onChange={(e) => update("knowledgeBase", e.target.value)}
+              SelectProps={{
+                MenuProps: { PaperProps: { sx: { maxHeight: 360 } } },
+              }}
+            >
+              {knowledgeBases.map((kb) => (
+                <MenuItem key={kb.id} value={kb.id} sx={{ py: 0.75 }}>
+                  <Box>
+                    <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
+                      {kb.name}
+                    </Typography>
+                    <Typography sx={{ fontSize: "0.6875rem", color: t.granite, lineHeight: 1.35 }}>
+                      {kb.description}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </TextField>
+          </Field>
+
           {/* ─── Sector (cascade parent) ─── */}
           <Field
             label="Sector"
@@ -2978,6 +3044,7 @@ export default function NewRequest() {
                       {[
                         ["Draft language", displayLanguage(detectedDraftLanguage)],
                         ["Type", form.contentType],
+                        ["Knowledge base", selectedKnowledgeBase.name],
                         ["Who can read it", form.audience.join(", ") || "Not selected"],
                         ["Country", selectedMarketLabelsWithLanguages.join(", ") || "Not selected"],
                         ["Owner", me.name],
@@ -3038,7 +3105,7 @@ export default function NewRequest() {
                       Related path
                     </Typography>
                     <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.pepsiBlueStrong, lineHeight: 1.55 }}>
-                      myPortal › {selectedSectorLabel} › {form.contentType} › {form.title.trim() || "Untitled article"}
+                      {selectedKnowledgeBase.name} › {selectedSectorLabel} › {form.contentType} › {form.title.trim() || "Untitled article"}
                     </Typography>
                   </Box>
                 </Stack>

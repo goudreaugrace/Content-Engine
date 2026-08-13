@@ -369,6 +369,7 @@ articlesRouter.patch("/:id/review", async (req, res) => {
       complianceIssues: article.complianceIssues,
       title: article.title,
       contentType: article.contentType,
+      knowledgeBase: article.knowledgeBase,
       sector: article.sector,
       market: article.market,
       countries: article.countries,

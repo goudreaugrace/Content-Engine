@@ -137,6 +137,7 @@ export async function orchestrate(jobId: string): Promise<void> {
         jobId,
         title: job.input.title || "Untitled request",
         contentType: job.input.contentType,
+        knowledgeBase: job.input.knowledgeBase,
         market,
         // Phase A: carry submission tags forward so the needs-info card
         // already shows where this is meant to land if the author fills the gaps.
@@ -286,6 +287,7 @@ export async function orchestrate(jobId: string): Promise<void> {
         jobId,
         title: finalDraft.title,
         contentType: job.input.contentType,
+        knowledgeBase: job.input.knowledgeBase,
         market: (
           { us: "US", mx: "MX", br: "BR", uk: "UK", in: "IN" } as const
         )[marketId] ?? "Global",

@@ -161,20 +161,23 @@ const CONTENT_TEMPLATES: Record<ContentType, TemplateField[]> = {
     {
       key: "answer",
       label: "Answer",
-      placeholder: "Write the direct answer first, then add important context or exceptions.",
+      placeholder: "Write the direct answer first, then add timing, scope, exceptions, and the next best action.",
       minRows: 6,
     },
   ],
   Policy: [
-    { key: "whoApplies", label: "Who this applies to", placeholder: "Roles, countries, teams, employee types, or exceptions.", minRows: 3 },
-    { key: "policyDetails", label: "Policy details", placeholder: "Write the official rule, requirement, or standard.", minRows: 7 },
+    { key: "description", label: "Description", placeholder: "Explain what the policy provides in plain terms. Name the actual rule, benefit, or requirement in the first few lines.", minRows: 5 },
+    { key: "whoApplies", label: "Eligibility and scope", placeholder: "Who is covered, who is not, country or role limits, and any important thresholds. Use a vertical list when possible.", minRows: 5 },
+    { key: "policyDetails", label: "Policy details", placeholder: "Write the official rule, requirement, or standard. Keep process steps out unless they are part of the policy itself.", minRows: 7 },
     { key: "exceptions", label: "Exceptions", placeholder: "What exceptions exist, and who can approve them?", minRows: 3 },
-    { key: "effectiveDate", label: "Effective date", placeholder: "When does this policy start, change, or expire?", minRows: 2 },
+    { key: "effectiveDate", label: "Effective date and review", placeholder: "When does this policy start, change, expire, or need its next review?", minRows: 2 },
+    { key: "relatedContent", label: "Related content", placeholder: "Link to separate how-to articles, forms, or related policies instead of repeating them here.", minRows: 3 },
   ],
   "Knowledge Article": [
     { key: "beforeStart", label: "Before you start", placeholder: "What should the employee have ready before following the steps?", minRows: 4 },
     { key: "steps", label: "Steps", placeholder: "Write the task in order. One action per line works well.", minRows: 8 },
     { key: "commonIssues", label: "Common issues", placeholder: "Add known errors, edge cases, or troubleshooting guidance.", minRows: 5 },
+    { key: "whatNext", label: "What to do next", placeholder: "Tell the employee what confirmation, follow-up, or support path comes after the steps.", minRows: 3 },
   ],
   "Topic Page": [
     { key: "overview", label: "Overview", placeholder: "Explain the topic and when employees should use this page.", minRows: 5 },
@@ -369,10 +372,12 @@ function buildAiTemplateAnswers(input: {
 
   if (input.contentType === "Policy") {
     return {
+      description: `${lead}${grounding} State the policy outcome in plain language before adding background or ownership details.`,
       whoApplies: `This policy applies to ${audience} in ${scope}. If a local agreement, role requirement, or country rule is stricter, follow the stricter local guidance.`,
       policyDetails: `${lead}${grounding} Employees should follow the approved process, use company systems of record, and keep any required documentation so decisions can be traced later.`,
       exceptions: "Exceptions should be limited, documented, and approved by the accountable owner before the employee acts outside the standard process.",
-      effectiveDate: "Use the effective date provided by the policy owner. If the effective date is not confirmed, keep this article in review until the approver supplies it.",
+      effectiveDate: "Use the effective date and next review date provided by the policy owner. If either date is not confirmed, keep this article in review until the approver supplies it.",
+      relatedContent: "Link to separate how-to instructions, forms, and related policies instead of repeating long procedures inside this policy article.",
     };
   }
 
@@ -388,6 +393,7 @@ function buildAiTemplateAnswers(input: {
     beforeStart: `Before you start, confirm this guidance applies to your role and country (${scope}). Have any required employee ID, case number, approval, receipt, or supporting document ready.${grounding}`,
     steps: "1. Open MyPepsiCo and search for the tool, policy, or support path named in this article.\n2. Review the employee details, country, and business context before submitting anything.\n3. Follow the prompts in the approved system of record.\n4. Save or copy the confirmation number when the action is complete.\n5. Watch for approval, correction, or follow-up messages until the request is closed.",
     commonIssues: "### The system does not show the option you need\n\nConfirm you are using the correct country, role, and employee profile. If the option is still missing, open a support case.\n\n### The request is returned for correction\n\nRead the approver comment, correct only the requested fields, and resubmit the same request instead of creating a duplicate.",
+    whatNext: "After the request is submitted, save the confirmation number and watch for approval, correction, or follow-up messages. If the expected confirmation does not arrive, contact the owning support team with the article title and any case number.",
   };
 }
 
@@ -435,10 +441,61 @@ function marketForPreview(marketId: string | undefined): Market {
  */
 const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
   FAQ: ["Question", "Answer", "Related"],
-  Policy: ["Overview", "Policy", "Effective date", "Contact"],
-  "Knowledge Article": ["Overview", "Steps", "Troubleshooting"],
+  Policy: ["Description", "Eligibility and scope", "Policy details", "Effective date"],
+  "Knowledge Article": ["Before you start", "Steps", "Common issues"],
   "Topic Page": ["Overview", "Details", "Resources"],
 };
+
+function articleLengthStatus(characterCount: number): {
+  label: string;
+  tone: "success" | "warning" | "error";
+  helper: string;
+} {
+  if (characterCount < 500) {
+    return {
+      label: "Too thin",
+      tone: "error",
+      helper: "mypepsico guidance says articles under 500 characters usually do not answer enough on their own.",
+    };
+  }
+  if (characterCount <= 6000) {
+    return {
+      label: "Healthy length",
+      tone: "success",
+      helper: "This is inside the recommended working range for a readable knowledge article.",
+    };
+  }
+  if (characterCount <= 7500) {
+    return {
+      label: "Long but acceptable",
+      tone: "warning",
+      helper: "Consider accordions, lists, or moving standalone topics into related articles.",
+    };
+  }
+  return {
+    label: "Over limit",
+    tone: "error",
+    helper: "The guideline maximum is 7,500 characters. This likely needs to be split or shortened.",
+  };
+}
+
+function displayLanguage(code: string): string {
+  const names: Record<string, string> = {
+    "en-US": "English (en-US)",
+    "en-GB": "English (en-GB)",
+    "es-MX": "Spanish (es-MX)",
+    "pt-BR": "Portuguese (pt-BR)",
+    "en-IN": "English (en-IN)",
+  };
+  return names[code] ?? code;
+}
+
+function detectDraftLanguage(text: string): string {
+  const lower = text.toLowerCase();
+  if (/[ãõç]/i.test(text) || /\b(você|para|não|solicitação|artigo)\b/.test(lower)) return "pt-BR";
+  if (/[ñáéíóú¿¡]/i.test(text) || /\b(usted|para|solicitud|artículo|empleados)\b/.test(lower)) return "es-MX";
+  return "en-US";
+}
 
 // ────────────────────────────────────────────────────────────
 // Component
@@ -470,6 +527,7 @@ export default function NewRequest() {
     templateAnswers: {} as Record<string, string>,
     sectionHeadings: {} as Record<string, string>,
     faqItems: [{ id: "faq-1", question: "", answer: "" }],
+    vaReady: true,
     approverEmail: manager.email,
     files: [] as File[],
     seoTitle: "",
@@ -952,6 +1010,25 @@ export default function NewRequest() {
       MARKET_LABELS[marketId]?.label ??
       marketId,
   );
+  const selectedMarketLanguageCodes = Array.from(
+    new Set(
+      form.markets
+        .map(
+          (marketId) =>
+            marketProfiles.find((p) => p.id === marketId)?.languageCode ??
+            MARKET_LABELS[marketId]?.code,
+        )
+        .filter((code): code is string => !!code && code !== "all"),
+    ),
+  );
+  const selectedMarketLabelsWithLanguages = form.markets.map((marketId) => {
+    const profile = marketProfiles.find((p) => p.id === marketId);
+    const label = profile?.name ?? MARKET_LABELS[marketId]?.label ?? marketId;
+    const languageCode = profile?.languageCode ?? MARKET_LABELS[marketId]?.code;
+    return languageCode && languageCode !== "all"
+      ? `${label} · ${displayLanguage(languageCode)}`
+      : label;
+  });
   const selectedSectorLabel =
     sectorProfiles.find((sector) => sector.id === form.sector)?.name ??
     form.sector;
@@ -986,6 +1063,47 @@ export default function NewRequest() {
     fields: articleSections,
     answers: articleAnswers,
   });
+  const detectedDraftLanguage = detectDraftLanguage(finalArticleBody);
+  const articleBodyCharacterCount = finalArticleBody.replace(/^#\s+.+\n+/, "").length;
+  const lengthStatus = articleLengthStatus(articleBodyCharacterCount);
+  const lengthToneColor =
+    lengthStatus.tone === "success"
+      ? t.successInk
+      : lengthStatus.tone === "warning"
+        ? t.ember
+        : t.errorInk;
+  const publishingFields = [
+    { label: "Detected draft language", value: displayLanguage(detectedDraftLanguage) },
+    { label: "Country", value: selectedMarketLabelsWithLanguages.join(", ") },
+    { label: "Sector", value: selectedSectorLabel },
+    { label: "Who can read it", value: form.audience.join(", ") },
+  ];
+  const askpepChecks = [
+    {
+      label: "Article body has enough text for employees and askpep",
+      done: articleBodyCharacterCount >= 500,
+    },
+    {
+      label: "Scope and reader access are complete",
+      done: selectedMarketLabels.length > 0 && !!selectedSectorLabel && form.audience.length > 0,
+    },
+    {
+      label: "Important guidance is typed in the article, not only in an attachment",
+      done: templateHasContent,
+    },
+    {
+      label: "Source file or source note is attached for reviewer evidence",
+      done: articleEvidenceAdded,
+    },
+    {
+      label: "Duplicate risk is reviewed",
+      done: similarMatches.length === 0 || !!replacesArticle || similarDismissed,
+    },
+    {
+      label: "Search words and employee question are generated",
+      done: generatedSearch.keywords.length > 0 && generatedSearch.questions.length > 0,
+    },
+  ];
   const targetSection = articleSections.find((field) => field.key === enhancerTarget);
   const enhancerTargetHasContent =
     enhancerTarget === "article"
@@ -1662,6 +1780,12 @@ export default function NewRequest() {
         markets: form.markets,
         sectors: [form.sector],
         sourceText: [
+          "## mypepsico publishing controls",
+          publishingFields.map((field) => `- ${field.label}: ${field.value || "Not selected"}`).join("\n"),
+          `- Owner: ${me.name} (${me.email})`,
+          `- Approver: ${selectedApprover.name} (${selectedApprover.email})`,
+          `- askpep ready after approval: ${form.vaReady ? "Yes" : "No"}`,
+          `- Article body length: ${articleBodyCharacterCount} characters (${lengthStatus.label})`,
           "## Reviewed article body",
           finalArticleBody,
           form.sourceText.trim()
@@ -1991,7 +2115,16 @@ export default function NewRequest() {
           </Box>
         </Field>
 
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5}>
+        <Box sx={{ pt: 3, mt: 0.5 }}>
+          <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: t.ink, lineHeight: 1.2 }}>
+            Publishing setup
+          </Typography>
+          <Typography sx={{ mt: 0.65, fontSize: "0.875rem", color: t.granite, lineHeight: 1.55, maxWidth: 620 }}>
+            Choose where this article applies and who can read it.
+          </Typography>
+        </Box>
+
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
           {/* ─── Sector (cascade parent) ─── */}
           <Field
             label="Sector"
@@ -2042,11 +2175,12 @@ export default function NewRequest() {
           {!isGlobal && (
             <Field
               label="Country"
+              required
               sx={{ flex: 1 }}
               hint={
                 marketsInSector.length === 0
                   ? "No countries assigned to this sector yet."
-                  : "Choose the country context for this article. Country tags are applied automatically."
+                  : "Choose the country context. These tags boost relevance but do not secure content."
               }
             >
               <TextField
@@ -2067,15 +2201,38 @@ export default function NewRequest() {
                         </Typography>
                       );
                     }
+                    const selectedMarkets = vals.map((v) => {
+                      const profile = marketProfiles.find((p) => p.id === v);
+                      return {
+                        id: v,
+                        name: profile?.name ?? MARKET_LABELS[v]?.label ?? v,
+                        languageCode: profile?.languageCode ?? MARKET_LABELS[v]?.code,
+                      };
+                    });
+                    const primary = selectedMarkets[0];
+                    const countryText =
+                      selectedMarkets.length === 1
+                        ? primary.name
+                        : `${primary.name} + ${selectedMarkets.length - 1} more`;
+                    const languageText = Array.from(
+                      new Set(
+                        selectedMarkets
+                          .map((m) => m.languageCode)
+                          .filter((code): code is string => !!code && code !== "all"),
+                      ),
+                    )
+                      .map(displayLanguage)
+                      .join(", ");
                     return (
-                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                        {vals.map((v) => {
-                          const label =
-                            marketProfiles.find((p) => p.id === v)?.name ??
-                            MARKET_LABELS[v]?.label ??
-                            v;
-                          return <Chip key={v} label={label} size="small" />;
-                        })}
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography component="span" sx={{ display: "block", fontSize: "0.875rem", color: t.ink }}>
+                          {countryText}
+                        </Typography>
+                        {languageText && (
+                          <Typography component="span" sx={{ display: "block", fontSize: "0.6875rem", color: t.granite, lineHeight: 1.25 }}>
+                            {languageText}
+                          </Typography>
+                        )}
                       </Box>
                     );
                   },
@@ -2113,10 +2270,9 @@ export default function NewRequest() {
                             sx={{
                               fontSize: "0.6875rem",
                               color: t.granite,
-                              fontFamily: theme.palette.fonts.mono,
                             }}
                           >
-                            {m.languageCode}
+                            {displayLanguage(m.languageCode)}
                           </Typography>
                         </Box>
                       </Stack>
@@ -2131,10 +2287,10 @@ export default function NewRequest() {
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5}>
           {/* ─────────── Audience ─────────── */}
           <Field
-            label="Audience"
+            label="Who can read it"
             required
             sx={{ flex: 1 }}
-            hint="Who should read this? Pick multiple only if the same article truly serves each group."
+            hint="Only selected groups can access this article. People outside the selected groups are excluded."
           >
             <TextField
               select
@@ -2156,7 +2312,7 @@ export default function NewRequest() {
                   if (vals.length === 0) {
                     return (
                       <Typography component="span" sx={{ color: t.granite }}>
-                        Select audience…
+                        Select who can read...
                       </Typography>
                     );
                   }
@@ -2232,8 +2388,7 @@ export default function NewRequest() {
               {form.title.trim() || "Untitled article"}
             </Typography>
             <Typography sx={{ mt: 0.75, fontSize: "0.8125rem", color: t.granite, lineHeight: 1.5 }}>
-              Draft the employee-facing content. Keep each FAQ block focused on
-              one question and one clear answer.
+              Draft the employee-facing content. Put the answer near the top, write in plain language, and keep important facts in text.
             </Typography>
           </Box>
         </Stack>
@@ -2251,7 +2406,19 @@ export default function NewRequest() {
               label="Summary"
               multiline
               minRows={2}
-              helperText="Employees see this above the article. One or two sentences is enough."
+              helperText={
+                <Stack direction="row" justifyContent="space-between" spacing={1}>
+                  <span>Employees see this above the article. One or two sentences is enough.</span>
+                  <span>{form.summary.length.toLocaleString()} characters</span>
+                </Stack>
+              }
+              FormHelperTextProps={{
+                sx: {
+                  mx: 0,
+                  fontSize: "0.6875rem",
+                  color: t.granite,
+                },
+              }}
               placeholder="Example: Use this FAQ to learn how payroll direct deposit changes work."
               value={form.summary}
               onChange={(e) => update("summary", e.target.value)}
@@ -2298,6 +2465,15 @@ export default function NewRequest() {
                           variant="filled"
                           label="Question"
                           placeholder={`Question ${index + 1}`}
+                          helperText={`${(faqItem?.question ?? "").length.toLocaleString()} characters`}
+                          FormHelperTextProps={{
+                            sx: {
+                              mx: 0,
+                              textAlign: "right",
+                              fontSize: "0.6875rem",
+                              color: t.granite,
+                            },
+                          }}
                           value={faqItem?.question ?? ""}
                           onChange={(e) =>
                             updateFaqItem(field.faqItemId!, { question: e.target.value })
@@ -2351,6 +2527,15 @@ export default function NewRequest() {
                         multiline
                         minRows={field.minRows ?? 3}
                         placeholder={field.placeholder}
+                        helperText={`${sectionValue.length.toLocaleString()} characters`}
+                        FormHelperTextProps={{
+                          sx: {
+                            mx: 0,
+                            textAlign: "right",
+                            fontSize: "0.6875rem",
+                            color: t.granite,
+                          },
+                        }}
                         value={sectionValue}
                         InputProps={{ disableUnderline: true }}
                         inputProps={editorSelectionProps({
@@ -2447,7 +2632,7 @@ export default function NewRequest() {
                 </Typography>
               </Stack>
               <Typography sx={{ fontSize: "0.75rem", color: t.slate, lineHeight: 1.45, mb: 1.25 }}>
-                Upload approved PDFs or Word docs that reviewers should use as evidence.
+                Upload approved PDFs or Word docs for reviewer evidence. Attachments support the article; they do not replace the text employees and askpep read.
               </Typography>
               <Button
                 variant="outlined"
@@ -2494,6 +2679,32 @@ export default function NewRequest() {
                   No source files uploaded yet.
                 </Typography>
               )}
+            </Box>
+
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 2,
+                bgcolor: t.paper,
+                border: `1px solid ${t.border}`,
+              }}
+            >
+              <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: t.ink, mb: 1 }}>
+                mypepsico writing checks
+              </Typography>
+              <Stack spacing={0.85}>
+                {[
+                  "Lead with the answer in the first two paragraphs.",
+                  "Use sentence case headings and descriptive links.",
+                  "Spell out acronyms the first time.",
+                  "Type every rule, date, and step into the body.",
+                  "Use related articles instead of duplicating long sections.",
+                ].map((tip) => (
+                  <Typography key={tip} sx={{ fontSize: "0.75rem", color: t.slate, lineHeight: 1.45 }}>
+                    {tip}
+                  </Typography>
+                ))}
+              </Stack>
             </Box>
 
             <Box
@@ -2684,10 +2895,10 @@ export default function NewRequest() {
                     </Typography>
                     <Stack spacing={1.1}>
                       {[
-                        ["Language", "English (en-US)"],
+                        ["Draft language", displayLanguage(detectedDraftLanguage)],
                         ["Type", form.contentType],
-                        ["Audience", form.audience.join(", ") || "Not selected"],
-                        ["Country", selectedMarketLabels.join(", ") || "Not selected"],
+                        ["Who can read it", form.audience.join(", ") || "Not selected"],
+                        ["Country", selectedMarketLabelsWithLanguages.join(", ") || "Not selected"],
                         ["Owner", me.name],
                         ["Approver", selectedApprover.name],
                         ["Status", "Draft for approval"],
@@ -2762,18 +2973,17 @@ export default function NewRequest() {
                     Submission details
                   </Typography>
                   <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
-                    Owner, audience, country, files, and replacement links.
+                    Scope, owner, files, and replacement links.
                   </Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
                 <Stack spacing={1.25}>
                   {[
+                    ...publishingFields.map((field) => [field.label, field.value || "Not selected"] as [string, string]),
                     ["Title", form.title.trim() || "Untitled article"],
                     ["Type", form.contentType],
-                    ["Sector", selectedSectorLabel],
-                    ["Country", selectedMarketLabels.join(", ")],
-                    ["Audience", form.audience.join(", ")],
+                    ["Owner", `${me.name} (${me.email})`],
                     ["Approver", `${selectedApprover.name} (${selectedApprover.role})`],
                     ["Source files", form.files.length ? `${form.files.length} uploaded` : "None uploaded"],
                     ["Replacement", replacesArticle?.title ?? "None selected"],
@@ -2859,45 +3069,47 @@ export default function NewRequest() {
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
                   <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
-                    Quick checks before approval
+                    askpep and publish readiness
                   </Typography>
                   <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
-                    Basic readiness checks for the reviewer.
+                    Plain-language checks based on the mypepsico guidelines.
                   </Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
-                <Stack spacing={1}>
-                  {[
-                    {
-                      label: "Article has content",
-                      done: templateHasContent || !!form.summary.trim(),
-                    },
-                    {
-                      label: `Approver is ${selectedApprover.name}`,
-                      done: !!selectedApprover.email,
-                    },
-                    {
-                      label: articleEvidenceAdded
-                        ? "Source material is attached"
-                        : "No source material added",
-                      done: articleEvidenceAdded,
-                    },
-                    {
-                      label:
-                        similarMatches.length === 0
-                          ? "No likely duplicate article found"
-                          : replacesArticle
-                            ? "Replacement article selected"
-                            : similarDismissed
-                              ? "Similar article suggestions dismissed"
-                              : "Similar articles are available to review",
-                      done:
-                        similarMatches.length === 0 ||
-                        !!replacesArticle ||
-                        similarDismissed,
-                    },
-                  ].map((item) => (
+                <Stack spacing={1.25}>
+                  <Stack direction="row" spacing={1} alignItems="flex-start">
+                    <Checkbox
+                      checked={form.vaReady}
+                      onChange={(e) => update("vaReady", e.target.checked)}
+                      size="small"
+                      sx={{ p: 0.25 }}
+                    />
+                    <Box>
+                      <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
+                        Recommend as ready for askpep after approval
+                      </Typography>
+                      <Typography sx={{ fontSize: "0.75rem", color: t.granite, lineHeight: 1.45 }}>
+                        Only keep this on when the article is accurate, current, audience-scoped, and readable as plain text.
+                      </Typography>
+                    </Box>
+                  </Stack>
+
+                  <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: t.surfaceContainerLow }}>
+                    <Stack direction="row" justifyContent="space-between" spacing={1}>
+                      <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: t.ink }}>
+                        Article length
+                      </Typography>
+                      <Typography sx={{ fontSize: "0.8125rem", fontWeight: 800, color: lengthToneColor }}>
+                        {articleBodyCharacterCount.toLocaleString()} characters · {lengthStatus.label}
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ mt: 0.5, fontSize: "0.75rem", color: t.slate, lineHeight: 1.45 }}>
+                      {lengthStatus.helper}
+                    </Typography>
+                  </Box>
+
+                  {askpepChecks.map((item) => (
                     <Stack
                       key={item.label}
                       direction="row"

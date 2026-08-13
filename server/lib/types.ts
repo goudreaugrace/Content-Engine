@@ -523,6 +523,24 @@ export type PublishedMetrics = {
   lastViewedAt?: string;
   /** Trend direction over the last two 30-day windows. */
   trend: "up" | "flat" | "down";
+  /** Average time the article was actively in view during the last 30 days. */
+  averageEngagementSeconds?: number;
+  /** Typical percentage of the article reached by readers in the last 30 days. */
+  scrollDepthPercent?: number;
+  /** Present only when the article includes an identifiable next-step CTA. */
+  cta?: { label: string; clicks: number };
+  /** Aggregated readership by country. Small groups are omitted upstream. */
+  locations?: Array<{
+    code: string;
+    name: string;
+    views: number;
+  }>;
+  /** Internal-search phrases that led a reader to this article. */
+  searchQueries?: Array<{
+    phrase: string;
+    searches: number;
+    articleOpens: number;
+  }>;
 };
 
 /**

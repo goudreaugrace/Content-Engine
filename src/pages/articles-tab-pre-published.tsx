@@ -67,7 +67,7 @@ const STATUS_META: Record<
     icon: <RateReviewOutlinedIcon sx={{ fontSize: 13 }} />,
   },
   "needs-info": {
-    label: "Needs info",
+    label: "Changes Requested",
     color: "info",
     icon: <HelpOutlineIcon sx={{ fontSize: 13 }} />,
   },
@@ -262,7 +262,7 @@ export default function PrePublishedTab({
           value={counts["needs-review"]}
           accent={counts["needs-review"] > 0 ? t.ember : undefined}
         />
-        <KpiItem label="Needs info" value={counts["needs-info"]} />
+        <KpiItem label="Changes Requested" value={counts["needs-info"]} />
         <KpiItem label="Rejected" value={counts.rejected} />
       </KpiRow>
 
@@ -299,7 +299,7 @@ export default function PrePublishedTab({
               },
               {
                 value: "needs-info",
-                label: `Needs info (${counts["needs-info"]})`,
+                label: `Changes Requested (${counts["needs-info"]})`,
               },
               { value: "rejected", label: `Rejected (${counts.rejected})` },
             ]}
@@ -681,7 +681,7 @@ function StatusChipFilter({
     },
     {
       key: "needs-info",
-      label: "Needs info",
+      label: "Changes Requested",
       count: counts["needs-info"],
       accent: t.infoInk,
     },

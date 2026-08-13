@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 
-export type PersonaMode = "admin" | "non-admin";
+export type PersonaMode = "super-admin" | "admin" | "non-admin";
 
 const PERSONA_KEY = "deex-persona-mode-v1";
 const PERSONA_EVENT = "deex-persona-change";
 
 export function getPersonaMode(): PersonaMode {
   if (typeof window === "undefined") return "admin";
-  return localStorage.getItem(PERSONA_KEY) === "non-admin" ? "non-admin" : "admin";
+  const stored = localStorage.getItem(PERSONA_KEY);
+  if (stored === "super-admin" || stored === "admin" || stored === "non-admin") {
+    return stored;
+  }
+  return "admin";
 }
 
 export function setPersonaMode(mode: PersonaMode) {

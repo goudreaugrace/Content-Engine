@@ -100,7 +100,7 @@ type StatusFilter =
 
 const STATUS_LABELS: Record<Exclude<StatusFilter, "all">, string> = {
   "needs-review": "Needs review",
-  "needs-info": "Needs info",
+  "needs-info": "Changes Requested",
   rejected: "Rejected",
   fresh: "Fresh",
   aging: "Aging",
@@ -931,7 +931,7 @@ function StatusChip({ item }: { item: AttentionItem }) {
     color = t.successInk;
     bg = t.successBg;
   } else if (item.reason.startsWith("Waiting on author")) {
-    label = "Needs info";
+    label = "Changes Requested";
     color = t.pepsiBlueStrong;
     bg = t.pepsiBlueSubtle;
   } else if (item.reason.startsWith("Rejected")) {

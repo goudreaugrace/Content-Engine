@@ -258,6 +258,15 @@ export type PublishedMetrics = {
   viewsAllTime: number;
   lastViewedAt?: string;
   trend: "up" | "flat" | "down";
+  averageEngagementSeconds?: number;
+  scrollDepthPercent?: number;
+  cta?: { label: string; clicks: number };
+  locations?: Array<{ code: string; name: string; views: number }>;
+  searchQueries?: Array<{
+    phrase: string;
+    searches: number;
+    articleOpens: number;
+  }>;
 };
 
 export type StalenessLevel = "fresh" | "aging" | "stale" | "archived";
@@ -597,7 +606,15 @@ export const api = {
     }),
   updateArticle: (
     id: string,
-    body: { body?: string; title?: string; seo?: ArticleSEO },
+    body: {
+      body?: string;
+      title?: string;
+      seo?: ArticleSEO;
+      countries?: string[];
+      knowledgeBase?: Article["knowledgeBase"];
+      sector?: string;
+      globalJustification?: string;
+    },
   ) =>
     request<Article>(`/api/articles/${id}`, {
       method: "PATCH",
@@ -645,6 +662,8 @@ export const api = {
     request<PublishedArticle[]>("/api/published-articles"),
   getPublishedArticle: (id: string) =>
     request<PublishedArticle>(`/api/published-articles/${id}`),
+  getPublishedArticlePerformance: (id: string) =>
+    request<PublishedMetrics>(`/api/published-articles/${id}/performance`),
   updatePublishedArticle: (
     id: string,
     body: {

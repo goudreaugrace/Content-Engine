@@ -1,4 +1,4 @@
-import { Box, Button, Chip, Divider, Stack, TextField, Typography, useTheme } from "@mui/material";
+import { Box, Button, Chip, Divider, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { isValidElement, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
@@ -25,6 +25,8 @@ type Props = {
   onLeadChange?: (value: string) => void;
   titleRecommendations?: string[];
   leadRecommendations?: string[];
+  /** Optional owner-view marker, displayed outside the article content. */
+  readDepthPercent?: number;
 };
 
 export type EditableArticleSection = {
@@ -71,6 +73,7 @@ export default function ArticleDocument({
   onLeadChange,
   titleRecommendations = [],
   leadRecommendations = [],
+  readDepthPercent,
 }: Props) {
   const theme = useTheme();
   const t = theme.palette.tokens;
@@ -415,6 +418,7 @@ export default function ArticleDocument({
       {/* Article body */}
       <Box
         sx={{
+          position: "relative",
           px: { xs: 2.5, md: isImmersive ? 5 : 4 },
           py: { xs: 3, md: isImmersive ? 5 : 4 },
           fontFamily: theme.palette.fonts.sans,
@@ -554,6 +558,27 @@ export default function ArticleDocument({
           },
         }}
       >
+        {readDepthPercent !== undefined && (
+          <Tooltip title={`Typical reader depth: ${readDepthPercent}%`} placement="left" arrow>
+            <Box
+              aria-label={`Typical reader depth: ${readDepthPercent}%`}
+              sx={{
+                position: "absolute",
+                top: `${Math.min(94, Math.max(6, readDepthPercent))}%`,
+                right: { xs: 8, md: 15 },
+                transform: "translateY(-50%)",
+                width: 18,
+                height: 18,
+                borderRadius: "50%",
+                bgcolor: t.errorInk,
+                border: "3px solid #FFFFFF",
+                boxShadow: "0 0 0 3px rgba(197,34,31,0.20), 0 2px 5px rgba(197,34,31,0.45)",
+                cursor: "help",
+                zIndex: 1,
+              }}
+            />
+          </Tooltip>
+        )}
         {editableSections ? (
           <Stack spacing={1.5}>
             {editableSections.map((section) => {

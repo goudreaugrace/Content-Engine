@@ -4,7 +4,7 @@ import { loadAll, loadById, mutate, upsert } from "../lib/storage";
 import { computeStaleness } from "../lib/staleness";
 import { evaluate as evaluateApprovalRules } from "../lib/approval-rules";
 import { runConsolidationAgent } from "../agents/consolidation-agent";
-import { metricsSource } from "../lib/metrics-source";
+import { demoFindabilityMetrics, metricsSource } from "../lib/metrics-source";
 import { findSimilar } from "../lib/similarity";
 import { recommend, type Recommendation } from "../lib/recommendation";
 import {
@@ -127,6 +127,16 @@ publishedArticlesRouter.get("/", async (_req, res) => {
     (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt),
   );
   res.json(enriched);
+});
+
+/**
+ * Owner-only performance view. This keeps POC telemetry out of the admin
+ * health feed, whose existing counts and recommendations must remain stable.
+ */
+publishedArticlesRouter.get("/:id/performance", async (req, res) => {
+  const article = await loadById<PublishedArticle>("publishedArticles", req.params.id);
+  if (!article) return res.status(404).json({ error: "not found" });
+  res.json(demoFindabilityMetrics(article));
 });
 
 publishedArticlesRouter.get("/:id", async (req, res) => {

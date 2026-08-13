@@ -733,7 +733,7 @@ function DraftActions({
             onClick={onStartNeedsInfo}
             disabled={processing}
           >
-            Needs info
+            Request Changes
           </Button>
           <Button
             size="small"

@@ -70,6 +70,11 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { dateStyle: "long" });
 }
 
+function translationBody(value: NonNullable<Article["translations"]>[string] | undefined): string | undefined {
+  if (!value) return undefined;
+  return typeof value === "string" ? value : value.body;
+}
+
 const statusMeta: Record<
   Article["status"],
   { label: string; color: "warning" | "success" | "error" | "info"; icon: React.ReactNode }
@@ -352,7 +357,9 @@ export default function ArticleDetail() {
 
     // Server may already have it cached on the article (pre-baked or prior fetch)
     const base = next.split("-")[0];
-    const onArticle = article.translations?.[next] ?? article.translations?.[base];
+    const onArticle =
+      translationBody(article.translations?.[next]) ??
+      translationBody(article.translations?.[base]);
     if (onArticle) {
       setTranslations((m) => ({ ...m, [next]: onArticle }));
       return;
@@ -873,6 +880,10 @@ export default function ArticleDetail() {
               articleId={article.id}
               body={article.body}
               market={article.market}
+              title={article.title}
+              lead={article.lead}
+              contentType={article.contentType}
+              canonicalSlug={article.canonicalSlug}
               complianceIssues={article.complianceIssues}
               editMode={editMode}
               onUpdated={(newBody) => {
@@ -882,7 +893,14 @@ export default function ArticleDetail() {
               }}
             />
           ) : (
-            <ArticleDocument body={displayedBody} market={article.market} />
+            <ArticleDocument
+              body={displayedBody}
+              market={article.market}
+              title={article.title}
+              lead={article.lead}
+              contentType={article.contentType}
+              canonicalSlug={article.canonicalSlug}
+            />
           )}
         </Box>
       </>

@@ -632,7 +632,14 @@ function PublishedBody({ published }: { published: PublishedArticle }) {
         </Typography>
       </Box>
 
-      <ArticleDocument body={published.body} market={published.market} />
+      <ArticleDocument
+        body={published.body}
+        market={published.market}
+        title={published.title}
+        lead={published.lead}
+        contentType={published.contentType}
+        canonicalSlug={published.canonicalSlug}
+      />
     </>
   );
 }

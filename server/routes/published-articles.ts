@@ -7,6 +7,12 @@ import { runConsolidationAgent } from "../agents/consolidation-agent";
 import { metricsSource } from "../lib/metrics-source";
 import { findSimilar } from "../lib/similarity";
 import { recommend, type Recommendation } from "../lib/recommendation";
+import {
+  defaultFeedback,
+  makeRevision,
+  markTranslationsStale,
+  normalizeArticleStandard,
+} from "../lib/article-standard";
 import type {
   Article,
   Job,
@@ -52,7 +58,7 @@ async function withStaleness(
   // The metrics source is currently JSON-backed — a future SN PA impl would
   // refresh `article.metrics` from the source before computing staleness.
   const metrics = await metricsSource.read(article);
-  const enriched = { ...article, metrics };
+  const enriched = normalizeArticleStandard({ ...article, metrics, feedback: article.feedback ?? defaultFeedback() });
   return { ...enriched, staleness: computeStaleness(enriched) };
 }
 
@@ -69,17 +75,17 @@ async function withSimilarAndRecommendation(
   recommendation: Recommendation;
 }> {
   const corpus = await loadAll<PublishedArticle>("publishedArticles");
-  const others = corpus.filter((a) => a.id !== article.id);
+  const others = corpus.filter((a) => a.id !== article.id).map((a) => normalizeArticleStandard(a));
   const matches = findSimilar(
     {
       title: article.title,
-      summary: article.seo?.metaDescription ?? "",
+      summary: [article.lead, article.seo?.metaDescription, ...(article.aliases ?? [])].filter(Boolean).join(" "),
       countries: article.countries ?? [],
     },
     others.map((a) => ({
       id: a.id,
       title: a.title,
-      body: a.body,
+      body: [a.lead, a.body, ...(a.topics ?? []), ...(a.aliases ?? [])].filter(Boolean).join("\n"),
       countries: a.countries ?? [],
       // Stash the full record so we can re-attach view + staleness info
       // on the way out without a second lookup.
@@ -197,7 +203,7 @@ publishedArticlesRouter.post("/:id/consolidate", async (req, res) => {
     });
     const articleId = `ka-${randomUUID().slice(0, 8)}`;
     const jobId = `job-${randomUUID().slice(0, 8)}`;
-    const baseArticle: Article = {
+    const baseArticle: Article = normalizeArticleStandard({
       id: articleId,
       jobId,
       title: draft.title,
@@ -207,12 +213,26 @@ publishedArticlesRouter.post("/:id/consolidate", async (req, res) => {
       countries: Array.from(new Set(sources.flatMap((s) => s.countries ?? []))),
       seo: draft.seo,
       replacesArticleIds: sources.map((s) => s.id),
+      references: sources.flatMap((s) =>
+        s.references?.length
+          ? s.references
+          : [{
+              id: `ref-${s.id}`,
+              title: `Published source: ${s.title}`,
+              kind: "note" as const,
+              source: "migration" as const,
+              excerpt: s.lead ?? s.seo?.summary ?? s.body.slice(0, 220),
+              addedAt: now(),
+              addedBy: "Consolidation Agent",
+            }],
+      ),
+      relatedArticleIds: sources.map((s) => s.id),
       body: draft.body,
       submittedBy: { name: "Consolidation Agent", email: "content-agent@pepsico.com" },
       submittedAt: now(),
       status: "needs-review",
       complianceIssues: [],
-    };
+    }, { actor: "Consolidation Agent" });
     const ruling = evaluateApprovalRules(baseArticle);
     const article: Article = {
       ...baseArticle,
@@ -285,22 +305,97 @@ publishedArticlesRouter.post("/:id/consolidate", async (req, res) => {
 });
 
 publishedArticlesRouter.patch("/:id", async (req, res) => {
-  const { body, title, seo } = req.body as {
+  const { body, title, seo, lead, references, relatedArticleIds, aliases, topics, visibility, owner, effectiveAt, nextReviewAt, approvedBy, editor, summary } = req.body as {
     body?: string;
     title?: string;
     seo?: PublishedArticle["seo"];
+    lead?: string;
+    references?: PublishedArticle["references"];
+    relatedArticleIds?: string[];
+    aliases?: string[];
+    topics?: string[];
+    visibility?: PublishedArticle["visibility"];
+    owner?: string;
+    effectiveAt?: string;
+    nextReviewAt?: string;
+    approvedBy?: string;
+    editor?: string;
+    summary?: string;
   };
   try {
     const updated = await mutate<PublishedArticle>(
       "publishedArticles",
       req.params.id,
-      (cur) => ({
-        ...cur,
-        body: typeof body === "string" ? body : cur.body,
-        title: typeof title === "string" ? title : cur.title,
-        seo: seo ?? cur.seo,
-        version: cur.version + 1,
-      }),
+      (cur) => {
+        const before = normalizeArticleStandard(cur);
+        const bodyChanged = typeof body === "string" && body !== cur.body;
+        const next: PublishedArticle = {
+          ...cur,
+          body: typeof body === "string" ? body : cur.body,
+          title: typeof title === "string" ? title : cur.title,
+          seo: seo ?? cur.seo,
+          lead: typeof lead === "string" ? lead : cur.lead,
+          references: references ?? cur.references,
+          relatedArticleIds: relatedArticleIds ?? cur.relatedArticleIds,
+          aliases: aliases ?? cur.aliases,
+          topics: topics ?? cur.topics,
+          visibility: visibility ?? cur.visibility,
+          owner: owner ?? cur.owner,
+          effectiveAt: effectiveAt ?? cur.effectiveAt,
+          nextReviewAt: nextReviewAt ?? cur.nextReviewAt,
+          approvedBy: approvedBy ?? cur.approvedBy,
+          translations: bodyChanged ? markTranslationsStale(cur.translations) : cur.translations,
+          version: cur.version + 1,
+          revisionHistory: [
+            ...(cur.revisionHistory ?? []),
+            makeRevision(before, editor ?? "Demo Reviewer", summary ?? "Edited published article"),
+          ],
+        };
+        return normalizeArticleStandard(next, { actor: editor ?? "Demo Reviewer" });
+      },
+    );
+    res.json(await withStaleness(updated));
+  } catch (e: any) {
+    res.status(404).json({ error: e?.message ?? String(e) });
+  }
+});
+
+publishedArticlesRouter.post("/:id/feedback", async (req, res) => {
+  const { kind, comment, by } = req.body as {
+    kind?: "helpful" | "notHelpful" | "share" | "comment";
+    comment?: string;
+    by?: string;
+  };
+  if (!kind || !["helpful", "notHelpful", "share", "comment"].includes(kind)) {
+    return res.status(400).json({ error: "kind must be helpful, notHelpful, share, or comment" });
+  }
+  try {
+    const updated = await mutate<PublishedArticle>(
+      "publishedArticles",
+      req.params.id,
+      (cur) => {
+        const feedback = cur.feedback ?? defaultFeedback();
+        if (kind === "helpful") return { ...cur, feedback: { ...feedback, helpful: feedback.helpful + 1 } };
+        if (kind === "notHelpful") return { ...cur, feedback: { ...feedback, notHelpful: feedback.notHelpful + 1 } };
+        if (kind === "share") return { ...cur, feedback: { ...feedback, shares: feedback.shares + 1 } };
+        const body = comment?.trim();
+        if (!body) return cur;
+        return {
+          ...cur,
+          feedback: {
+            ...feedback,
+            comments: [
+              ...feedback.comments,
+              {
+                id: `comment-${randomUUID().slice(0, 8)}`,
+                by: by?.trim() || "Demo User",
+                body,
+                at: new Date().toISOString(),
+              },
+            ],
+          },
+        };
+      },
     );
     res.json(await withStaleness(updated));
   } catch (e: any) {

@@ -21,10 +21,10 @@ function excerpt(raw: string): string {
 
 function requiredSections(type: ContentType): string[] {
   return {
-    FAQ: ["Question", "Answer", "Related"],
-    Policy: ["Overview", "Policy", "Effective date", "Contact"],
-    "Knowledge Article": ["Overview", "Steps", "Troubleshooting"],
-    "Topic Page": ["Overview", "Details", "Resources"],
+    FAQ: ["Question", "Need help?"],
+    Policy: ["Who this applies to", "Policy details", "Exceptions", "Compliance", "Effective date"],
+    "Knowledge Article": ["Before you start", "Steps", "Common situations", "Need help?"],
+    "Topic Page": ["Overview", "Key resources", "Related articles", "Need help?"],
   }[type];
 }
 
@@ -42,9 +42,7 @@ export async function runMigrationStandardizationAgent(args: {
   const sectorName = args.sector?.name ?? "selected sector";
   const sourceExcerpt = excerpt(args.sourceContent);
 
-  const body = `# ${title}
-
-## Overview
+const body = `# ${title}
 
 This article has been standardized from migrated source content for ${marketName} in ${sectorName}. It is condensed into the DEEx article structure, with metadata and review fields ready for governance review.
 

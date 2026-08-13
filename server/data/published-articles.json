@@ -17,15 +17,28 @@
       "US",
       "CA"
     ],
-    "body": "# How to refresh a driver login token\n\n## Summary\n\nSteps for refreshing the driver auth token\n\n## Who this applies to\n\ndrivers\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Review the source information.\n2. Apply the relevant steps.\n3. Confirm the result.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 06/05/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "body": "# How to refresh a driver login token\n\nIf your route app says your login token has expired, refresh the token before you begin your next delivery or pickup activity. A token refresh confirms your identity, reconnects the app to PepsiCo systems, and prevents route updates from being saved under an old session.\n\n## Summary\n\nDriver login tokens normally refresh in the background. You only need to refresh manually when the app shows a token, session, or authentication message. Most refreshes take less than two minutes if your device has a working data connection.\n\nDo not share your token, password, one-time code, or device PIN with anyone. Support teams will never ask for your password.\n\n## Who this applies to\n\nThis article applies to U.S. and Canada drivers, merchandisers, and field employees who use a PepsiCo-issued mobile device or approved route application to complete daily work.\n\nIt does not apply to plant kiosk access, payroll login, or contractor systems that use a separate identity provider.\n\n## Before you start\n\n- Confirm your device has cellular service or Wi-Fi.\n- Make sure the device date and time are set automatically.\n- Close any duplicate route app windows.\n- Have your employee ID available in case the support desk needs to confirm your account.\n- If you are already on a route, pull over safely before troubleshooting.\n\n## Steps\n\n1. Open the route app and wait 15 seconds for the session message to finish loading.\n2. Tap **Refresh session** or **Sign in again**.\n3. Enter your PepsiCo username and password if prompted.\n4. Complete multi-factor authentication on your registered device.\n5. Return to the route app and confirm your route list, stop list, or delivery task reloads.\n6. Tap **Sync** before continuing work so any offline activity is reconciled.\n\nIf the app opens but your route list is blank, do not create a new route manually. Use **Sync now** once, then contact support if the list is still blank.\n\n## Common situations\n\n### The refresh button does not appear\n\nForce close the route app, reopen it, and wait for the sign-in screen. If the app opens directly to your route but still shows stale data, use the app menu to sign out and sign back in.\n\n### Multi-factor authentication is going to the wrong phone\n\nUse the identity verification page in MyPepsiCo to update your authentication method. If you cannot access that page, call the IT Service Desk from a phone you can receive calls on.\n\n### The app says the device is not compliant\n\nConnect to the internet and let device management check for required updates. Restart the device after updates install. If the message remains, open a MyIT ticket with the exact compliance message and your device asset tag.\n\n### You are blocked at a customer location\n\nCall dispatch or your supervisor first so the route impact is visible. Then contact IT support and include the route number, device number, and the error message.\n\n## Need help?\n\nOpen a MyIT ticket under **Mobile device and route app access** or call the IT Service Desk if you are blocked from completing route work. Include the error text, device number, route number, location, and what you already tried.",
     "seo": {
-      "title": "Refresh driver login token: 2-minute fix",
-      "metaDescription": "A short walkthrough for drivers whose route-app login token has expired, with the screens to tap and what to do if it fails.",
+      "title": "Refresh a driver login token",
+      "metaDescription": "Steps for drivers to refresh an expired route-app login token, complete authentication, sync route data, and know when to contact support.",
       "keywords": [
         "driver",
-        "login",
-        "token",
-        "refresh"
+        "route app",
+        "login token",
+        "mobile device",
+        "authentication"
+      ],
+      "summary": "Use this article when a driver route app says the login token or session has expired. It explains how to refresh the session, sync route data, and escalate blocked route work.",
+      "keyQuestions": [
+        "How do I refresh my driver login token?",
+        "What should I do if the route app says my session expired?",
+        "Who do I contact when token refresh fails?"
+      ],
+      "entities": [
+        "MyPepsiCo",
+        "MyIT",
+        "route app",
+        "IT Service Desk"
       ]
     },
     "publishedAt": "2026-07-02T15:04:03.663Z",
@@ -37,6 +50,46 @@
       "views30d": 0,
       "viewsAllTime": 0,
       "trend": "up"
+    },
+    "lead": "Use this article when a route or delivery app says your driver login token has expired, your session cannot be verified, or you are asked to sign in again before starting route work.",
+    "topics": [
+      "Driver technology",
+      "Route app access",
+      "Authentication"
+    ],
+    "aliases": [
+      "expired driver token",
+      "route app session expired",
+      "driver app sign in again"
+    ],
+    "references": [
+      {
+        "id": "ref-field-mobile-acces",
+        "title": "Field mobile access support playbook",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Support guidance for route-app session refresh, mobile device compliance, and route-impact escalation.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Field Technology Support",
+    "canonicalSlug": "how-to-refresh-a-driver-login-token",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
     }
   },
   {
@@ -50,7 +103,7 @@
     "reviewer": "Demo Reviewer",
     "reviewedAt": "2026-07-02T15:03:15.913Z",
     "complianceIssues": [],
-    "title": "X",
+    "title": "How to use Speak Up to report an ethics concern",
     "contentType": "FAQ",
     "market": "MX",
     "countries": [
@@ -58,11 +111,30 @@
       "GB",
       "IN"
     ],
-    "body": "## ¿De qué se trata \"X\"?\n\nX\n\nEsta sección amplía los puntos clave con contexto adicional, ejemplos concretos, o casos límite. Reemplace este texto con el detalle específico que la audiencia necesita.\n\n## ¿A quién aplica?\n\nAplica a todos los colaboradores en el alcance descrito. Consulte con su gerente o Recursos Humanos si tiene dudas sobre su elegibilidad.\n\n## ¿Cuándo entra en vigor?\n\nEsta información está vigente desde la fecha de última actualización indicada al final del documento.\n\n## ¿Dónde puedo obtener más información?\n\nAbra un caso en MyPepsiCo en *Contactar a RH*, o consulte la sección correspondiente del portal del colaborador.\n\n## ¿Qué hago si necesito una excepción?\n\nLas excepciones se gestionan caso por caso. Comuníquese con su gerente directo y con el equipo responsable del tema.\n\n---\n\n**Última actualización:** 05/06/2026\n**Propietario:** [Propietario del artículo, por confirmar]",
+    "body": "# How to use Speak Up to report an ethics concern\n\nSpeak Up is PepsiCo's reporting channel for raising concerns about conduct that may violate the Global Code of Conduct, company policy, or the law. You can also use this article to decide whether Speak Up is the right path or whether your manager, HR, Legal, or Global Compliance and Ethics is the better first contact.\n\n## Summary\n\nPepsiCo expects employees to act with integrity and to report concerns in good faith. Speak Up is available for concerns such as harassment, discrimination, retaliation, conflicts of interest, falsified records, bribery, safety issues, theft, or pressure to do something that does not feel right.\n\nReports can be made online or by phone. Where permitted by local law, reports may be anonymous. PepsiCo prohibits retaliation against anyone who raises a concern in good faith or participates in an investigation.\n\n## Who this applies to\n\nThis article applies to employees, managers, contractors, and others working on behalf of PepsiCo who need to raise or route an ethics or compliance concern.\n\nIf there is an immediate threat to life, safety, or property, contact local emergency services or site security first.\n\n## Before you start\n\n- Write down what happened, when it happened, where it happened, and who was involved.\n- Keep copies of relevant documents, messages, screenshots, or transaction details.\n- Do not investigate on your own or access information you are not authorized to view.\n- Decide whether you are comfortable providing your name or prefer anonymity where allowed.\n\n## Steps\n\n1. Choose the reporting channel that fits the concern: your manager, Human Resources, Legal, Global Compliance and Ethics, or Speak Up.\n2. If using Speak Up, open the Speak Up webline or call the dedicated phone line for your country.\n3. Describe the concern clearly and stick to facts you know directly.\n4. Include dates, locations, names or roles, documents, and any immediate risk.\n5. Save the case number or confirmation details so you can provide follow-up information.\n6. Continue to cooperate if an investigator contacts you.\n\n## Common situations\n\n### You are not sure whether something is a violation\n\nReport what you know and ask for guidance. You do not need to prove misconduct before raising a concern in good faith.\n\n### You are worried about retaliation\n\nRetaliation for a good-faith report is prohibited. If you believe retaliation has occurred, report that as a separate concern and include the original case number if you have it.\n\n### Your concern is about a pay, benefit, or scheduling issue\n\nUse HR support first unless the issue involves discrimination, harassment, retaliation, falsified records, or another potential Code violation.\n\n### You are a manager receiving a concern\n\nListen, thank the employee, avoid promising a specific outcome, and route the concern through the appropriate channel. Do not investigate sensitive ethics matters without guidance.\n\n## Need help?\n\nContact Human Resources, Global Compliance and Ethics, or the Law Department if you need help choosing the right reporting path. Use Speak Up directly if you are uncomfortable raising the concern through local channels.",
     "seo": {
-      "title": "This is a test SEO title that fits",
-      "metaDescription": "a meta description long enough yes definitely yes plus more",
-      "keywords": []
+      "title": "Use Speak Up to report concerns",
+      "metaDescription": "How to report a PepsiCo ethics or compliance concern through Speak Up, what information to include, and what protections apply.",
+      "keywords": [
+        "Speak Up",
+        "ethics",
+        "compliance",
+        "Code of Conduct",
+        "retaliation"
+      ],
+      "summary": "Speak Up is PepsiCo's reporting channel for possible Code, policy, or legal violations. This article explains when to use it, what to include, and how non-retaliation protections apply.",
+      "keyQuestions": [
+        "How do I submit a Speak Up report?",
+        "Can I report an ethics concern anonymously?",
+        "What happens after I report a concern?"
+      ],
+      "entities": [
+        "Speak Up",
+        "Global Code of Conduct",
+        "Global Compliance and Ethics",
+        "Human Resources",
+        "Law Department"
+      ]
     },
     "globalJustification": "Applies in all PepsiCo regions",
     "publishedAt": "2026-07-02T15:03:15.913Z",
@@ -74,6 +146,48 @@
       "views30d": 0,
       "viewsAllTime": 0,
       "trend": "up"
+    },
+    "lead": "Use this article when you need to report a possible violation of the Code of Conduct, ask for ethics guidance, or understand what happens after a Speak Up report is submitted.",
+    "topics": [
+      "Ethics and compliance",
+      "Speak Up",
+      "Reporting concerns"
+    ],
+    "aliases": [
+      "submit a report",
+      "ethics hotline",
+      "report misconduct",
+      "Code of Conduct concern"
+    ],
+    "references": [
+      {
+        "id": "ref-pepsico-global-cod",
+        "title": "PepsiCo Global Code of Conduct and Speak Up public guidance",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Public PepsiCo guidance describes Speak Up, Code of Conduct expectations, confidentiality, anonymity where permitted, and non-retaliation principles.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Global Compliance and Ethics",
+    "canonicalSlug": "how-to-use-speak-up-to-report-an-ethics-concern",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "mx"
+      ],
+      "countries": [
+        "US",
+        "GB",
+        "IN"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
     }
   },
   {
@@ -87,7 +201,7 @@
     "reviewer": "Demo Reviewer",
     "reviewedAt": "2026-06-25T18:51:33.191Z",
     "complianceIssues": [],
-    "title": "How to request access",
+    "title": "How to request access to a work application",
     "contentType": "Knowledge Article",
     "market": "US",
     "countries": [
@@ -95,32 +209,28 @@
       "CA",
       "MX"
     ],
-    "body": "# How to request access\n\n## Summary\n\nhow to request access to figma through HR\n\n## Who this applies to\n\nPeople leaders & managers — First- and second-line people managers across the operation. They are responsible for both following the policy themselves and applying it to their team.\nTone: Professional and direct. Assume managerial context — approvals, escalations, performance. Confident, action-oriented, no marketing language.\nReading context: Desktop primarily, between meetings. Often skimming during a transition; will return to the article later for detail.\nGuidelines: Always surface manager-specific actions clearly: approve, escalate, coach, document. Where the policy differs for managers vs employees, call that out explicitly with a 'Manager actions' subsection.\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Sign in to MyPepsiCo with your corporate credentials.\n2. Navigate to the relevant section for this topic.\n3. Follow the on-screen instructions and review your inputs before submitting.\n4. Confirm the action. You'll receive a notification when it's processed.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 06/25/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "body": "# How to request access to a work application\n\nApplication access is managed through standard request and approval workflows so employees receive the right level of access for their role. Use this process instead of asking a teammate to share credentials, export data, or add you informally.\n\n## Summary\n\nMost application access requests start in MyIT or the application’s access request page. Some tools require manager approval, data-owner approval, license availability, or training before access is granted.\n\nRequest the minimum access you need to do your work. If you need elevated permissions, explain the business reason and how long you need them.\n\n## Who this applies to\n\nThis article applies to employees and contractors who need access to a PepsiCo-approved work tool. It is especially useful for new hires, employees changing roles, project team members, and managers requesting access for direct reports.\n\n## Before you start\n\n- Confirm the application name and business purpose.\n- Ask your manager which access level or group is appropriate.\n- Collect the cost center, project name, or team name if the request form asks for it.\n- Complete any required training listed for the application.\n- Do not use another person’s login while waiting for approval.\n\n## Steps\n\n1. Open MyIT and search for the application name.\n2. Select the access request item that matches the tool and region.\n3. Choose the role, group, or permission level you need.\n4. Add a short business justification, including the project or process the access supports.\n5. Submit the request.\n6. Watch for approval notifications from your manager, data owner, or application owner.\n7. After approval, wait for provisioning to complete before trying to sign in.\n8. Confirm access works and bookmark the application page.\n\n## Common situations\n\n### You do not know which role to request\n\nChoose the lowest standard role that lets you complete your task, or ask your manager/application owner before submitting. Broad admin access is rarely needed.\n\n### Your request is approved but access does not work\n\nWait for the provisioning window shown in the request. Then sign out, clear the browser session, and sign in again. If access still fails, reopen the ticket with a screenshot of the error.\n\n### You need access for a short-term project\n\nInclude the project end date in the request. Temporary access should be removed when the work ends.\n\n### You are requesting access for a contractor\n\nConfirm the contractor has an active account and sponsor before submitting. Some systems require a different request path for contractors.\n\n## Need help?\n\nContact the application owner listed in MyIT if you are unsure which role to request. Contact the IT Service Desk if the approved access does not provision correctly.",
     "seo": {
-      "title": "How to request access — step-by-step guide",
-      "metaDescription": "Step-by-step: how to request access to figma through HR. Written for People leaders & managers. Includes context, common pitfalls, and where to get help.",
+      "title": "Request access to a work application",
+      "metaDescription": "How to request access to an approved PepsiCo work application, choose the right role, get approvals, and troubleshoot provisioning.",
       "keywords": [
-        "request",
-        "access",
-        "figma",
-        "through"
+        "application access",
+        "MyIT",
+        "permissions",
+        "approval",
+        "provisioning"
       ],
-      "summary": "how to request access to figma through HR",
+      "summary": "This article explains how employees request access to approved work applications through MyIT, including role selection, approvals, provisioning, and troubleshooting.",
       "keyQuestions": [
-        "How to request access?",
-        "Who is eligible?",
-        "What do I need before starting?",
-        "How do I do this?",
-        "What if something goes wrong?",
-        "Where can I get help?"
+        "How do I request access to an application?",
+        "What access role should I choose?",
+        "What do I do after access is approved but does not work?"
       ],
       "entities": [
-        "MyPepsiCo",
-        "HR   People",
-        "First",
-        "They",
-        "Tone",
-        "Professional"
+        "MyIT",
+        "application owner",
+        "data owner",
+        "manager approval"
       ]
     },
     "publishedAt": "2026-06-25T18:51:33.191Z",
@@ -133,7 +243,49 @@
       "viewsAllTime": 0,
       "trend": "up"
     },
-    "sector": "pfna"
+    "sector": "pfna",
+    "lead": "Use this article when you need access to an approved PepsiCo work application, including design, reporting, collaboration, finance, HR, or operations tools.",
+    "topics": [
+      "Application access",
+      "MyIT",
+      "Approvals"
+    ],
+    "aliases": [
+      "request Figma access",
+      "tool access",
+      "app permissions",
+      "software access"
+    ],
+    "references": [
+      {
+        "id": "ref-application-access",
+        "title": "Application access request standard",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Internal access requests should use approved workflows, role-based permissions, and manager or data-owner approvals where required.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Enterprise Service Management",
+    "canonicalSlug": "how-to-request-access-to-a-work-application",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US",
+        "CA",
+        "MX"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-f26eac74",
@@ -146,21 +298,36 @@
     "reviewer": "Demo Reviewer",
     "reviewedAt": "2026-06-25T18:39:54.908Z",
     "complianceIssues": [],
-    "title": "how to submit a report",
+    "title": "How to use Speak Up to report an ethics concern",
     "contentType": "FAQ",
     "market": "US",
     "countries": [
       "US",
       "CA"
     ],
-    "body": "## What is \"how to submit a report\" about?\n\nas;dkf;asdkf;alskdf;alskf;aslkdf\n\nThis expanded paragraph adds context, examples, or specific edge cases. Replace this placeholder with the concrete detail your audience needs.\n\n## Who does this apply to?\n\nIt applies to all employees within the described scope. Check with your manager or HR if you have questions about your eligibility.\n\n## When does it take effect?\n\nThis information is effective from the last-updated date shown at the bottom of this document.\n\n## Where can I get more details?\n\nOpen a case in MyPepsiCo at *Get Help*, or visit the relevant section of the employee portal.\n\n## What do I do if I need an exception?\n\nExceptions are handled case by case. Contact your direct manager and the responsible team listed below.\n\n## Recent edits\n\n*Jun 9, 2026* — Reviewer request: make this information more desne\n\n## Recent edits\n\n*Jun 25, 2026* — Reviewer request: add more information to the whole thing\n\n\n---\n\n**Last updated:** 06/03/2026\n**Owner:** [Article Owner — to be confirmed]",
+    "body": "# How to use Speak Up to report an ethics concern\n\nSpeak Up is PepsiCo's reporting channel for raising concerns about conduct that may violate the Global Code of Conduct, company policy, or the law. You can also use this article to decide whether Speak Up is the right path or whether your manager, HR, Legal, or Global Compliance and Ethics is the better first contact.\n\n## Summary\n\nPepsiCo expects employees to act with integrity and to report concerns in good faith. Speak Up is available for concerns such as harassment, discrimination, retaliation, conflicts of interest, falsified records, bribery, safety issues, theft, or pressure to do something that does not feel right.\n\nReports can be made online or by phone. Where permitted by local law, reports may be anonymous. PepsiCo prohibits retaliation against anyone who raises a concern in good faith or participates in an investigation.\n\n## Who this applies to\n\nThis article applies to employees, managers, contractors, and others working on behalf of PepsiCo who need to raise or route an ethics or compliance concern.\n\nIf there is an immediate threat to life, safety, or property, contact local emergency services or site security first.\n\n## Before you start\n\n- Write down what happened, when it happened, where it happened, and who was involved.\n- Keep copies of relevant documents, messages, screenshots, or transaction details.\n- Do not investigate on your own or access information you are not authorized to view.\n- Decide whether you are comfortable providing your name or prefer anonymity where allowed.\n\n## Steps\n\n1. Choose the reporting channel that fits the concern: your manager, Human Resources, Legal, Global Compliance and Ethics, or Speak Up.\n2. If using Speak Up, open the Speak Up webline or call the dedicated phone line for your country.\n3. Describe the concern clearly and stick to facts you know directly.\n4. Include dates, locations, names or roles, documents, and any immediate risk.\n5. Save the case number or confirmation details so you can provide follow-up information.\n6. Continue to cooperate if an investigator contacts you.\n\n## Common situations\n\n### You are not sure whether something is a violation\n\nReport what you know and ask for guidance. You do not need to prove misconduct before raising a concern in good faith.\n\n### You are worried about retaliation\n\nRetaliation for a good-faith report is prohibited. If you believe retaliation has occurred, report that as a separate concern and include the original case number if you have it.\n\n### Your concern is about a pay, benefit, or scheduling issue\n\nUse HR support first unless the issue involves discrimination, harassment, retaliation, falsified records, or another potential Code violation.\n\n### You are a manager receiving a concern\n\nListen, thank the employee, avoid promising a specific outcome, and route the concern through the appropriate channel. Do not investigate sensitive ethics matters without guidance.\n\n## Need help?\n\nContact Human Resources, Global Compliance and Ethics, or the Law Department if you need help choosing the right reporting path. Use Speak Up directly if you are uncomfortable raising the concern through local channels.",
     "seo": {
-      "title": "how to submit a report — FAQ guide",
-      "metaDescription": "FAQ for US employees: how to submit a report. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next time you nee",
+      "title": "Use Speak Up to report concerns",
+      "metaDescription": "How to report a PepsiCo ethics or compliance concern through Speak Up, what information to include, and what protections apply.",
       "keywords": [
-        "submit",
-        "report",
-        "faq"
+        "Speak Up",
+        "ethics",
+        "compliance",
+        "Code of Conduct",
+        "retaliation"
+      ],
+      "summary": "Speak Up is PepsiCo's reporting channel for possible Code, policy, or legal violations. This article explains when to use it, what to include, and how non-retaliation protections apply.",
+      "keyQuestions": [
+        "How do I submit a Speak Up report?",
+        "Can I report an ethics concern anonymously?",
+        "What happens after I report a concern?"
+      ],
+      "entities": [
+        "Speak Up",
+        "Global Code of Conduct",
+        "Global Compliance and Ethics",
+        "Human Resources",
+        "Law Department"
       ]
     },
     "publishedAt": "2026-06-25T18:39:54.908Z",
@@ -173,7 +340,48 @@
       "viewsAllTime": 0,
       "trend": "up"
     },
-    "sector": "pfna"
+    "sector": "pfna",
+    "lead": "Use this article when you need to report a possible violation of the Code of Conduct, ask for ethics guidance, or understand what happens after a Speak Up report is submitted.",
+    "topics": [
+      "Ethics and compliance",
+      "Speak Up",
+      "Reporting concerns"
+    ],
+    "aliases": [
+      "submit a report",
+      "ethics hotline",
+      "report misconduct",
+      "Code of Conduct concern"
+    ],
+    "references": [
+      {
+        "id": "ref-pepsico-global-cod",
+        "title": "PepsiCo Global Code of Conduct and Speak Up public guidance",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Public PepsiCo guidance describes Speak Up, Code of Conduct expectations, confidentiality, anonymity where permitted, and non-retaliation principles.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Global Compliance and Ethics",
+    "canonicalSlug": "how-to-use-speak-up-to-report-an-ethics-concern",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-8b00d755",
@@ -186,7 +394,7 @@
     "reviewer": "Smoke Test",
     "reviewedAt": "2026-06-23T17:51:56.553Z",
     "complianceIssues": [],
-    "title": "Brand-safety global",
+    "title": "Global brand safety review requirements",
     "contentType": "Policy",
     "market": "UK",
     "countries": [
@@ -194,11 +402,31 @@
       "GB",
       "IN"
     ],
-    "body": "# Brand-safety global\n\n## Summary\n\nx\n\n## Who this applies to\n\nall\n\n## What this policy covers\n\nThis policy sets the expectations and obligations that apply to the situation described above. It includes:\n\n- Key definitions and scope.\n- Step-by-step procedures.\n- Roles and responsibilities.\n- Permitted exceptions and the approval process.\n- Consequences for non-compliance.\n\n### Specific details\n\nx\n\n## What's expected\n\n1. Read this policy in full and clarify anything that isn't clear.\n2. Apply the described procedures to situations that correspond.\n3. Document exceptions via the indicated approval process.\n4. Complete the annual acknowledgment in MyPepsiCo.\n\n## Exceptions\n\nExceptions are evaluated case by case and require documented approval from the responsible team. To request an exception, open a case in MyPepsiCo with the justification, context, and proposed mitigations.\n\n## Compliance\n\nNon-compliance with this policy may result in corrective action under PepsiCo's Code of Conduct. Report concerns through the usual channels or the Speak Up hotline.\n\n---\n\n**Last updated:** 08/06/2026\n**Owner:** [Article Owner — to be confirmed]\n**Effective:** Immediately\n**Next review:** TBD",
+    "body": "# Global brand safety review requirements\n\nBrand safety review helps protect PepsiCo brands, employees, consumers, customers, and partners by making sure content appears in appropriate contexts and follows required review paths before publication.\n\n## Summary\n\nAny campaign, article, social post, partner placement, paid media buy, customer-facing presentation, or digital experience that uses PepsiCo brand names, product claims, sustainability statements, employee stories, or third-party placements must follow the applicable brand safety review path.\n\nBrand safety does not replace Legal, Regulatory, Privacy, Sustainability, or Communications review. It helps identify when those reviews are required.\n\n## Who this applies to\n\nThis policy applies to marketing, communications, sales, HR, customer teams, agencies, and employees creating or approving PepsiCo-branded content in any market.\n\nLocal requirements may be stricter. Follow local review rules when they add requirements beyond this global baseline.\n\n## Policy details\n\n### Content that requires review\n\nSubmit content for review before publishing when it includes:\n\n- PepsiCo brand names, logos, product images, or product claims.\n- Health, nutrition, ingredient, sustainability, or environmental claims.\n- Paid media placements, influencer content, sponsorships, or customer co-branded content.\n- Employee photos, personal stories, or identifiable workplace imagery.\n- Content intended for external audiences, customers, media, or public social channels.\n- Topics involving minors, safety, labor, regulatory matters, or public policy.\n\n### Placement and adjacency standards\n\nPaid and partner content must avoid unsafe adjacency, including hate speech, explicit content, misinformation, illegal activity, exploitation, or content that conflicts with PepsiCo values. Media teams should use approved exclusion categories and monitor placements during the campaign.\n\n### Required approvals\n\nThe content owner is responsible for confirming the correct approvals before launch. Depending on the content, approval may include Brand, Legal, Regulatory, Privacy, Communications, Sustainability, HR, or local market leadership.\n\n### Recordkeeping\n\nKeep the final approved asset, approval date, approver names, substantiation for claims, and campaign placement details in the campaign record or approved repository.\n\n## Exceptions\n\nRoutine internal status updates, draft planning documents, and one-to-one working files do not require brand safety review unless they include external claims, public release plans, or brand-sensitive imagery.\n\nUrgent business needs can be escalated, but content should not be published without the minimum required approval for the risk category.\n\n## Compliance\n\nContent that does not follow the review process may be removed, corrected, or paused. Repeated misses should be escalated to the appropriate functional leader and governance team.\n\n## Effective date\n\nThis baseline applies immediately for new content and campaign activity. Existing evergreen content should be reviewed during its next scheduled refresh.",
     "seo": {
-      "title": "Global brand safety policy: regional handling notes",
-      "metaDescription": "Cross-market brand-safety policy that applies identically across every PepsiCo region, with notes on regional exceptions and escalation paths.",
-      "keywords": []
+      "title": "Global brand safety review requirements",
+      "metaDescription": "Policy for PepsiCo-branded content review, unsafe placement controls, required approvals, exceptions, and recordkeeping.",
+      "keywords": [
+        "brand safety",
+        "content review",
+        "campaign approval",
+        "paid media",
+        "claims"
+      ],
+      "summary": "This policy explains when PepsiCo-branded content needs brand safety review, which approvals may be required, and how teams should manage unsafe placement risk.",
+      "keyQuestions": [
+        "When does content need brand safety review?",
+        "Which approvals are required for branded content?",
+        "What records should campaign owners keep?"
+      ],
+      "entities": [
+        "Brand Safety",
+        "Legal",
+        "Regulatory",
+        "Privacy",
+        "Communications",
+        "Sustainability"
+      ]
     },
     "globalJustification": "Applies identically in every PepsiCo region",
     "publishedAt": "2026-06-23T17:51:56.553Z",
@@ -211,7 +439,48 @@
       "viewsAllTime": 0,
       "trend": "up"
     },
-    "sector": "europe"
+    "sector": "europe",
+    "lead": "Use this policy when publishing PepsiCo content, campaign assets, partner materials, or external-facing communications that could affect brand trust or appear next to unsafe content.",
+    "topics": [
+      "Brand safety",
+      "Content governance",
+      "Campaign approvals"
+    ],
+    "aliases": [
+      "brand safety global",
+      "campaign review",
+      "content approval policy"
+    ],
+    "references": [
+      {
+        "id": "ref-global-brand-and-c",
+        "title": "Global brand and content governance baseline",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Demo baseline covering branded content, claim substantiation, unsafe adjacency, approvals, and campaign recordkeeping.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Global Brand Governance",
+    "canonicalSlug": "global-brand-safety-review-requirements",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "uk"
+      ],
+      "countries": [
+        "US",
+        "GB",
+        "IN"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-bfe65183",
@@ -231,15 +500,27 @@
       "US",
       "CA"
     ],
-    "body": "# How to reset your MyPepsiCo password\n\n## Summary\n\nQuick steps to reset a forgotten password.\n\nThis expanded paragraph adds context, examples, or specific edge cases. Replace this placeholder with the concrete detail your audience needs.\n\n## Who this applies to\n\nAll employees\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Go to passwordreset.pepsico.com.\n2. Enter your employee ID.\n3. Answer security questions.\n4. Set a new password.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 05/28/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "body": "# How to reset your MyPepsiCo password\n\nYour MyPepsiCo password protects access to employee tools, HR information, learning systems, email, and support channels. Reset your password as soon as you cannot sign in or receive an expired-password message.\n\n## Summary\n\nMost employees can reset their password through the self-service sign-in page. The process requires identity verification and may require multi-factor authentication. If your registered authentication method is unavailable, contact the IT Service Desk.\n\nNever send your password, verification code, or authenticator approval to another person. IT support may verify your identity, but they will not ask you to disclose your password.\n\n## Who this applies to\n\nThis article applies to employees and contractors who use a PepsiCo network ID to access MyPepsiCo, MyIT, learning resources, HR tools, email, or other company applications.\n\nIt does not apply to applicant accounts, supplier portals, customer portals, or personal social media accounts.\n\n## Before you start\n\n- Use a trusted device and network.\n- Have your employee ID or username available.\n- Keep your registered phone or authenticator app nearby.\n- Close extra sign-in windows so you do not reset the wrong account.\n\n## Steps\n\n1. Go to the MyPepsiCo sign-in page.\n2. Select **Forgot password** or **Can’t access your account**.\n3. Enter your PepsiCo username or employee email address.\n4. Complete the identity verification prompt.\n5. Create a new password that meets the current password rules.\n6. Wait two minutes, then sign in again.\n7. If you use email, Teams, VPN, or mobile apps, sign out and sign back in so the new password syncs.\n\n## Common situations\n\n### You changed your password but still cannot sign in\n\nWait a few minutes for systems to sync. Then close the browser, open a new private window, and try again. If a mobile app is still failing, remove the old saved password from the device.\n\n### Your account is locked\n\nWait for the lockout window to expire or use self-service unlock if the option appears. If you are blocked from work, contact the IT Service Desk.\n\n### Multi-factor authentication is unavailable\n\nUse a backup method if one is registered. If you changed phones or lost access to your authenticator app, contact IT support to verify your identity and reset your authentication method.\n\n### You receive repeated password prompts\n\nUpdate saved passwords in Outlook, Teams, VPN, browser password managers, and mobile mail apps. Repeated prompts usually mean one device is still trying the old password.\n\n## Need help?\n\nOpen a MyIT ticket under **Password and sign-in** or call the IT Service Desk if you cannot complete self-service reset. Include the exact error message and whether you still have access to your registered authentication method.",
     "seo": {
-      "title": "How to reset your MyPepsiCo password",
-      "metaDescription": "Knowledge Article for US employees: how to reset your mypepsico password. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the ",
+      "title": "Reset your MyPepsiCo password",
+      "metaDescription": "Self-service steps to reset an expired or forgotten MyPepsiCo password, unlock access, and resolve common sign-in issues.",
       "keywords": [
-        "reset",
-        "mypepsico",
-        "password",
-        "knowledge-article"
+        "MyPepsiCo",
+        "password reset",
+        "account locked",
+        "multi-factor authentication"
+      ],
+      "summary": "This article explains how to reset a MyPepsiCo password, complete identity verification, sync the new password across apps, and contact IT when self-service reset fails.",
+      "keyQuestions": [
+        "How do I reset my MyPepsiCo password?",
+        "What if my PepsiCo account is locked?",
+        "Why do apps still ask for my old password?"
+      ],
+      "entities": [
+        "MyPepsiCo",
+        "MyIT",
+        "IT Service Desk",
+        "multi-factor authentication"
       ]
     },
     "publishedAt": "2026-06-22T17:53:44.835Z",
@@ -252,7 +533,47 @@
       "viewsAllTime": 0,
       "trend": "up"
     },
-    "sector": "pfna"
+    "sector": "pfna",
+    "lead": "Use this article when you forgot your MyPepsiCo password, your password expired, or you need to unlock access before signing in to employee tools.",
+    "topics": [
+      "Password and sign-in",
+      "Employee access",
+      "MyPepsiCo"
+    ],
+    "aliases": [
+      "forgot password",
+      "account locked",
+      "can't access MyPepsiCo"
+    ],
+    "references": [
+      {
+        "id": "ref-identity-and-acces",
+        "title": "Identity and access management support guidance",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Standard support guidance for password reset, account unlock, and multi-factor authentication recovery.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Identity and Access Management",
+    "canonicalSlug": "how-to-reset-your-mypepsico-password",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-d11b2d4c",
@@ -265,7 +586,7 @@
     "reviewer": "Demo Reviewer",
     "reviewedAt": "2026-06-09T14:30:53.590Z",
     "complianceIssues": [],
-    "title": "Brand-safety global",
+    "title": "Global brand safety review requirements",
     "contentType": "Policy",
     "market": "IN",
     "countries": [
@@ -273,11 +594,31 @@
       "GB",
       "IN"
     ],
-    "body": "# Brand-safety global\n\n## Summary\n\nx\n\nThis expanded paragraph adds context, examples, or specific edge cases. Replace this placeholder with the concrete detail your audience needs.\n\n## Who this applies to\n\nall\n\n## What this policy covers\n\nThis policy sets the expectations and obligations that apply to the situation described above. It includes:\n\n- Key definitions and scope.\n- Step-by-step procedures.\n- Roles and responsibilities.\n- Permitted exceptions and the approval process.\n- Consequences for non-compliance.\n\n### Specific details\n\nx\n\n## What's expected\n\n1. Read this policy in full and clarify anything that isn't clear.\n2. Apply the described procedures to situations that correspond.\n3. Document exceptions via the indicated approval process.\n4. Complete the annual acknowledgment in MyPepsiCo.\n\n## Exceptions\n\nExceptions are evaluated case by case and require documented approval from the responsible team. To request an exception, open a case in MyPepsiCo with the justification, context, and proposed mitigations.\n\n## Compliance\n\nNon-compliance with this policy may result in corrective action under PepsiCo's Code of Conduct. Report concerns through the usual channels or the Speak Up hotline.\n\n---\n\n**Last updated:** 08/06/2026\n**Owner:** [Article Owner — to be confirmed]\n**Effective:** Immediately\n**Next review:** TBD",
+    "body": "# Global brand safety review requirements\n\nBrand safety review helps protect PepsiCo brands, employees, consumers, customers, and partners by making sure content appears in appropriate contexts and follows required review paths before publication.\n\n## Summary\n\nAny campaign, article, social post, partner placement, paid media buy, customer-facing presentation, or digital experience that uses PepsiCo brand names, product claims, sustainability statements, employee stories, or third-party placements must follow the applicable brand safety review path.\n\nBrand safety does not replace Legal, Regulatory, Privacy, Sustainability, or Communications review. It helps identify when those reviews are required.\n\n## Who this applies to\n\nThis policy applies to marketing, communications, sales, HR, customer teams, agencies, and employees creating or approving PepsiCo-branded content in any market.\n\nLocal requirements may be stricter. Follow local review rules when they add requirements beyond this global baseline.\n\n## Policy details\n\n### Content that requires review\n\nSubmit content for review before publishing when it includes:\n\n- PepsiCo brand names, logos, product images, or product claims.\n- Health, nutrition, ingredient, sustainability, or environmental claims.\n- Paid media placements, influencer content, sponsorships, or customer co-branded content.\n- Employee photos, personal stories, or identifiable workplace imagery.\n- Content intended for external audiences, customers, media, or public social channels.\n- Topics involving minors, safety, labor, regulatory matters, or public policy.\n\n### Placement and adjacency standards\n\nPaid and partner content must avoid unsafe adjacency, including hate speech, explicit content, misinformation, illegal activity, exploitation, or content that conflicts with PepsiCo values. Media teams should use approved exclusion categories and monitor placements during the campaign.\n\n### Required approvals\n\nThe content owner is responsible for confirming the correct approvals before launch. Depending on the content, approval may include Brand, Legal, Regulatory, Privacy, Communications, Sustainability, HR, or local market leadership.\n\n### Recordkeeping\n\nKeep the final approved asset, approval date, approver names, substantiation for claims, and campaign placement details in the campaign record or approved repository.\n\n## Exceptions\n\nRoutine internal status updates, draft planning documents, and one-to-one working files do not require brand safety review unless they include external claims, public release plans, or brand-sensitive imagery.\n\nUrgent business needs can be escalated, but content should not be published without the minimum required approval for the risk category.\n\n## Compliance\n\nContent that does not follow the review process may be removed, corrected, or paused. Repeated misses should be escalated to the appropriate functional leader and governance team.\n\n## Effective date\n\nThis baseline applies immediately for new content and campaign activity. Existing evergreen content should be reviewed during its next scheduled refresh.",
     "seo": {
-      "title": "Global brand safety policy: regional handling notes",
-      "metaDescription": "Cross-market brand-safety policy that applies identically across every PepsiCo region, with notes on regional exceptions and escalation paths.",
-      "keywords": []
+      "title": "Global brand safety review requirements",
+      "metaDescription": "Policy for PepsiCo-branded content review, unsafe placement controls, required approvals, exceptions, and recordkeeping.",
+      "keywords": [
+        "brand safety",
+        "content review",
+        "campaign approval",
+        "paid media",
+        "claims"
+      ],
+      "summary": "This policy explains when PepsiCo-branded content needs brand safety review, which approvals may be required, and how teams should manage unsafe placement risk.",
+      "keyQuestions": [
+        "When does content need brand safety review?",
+        "Which approvals are required for branded content?",
+        "What records should campaign owners keep?"
+      ],
+      "entities": [
+        "Brand Safety",
+        "Legal",
+        "Regulatory",
+        "Privacy",
+        "Communications",
+        "Sustainability"
+      ]
     },
     "globalJustification": "Applies identically in every PepsiCo region",
     "publishedAt": "2026-06-09T14:30:53.603Z",
@@ -290,7 +631,48 @@
       "viewsAllTime": 0,
       "trend": "up"
     },
-    "sector": "amesa"
+    "sector": "amesa",
+    "lead": "Use this policy when publishing PepsiCo content, campaign assets, partner materials, or external-facing communications that could affect brand trust or appear next to unsafe content.",
+    "topics": [
+      "Brand safety",
+      "Content governance",
+      "Campaign approvals"
+    ],
+    "aliases": [
+      "brand safety global",
+      "campaign review",
+      "content approval policy"
+    ],
+    "references": [
+      {
+        "id": "ref-global-brand-and-c",
+        "title": "Global brand and content governance baseline",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Demo baseline covering branded content, claim substantiation, unsafe adjacency, approvals, and campaign recordkeeping.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Global Brand Governance",
+    "canonicalSlug": "global-brand-safety-review-requirements",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "in"
+      ],
+      "countries": [
+        "US",
+        "GB",
+        "IN"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-ea628539",
@@ -313,14 +695,28 @@
       "GB",
       "IN"
     ],
-    "body": "## Summary\n\nIf your VPN won't connect or keeps dropping, work through the steps below before opening a ticket. Most issues resolve in under five minutes. PepsiCo uses GlobalProtect (Palo Alto Networks) as the standard VPN client across all geographies.\n\n## Who this applies to\n\nAll PepsiCo employees and contractors with a corporate device who connect remotely to internal systems. Plant-floor users with kiosk-mode access do not use VPN and should follow site-specific guidance.\n\n## Quick diagnostics\n\nBefore anything else, run these three checks:\n\n1. **Is your internet actually working?** Open a non-PepsiCo site like google.com. If that fails, your home network is the issue, not the VPN.\n2. **Is your laptop connected to a corporate network already?** GlobalProtect won't engage if you're on-site at a PepsiCo office or plant. The VPN client deliberately stays idle on internal networks.\n3. **Are you on the latest GlobalProtect version?** Open the client, click the gear icon, and check the version against the [current required version](#). Out-of-date clients are rejected at connection.\n\n## Step-by-step\n\n### 1. Restart the GlobalProtect client\n\nRight-click the GlobalProtect icon in your system tray (Windows) or menu bar (Mac), select **Disable**, wait 10 seconds, then **Enable**. This fixes around 40% of connection issues.\n\n### 2. Check your credentials\n\nIf you recently changed your PepsiCo password, GlobalProtect needs to be re-authenticated. Click **Connect**, enter your new password, and complete the multi-factor prompt.\n\n### 3. Try a different gateway\n\nIf the default gateway is slow or unresponsive:\n\n- Click the gear icon, then **Settings**, then **Gateways**.\n- Select a gateway in a different region (e.g., if you're auto-routed to **us-east**, try **us-central** or **eu-west**).\n\n### 4. Reset the VPN profile\n\nIf nothing else works:\n\n- Open GlobalProtect, gear icon, **Settings**, **Connection**, **Remove Profile**.\n- Re-enter the portal address: **vpn.pepsico.com**.\n- Sign in.\n\n### 5. Network-level checks\n\nIf you're on a hotel, conference, or public Wi-Fi and the VPN fails to connect:\n\n- The network might be blocking VPN traffic. Try tethering to your phone instead.\n- Some captive portals (the splash page on hotel Wi-Fi) need to be completed in a browser before VPN can establish. Open any non-PepsiCo URL first.\n\n## Common error messages\n\n| Message | What's happening | Fix |\n|---|---|---|\n| `Could not connect to portal` | DNS issue, network block, or service outage | Try mobile tether; check status.pepsico.com |\n| `Failed to authenticate` | Wrong password or expired credentials | Sign in to MyPepsiCo to verify your password works; reset if needed |\n| `Gateway is not responding` | Specific gateway is down or congested | Switch gateways (Step 3 above) |\n| `Certificate error` | Device certificate expired | Open MyIT, request **Renew device certificate** |\n| `Your device is non-compliant` | Missing antivirus, OS update, or disk encryption | Open MyIT, then **Check Device Compliance** |\n\n## Still stuck?\n\n- **Self-service**: MyIT, then **VPN Troubleshooter** runs an automated diagnostic.\n- **Open a ticket**: MyIT, then **New Incident**, category **Connectivity / VPN**. Include the exact error message, the gateway you tried, your physical location, and your device's compliance status.\n- **Call**: IT Service Desk at **1-800-PEP-HELP**, 24/7. Have your laptop name (under **About this Mac** or **System**) ready.\n\n## What we'll need from you if you open a ticket\n\nCopy this template into your ticket:\n\n```\nDevice name:\nOS version:\nGlobalProtect version:\nLocation (city/country):\nNetwork type (home / hotel / mobile / office):\nError message (exact text):\nWhat you've already tried:\n```\n\nTickets with this info attached resolve roughly twice as fast.\n\n---\n\n**Last updated:** 05/04/2026 \n**Owner:** IT Connectivity \n**Next review:** 11/01/2026",
+    "body": "# IT support: VPN troubleshooting\n\nVPN connects your approved device to PepsiCo internal services when you are away from the corporate network. Many issues are caused by expired sign-in sessions, weak internet connections, pending device updates, or a mismatch between the application you need and the network path you are using.\n\n## Summary\n\nTry the basic checks first: confirm internet access, restart the VPN client, complete multi-factor authentication, and make sure the device is updated. If VPN connects but a specific application still fails, the issue may be application access rather than VPN.\n\nDo not use personal VPN tools, shared credentials, or unapproved workarounds to reach internal systems.\n\n## Who this applies to\n\nThis article applies to employees and contractors using a PepsiCo-managed laptop or approved device to access internal tools from home, hotels, customer sites, or other remote locations.\n\n## Before you start\n\n- Confirm you are using a company-managed or approved device.\n- Check that your internet connection works outside VPN.\n- Close duplicate VPN windows.\n- Keep your authenticator device nearby.\n- Save your work before restarting the computer.\n\n## Steps\n\n1. Disconnect VPN if it is partially connected.\n2. Open a normal website to confirm the internet connection works.\n3. Restart the VPN client.\n4. Sign in with your PepsiCo credentials and complete multi-factor authentication.\n5. Wait until the VPN status says connected.\n6. Open the internal application in a new browser window.\n7. If the app fails, try one additional internal site to see whether the issue is broad or app-specific.\n8. Restart the laptop if VPN still fails after one reconnect attempt.\n\n## Common situations\n\n### VPN accepts your password but never connects\n\nCheck for pending device updates and restart the laptop. If the issue continues, capture the VPN error code and contact IT support.\n\n### Multi-factor authentication times out\n\nMake sure your phone has service and that the authenticator notification is not blocked. Use a backup method if one is registered.\n\n### VPN connects but one application is unavailable\n\nOpen a ticket for the application if other internal tools work. Include the application name, URL, error message, and whether the issue happens only on VPN.\n\n### You are traveling internationally\n\nSome countries, hotel networks, and public Wi-Fi providers restrict VPN traffic. Try a trusted alternate network if available, and contact IT before using any workaround.\n\n## Need help?\n\nOpen a MyIT ticket under **Network and VPN**. Include the device name, location, network type, VPN error code, time of issue, and whether other internal applications work.",
     "seo": {
-      "title": "IT support: VPN troubleshooting",
-      "metaDescription": "Knowledge Article for Global employees: it support: vpn troubleshooting. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
+      "title": "VPN troubleshooting",
+      "metaDescription": "Employee steps for fixing VPN connection, MFA, device update, and app access issues while working remotely.",
       "keywords": [
-        "support",
-        "troubleshooting",
-        "knowledge-article"
+        "VPN",
+        "remote work",
+        "network",
+        "MFA",
+        "IT support"
+      ],
+      "summary": "This article helps employees troubleshoot VPN connection failures, repeated disconnects, MFA timeouts, and app-specific access issues.",
+      "keyQuestions": [
+        "Why won't VPN connect?",
+        "What if VPN connects but an app does not work?",
+        "What details should I include in a VPN ticket?"
+      ],
+      "entities": [
+        "VPN",
+        "MyIT",
+        "multi-factor authentication",
+        "IT Service Desk"
       ]
     },
     "publishedAt": "2026-06-08T15:42:59.444Z",
@@ -333,7 +729,51 @@
       "viewsAllTime": 0,
       "trend": "up"
     },
-    "sector": "global"
+    "sector": "global",
+    "lead": "Use this article when VPN will not connect, disconnects repeatedly, or blocks access to internal tools while you are working remotely.",
+    "topics": [
+      "IT support",
+      "VPN",
+      "Remote access"
+    ],
+    "aliases": [
+      "remote access",
+      "VPN not connecting",
+      "network issue",
+      "work from home access"
+    ],
+    "references": [
+      {
+        "id": "ref-remote-access-trou",
+        "title": "Remote access troubleshooting standard",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Demo support guidance for VPN connectivity, multi-factor authentication, device compliance, and ticket routing.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Network Support",
+    "canonicalSlug": "it-support-vpn-troubleshooting",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "global"
+      ],
+      "countries": [
+        "US",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-4080ad22",
@@ -355,22 +795,33 @@
       }
     ],
     "complianceIssues": [],
-    "title": "Cartão corporativo - como solicitar",
+    "title": "Cartão corporativo: como solicitar",
     "contentType": "Knowledge Article",
     "market": "BR",
     "countries": [
       "BR"
     ],
-    "body": "# Cartão corporativo - como solicitar\n\n## Summary\n\nBrief guide for requesting a corporate credit card in Brazil.\n\n## Who this applies to\n\nAll Brazil-based employees\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Submit through MyPepsiCo.\n2. Manager approves.\n3. Card mailed within 10 business days.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 01/06/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "body": "# Cartão corporativo: como solicitar\n\nO cartão corporativo pode ser emitido quando a função exige despesas de negócio aprovadas e o gestor confirma a necessidade. O cartão deve ser usado somente para fins profissionais e conforme as políticas de viagens, despesas e compras.\n\n## Resumo\n\nAs solicitações de cartão corporativo são feitas pelo portal de despesas ou atendimento e exigem aprovação do gestor. Algumas funções são elegíveis por padrão; outras exigem justificativa de negócio.\n\n## A quem se aplica\n\nEste artigo se aplica a colaboradores no Brasil que viajam a trabalho, realizam visitas a clientes, atuam em campo ou gerenciam despesas recorrentes aprovadas.\n\nTerceiros e trabalhadores temporários podem ter um fluxo diferente de aprovação, conforme a política local.\n\n## Antes de começar\n\n- Confirme com seu gestor se o cartão é necessário para sua função.\n- Revise a política de viagens e despesas.\n- Verifique se seu centro de custo, gestor e endereço profissional estão atualizados.\n- Conclua qualquer treinamento ou aceite obrigatório de portador de cartão.\n\n## Passos\n\n1. Acesse o portal de despesas ou atendimento pelo MyPepsiCo.\n2. Pesquise por **Solicitação de cartão corporativo**.\n3. Confirme seus dados, centro de custo e gestor.\n4. Selecione o tipo de cartão adequado à necessidade de negócio.\n5. Informe a justificativa, tipo de despesa e frequência esperada de uso.\n6. Envie a solicitação para aprovação.\n7. Conclua o aceite de responsabilidade quando solicitado.\n8. Ative o cartão somente após confirmar que os dados estão corretos.\n\n## Situações comuns\n\n### Preciso do cartão para uma viagem próxima\n\nEnvie a solicitação o quanto antes. Se a viagem for urgente, fale com seu gestor sobre alternativas temporárias permitidas pela política.\n\n### O pedido foi encaminhado ao gestor errado\n\nAtualize seus dados no perfil do colaborador e confirme se a alteração foi sincronizada antes de reenviar a solicitação.\n\n### O cartão chegou com dados incorretos\n\nNão ative o cartão. Abra um chamado e inclua uma foto da correspondência sem expor o número completo do cartão.\n\n### Uma compra foi recusada\n\nVerifique se o tipo de estabelecimento, valor ou país é permitido. Para despesas críticas, contate o suporte de cartões e avise seu gestor.\n\n## ¿Necesita ayuda?\n\nEntre em contato com o suporte de viagens e despesas para dúvidas sobre elegibilidade, entrega, ativação, transações recusadas ou configuração no sistema de despesas.",
     "seo": {
-      "title": "Cartão corporativo - como solicitar",
-      "metaDescription": "Knowledge Article for BR employees: cartão corporativo - como solicitar. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
+      "title": "Cartão corporativo: como solicitar",
+      "metaDescription": "Como colaboradores no Brasil solicitam cartão corporativo, obtêm aprovação do gestor, ativam o cartão e resolvem problemas comuns.",
       "keywords": [
-        "cart",
-        "corporativo",
-        "como",
-        "solicitar",
-        "knowledge-article"
+        "cartão corporativo",
+        "despesas",
+        "viagens",
+        "aprovação do gestor",
+        "Brasil"
+      ],
+      "summary": "Este artigo explica como solicitar cartão corporativo no Brasil, incluindo elegibilidade, aprovação do gestor, ativação e suporte para problemas comuns.",
+      "keyQuestions": [
+        "Como solicitar cartão corporativo?",
+        "Quem pode ter cartão corporativo?",
+        "O que fazer se uma compra for recusada?"
+      ],
+      "entities": [
+        "Cartão corporativo",
+        "MyPepsiCo",
+        "Viagens e Despesas"
       ]
     },
     "translations": {
@@ -386,7 +837,46 @@
       "viewsAllTime": 0,
       "trend": "up"
     },
-    "sector": "latam"
+    "sector": "latam",
+    "lead": "Use este artigo quando sua função no Brasil exigir um cartão corporativo para viagens de negócios, visitas a clientes, despesas recorrentes aprovadas ou atividades de campo.",
+    "topics": [
+      "Viagens e despesas",
+      "Cartão corporativo",
+      "Brasil"
+    ],
+    "aliases": [
+      "solicitar cartão corporativo",
+      "cartão de despesas",
+      "cartão de viagem"
+    ],
+    "references": [
+      {
+        "id": "ref-padr-o-de-solicita",
+        "title": "Padrão de solicitação de cartão corporativo",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Orientação demonstrativa para elegibilidade, aprovação, ativação e suporte de cartão corporativo no Brasil.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Travel and Expense Brazil",
+    "canonicalSlug": "cart-o-corporativo-como-solicitar",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "br"
+      ],
+      "countries": [
+        "BR"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-b325e41b",
@@ -408,22 +898,33 @@
       }
     ],
     "complianceIssues": [],
-    "title": "Cartão corporativo - como solicitar",
+    "title": "Cartão corporativo: como solicitar",
     "contentType": "Knowledge Article",
     "market": "BR",
     "countries": [
       "BR"
     ],
-    "body": "# Cartão corporativo - como solicitar\n\n## Summary\n\nBrief guide for requesting a corporate credit card in Brazil.\n\n## Who this applies to\n\nAll Brazil-based employees\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Submit through MyPepsiCo.\n2. Manager approves.\n3. Card mailed within 10 business days.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 01/06/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "body": "# Cartão corporativo: como solicitar\n\nO cartão corporativo pode ser emitido quando a função exige despesas de negócio aprovadas e o gestor confirma a necessidade. O cartão deve ser usado somente para fins profissionais e conforme as políticas de viagens, despesas e compras.\n\n## Resumo\n\nAs solicitações de cartão corporativo são feitas pelo portal de despesas ou atendimento e exigem aprovação do gestor. Algumas funções são elegíveis por padrão; outras exigem justificativa de negócio.\n\n## A quem se aplica\n\nEste artigo se aplica a colaboradores no Brasil que viajam a trabalho, realizam visitas a clientes, atuam em campo ou gerenciam despesas recorrentes aprovadas.\n\nTerceiros e trabalhadores temporários podem ter um fluxo diferente de aprovação, conforme a política local.\n\n## Antes de começar\n\n- Confirme com seu gestor se o cartão é necessário para sua função.\n- Revise a política de viagens e despesas.\n- Verifique se seu centro de custo, gestor e endereço profissional estão atualizados.\n- Conclua qualquer treinamento ou aceite obrigatório de portador de cartão.\n\n## Passos\n\n1. Acesse o portal de despesas ou atendimento pelo MyPepsiCo.\n2. Pesquise por **Solicitação de cartão corporativo**.\n3. Confirme seus dados, centro de custo e gestor.\n4. Selecione o tipo de cartão adequado à necessidade de negócio.\n5. Informe a justificativa, tipo de despesa e frequência esperada de uso.\n6. Envie a solicitação para aprovação.\n7. Conclua o aceite de responsabilidade quando solicitado.\n8. Ative o cartão somente após confirmar que os dados estão corretos.\n\n## Situações comuns\n\n### Preciso do cartão para uma viagem próxima\n\nEnvie a solicitação o quanto antes. Se a viagem for urgente, fale com seu gestor sobre alternativas temporárias permitidas pela política.\n\n### O pedido foi encaminhado ao gestor errado\n\nAtualize seus dados no perfil do colaborador e confirme se a alteração foi sincronizada antes de reenviar a solicitação.\n\n### O cartão chegou com dados incorretos\n\nNão ative o cartão. Abra um chamado e inclua uma foto da correspondência sem expor o número completo do cartão.\n\n### Uma compra foi recusada\n\nVerifique se o tipo de estabelecimento, valor ou país é permitido. Para despesas críticas, contate o suporte de cartões e avise seu gestor.\n\n## ¿Necesita ayuda?\n\nEntre em contato com o suporte de viagens e despesas para dúvidas sobre elegibilidade, entrega, ativação, transações recusadas ou configuração no sistema de despesas.",
     "seo": {
-      "title": "Cartão corporativo - como solicitar",
-      "metaDescription": "Knowledge Article for BR employees: cartão corporativo - como solicitar. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
+      "title": "Cartão corporativo: como solicitar",
+      "metaDescription": "Como colaboradores no Brasil solicitam cartão corporativo, obtêm aprovação do gestor, ativam o cartão e resolvem problemas comuns.",
       "keywords": [
-        "cart",
-        "corporativo",
-        "como",
-        "solicitar",
-        "knowledge-article"
+        "cartão corporativo",
+        "despesas",
+        "viagens",
+        "aprovação do gestor",
+        "Brasil"
+      ],
+      "summary": "Este artigo explica como solicitar cartão corporativo no Brasil, incluindo elegibilidade, aprovação do gestor, ativação e suporte para problemas comuns.",
+      "keyQuestions": [
+        "Como solicitar cartão corporativo?",
+        "Quem pode ter cartão corporativo?",
+        "O que fazer se uma compra for recusada?"
+      ],
+      "entities": [
+        "Cartão corporativo",
+        "MyPepsiCo",
+        "Viagens e Despesas"
       ]
     },
     "translations": {
@@ -440,7 +941,46 @@
       "lastViewedAt": "2026-05-27T17:36:24.626Z",
       "trend": "up"
     },
-    "sector": "latam"
+    "sector": "latam",
+    "lead": "Use este artigo quando sua função no Brasil exigir um cartão corporativo para viagens de negócios, visitas a clientes, despesas recorrentes aprovadas ou atividades de campo.",
+    "topics": [
+      "Viagens e despesas",
+      "Cartão corporativo",
+      "Brasil"
+    ],
+    "aliases": [
+      "solicitar cartão corporativo",
+      "cartão de despesas",
+      "cartão de viagem"
+    ],
+    "references": [
+      {
+        "id": "ref-padr-o-de-solicita",
+        "title": "Padrão de solicitação de cartão corporativo",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Orientação demonstrativa para elegibilidade, aprovação, ativação e suporte de cartão corporativo no Brasil.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Travel and Expense Brazil",
+    "canonicalSlug": "cart-o-corporativo-como-solicitar",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "br"
+      ],
+      "countries": [
+        "BR"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-568e7dd8",
@@ -460,15 +1000,27 @@
       "US",
       "CA"
     ],
-    "body": "# How to reset your MyPepsiCo password\n\n## Summary\n\nQuick steps to reset a forgotten password.\n\nThis expanded paragraph adds context, examples, or specific edge cases. Replace this placeholder with the concrete detail your audience needs.\n\n## Who this applies to\n\nAll employees\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Go to passwordreset.pepsico.com.\n2. Enter your employee ID.\n3. Answer security questions.\n4. Set a new password.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 05/28/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "body": "# How to reset your MyPepsiCo password\n\nYour MyPepsiCo password protects access to employee tools, HR information, learning systems, email, and support channels. Reset your password as soon as you cannot sign in or receive an expired-password message.\n\n## Summary\n\nMost employees can reset their password through the self-service sign-in page. The process requires identity verification and may require multi-factor authentication. If your registered authentication method is unavailable, contact the IT Service Desk.\n\nNever send your password, verification code, or authenticator approval to another person. IT support may verify your identity, but they will not ask you to disclose your password.\n\n## Who this applies to\n\nThis article applies to employees and contractors who use a PepsiCo network ID to access MyPepsiCo, MyIT, learning resources, HR tools, email, or other company applications.\n\nIt does not apply to applicant accounts, supplier portals, customer portals, or personal social media accounts.\n\n## Before you start\n\n- Use a trusted device and network.\n- Have your employee ID or username available.\n- Keep your registered phone or authenticator app nearby.\n- Close extra sign-in windows so you do not reset the wrong account.\n\n## Steps\n\n1. Go to the MyPepsiCo sign-in page.\n2. Select **Forgot password** or **Can’t access your account**.\n3. Enter your PepsiCo username or employee email address.\n4. Complete the identity verification prompt.\n5. Create a new password that meets the current password rules.\n6. Wait two minutes, then sign in again.\n7. If you use email, Teams, VPN, or mobile apps, sign out and sign back in so the new password syncs.\n\n## Common situations\n\n### You changed your password but still cannot sign in\n\nWait a few minutes for systems to sync. Then close the browser, open a new private window, and try again. If a mobile app is still failing, remove the old saved password from the device.\n\n### Your account is locked\n\nWait for the lockout window to expire or use self-service unlock if the option appears. If you are blocked from work, contact the IT Service Desk.\n\n### Multi-factor authentication is unavailable\n\nUse a backup method if one is registered. If you changed phones or lost access to your authenticator app, contact IT support to verify your identity and reset your authentication method.\n\n### You receive repeated password prompts\n\nUpdate saved passwords in Outlook, Teams, VPN, browser password managers, and mobile mail apps. Repeated prompts usually mean one device is still trying the old password.\n\n## Need help?\n\nOpen a MyIT ticket under **Password and sign-in** or call the IT Service Desk if you cannot complete self-service reset. Include the exact error message and whether you still have access to your registered authentication method.",
     "seo": {
-      "title": "How to reset your MyPepsiCo password",
-      "metaDescription": "Knowledge Article for US employees: how to reset your mypepsico password. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the ",
+      "title": "Reset your MyPepsiCo password",
+      "metaDescription": "Self-service steps to reset an expired or forgotten MyPepsiCo password, unlock access, and resolve common sign-in issues.",
       "keywords": [
-        "reset",
-        "mypepsico",
-        "password",
-        "knowledge-article"
+        "MyPepsiCo",
+        "password reset",
+        "account locked",
+        "multi-factor authentication"
+      ],
+      "summary": "This article explains how to reset a MyPepsiCo password, complete identity verification, sync the new password across apps, and contact IT when self-service reset fails.",
+      "keyQuestions": [
+        "How do I reset my MyPepsiCo password?",
+        "What if my PepsiCo account is locked?",
+        "Why do apps still ask for my old password?"
+      ],
+      "entities": [
+        "MyPepsiCo",
+        "MyIT",
+        "IT Service Desk",
+        "multi-factor authentication"
       ]
     },
     "publishedAt": "2025-10-28T17:36:24.626Z",
@@ -482,7 +1034,47 @@
       "lastViewedAt": "2026-05-14T17:36:24.626Z",
       "trend": "flat"
     },
-    "sector": "pfna"
+    "sector": "pfna",
+    "lead": "Use this article when you forgot your MyPepsiCo password, your password expired, or you need to unlock access before signing in to employee tools.",
+    "topics": [
+      "Password and sign-in",
+      "Employee access",
+      "MyPepsiCo"
+    ],
+    "aliases": [
+      "forgot password",
+      "account locked",
+      "can't access MyPepsiCo"
+    ],
+    "references": [
+      {
+        "id": "ref-identity-and-acces",
+        "title": "Identity and access management support guidance",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Standard support guidance for password reset, account unlock, and multi-factor authentication recovery.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Identity and Access Management",
+    "canonicalSlug": "how-to-reset-your-mypepsico-password",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-fec0f30f",
@@ -502,16 +1094,28 @@
       "US",
       "CA"
     ],
-    "body": "# How to request a corporate credit card\n\n## Summary\n\nStep-by-stp guide for employees who need a corporate card for travel and expenses.\n\n## Who this applies to\n\nNewly hired managers and senior individual contributors who travel for business\n\n## Before you start\n\n- Confirm you have access to MyPepsiCo with your corporate credentials.\n- Have any supporting information ready (codes, receipts, dates) that you may need.\n- If your request requires approval, identify your direct manager before starting.\n\n## Steps\n\n1. Submit request through MyPepsiCo.\n2. Manager approves.\n3. Finance team reviews credit limit.\n4. Card mailed in 7-10 business days.\n\n## Common situations\n\n**I can't sign in.** Verify your credentials in MyPepsiCo or reset your password.\n\n**My request wasn't approved in the expected timeframe.** Approvals pending for more than three business days are automatically escalated to the next level.\n\n**I need to change a submitted request.** Open the original case and use the *Edit* option. If it's already been processed, contact the responsible team.\n\n## Need help?\n\nIf you have questions, open a case in MyPepsiCo at *Get Help* or email the team listed below.\n\n---\n\n**Last updated:** 05/27/2026\n**Owner:** [Article Owner — to be confirmed]\n**Next review:** TBD",
+    "body": "# How to request a corporate credit card\n\nA corporate credit card may be issued when your role requires approved business spending and your manager confirms the need. The card is for business expenses only and must be used according to travel, expense, and purchasing policies.\n\n## Summary\n\nCorporate card requests are submitted through the expense or service portal and require manager approval. Some roles are automatically eligible; others require a business justification. Do not use a personal card for recurring business expenses if a corporate card is required for your role.\n\n## Who this applies to\n\nThis article applies to U.S. and Canada employees who travel for business, manage approved recurring expenses, or need a card for field/customer activity.\n\nContractors and temporary workers may require a different approval path or may not be eligible, depending on role and local policy.\n\n## Before you start\n\n- Confirm with your manager that a corporate card is required.\n- Review the travel and expense policy for allowable purchases.\n- Make sure your employee profile, cost center, manager, and work location are current.\n- Complete any required cardholder training or policy acknowledgement.\n\n## Steps\n\n1. Open the expense or service portal from MyPepsiCo.\n2. Search for **Corporate card request**.\n3. Confirm your employee details and cost center.\n4. Select the card type that matches your business need.\n5. Enter the business justification, expected spend type, and travel frequency.\n6. Submit the request for manager approval.\n7. Complete any cardholder acknowledgement sent after approval.\n8. Activate the card when it arrives and add it to the approved expense tool if required.\n\n## Common situations\n\n### You need the card for an upcoming trip\n\nSubmit the request as early as possible. If the trip is urgent, ask your manager whether a temporary purchasing or travel exception is available.\n\n### Your manager changed recently\n\nUpdate your employee profile before submitting. Requests routed to the wrong manager may need to be canceled and resubmitted.\n\n### The card arrives with the wrong name or address\n\nDo not activate the card. Open a support case and attach a photo of the mailer without exposing the full card number.\n\n### A charge is declined\n\nCheck whether the merchant type, amount, or country is restricted. If the charge is business-critical, contact card support and notify your manager.\n\n## Need help?\n\nContact the T&E support team for policy questions, card delivery issues, declined transactions, or expense tool setup.",
     "seo": {
-      "title": "How to request a corporate credit card",
-      "metaDescription": "Knowledge Article for US employees: how to request a corporate credit card. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for th",
+      "title": "Request a corporate credit card",
+      "metaDescription": "How eligible employees request a corporate card, get manager approval, complete acknowledgement, and resolve common card issues.",
       "keywords": [
-        "request",
-        "corporate",
-        "credit",
-        "card",
-        "knowledge-article"
+        "corporate card",
+        "travel expense",
+        "manager approval",
+        "T&E",
+        "business expenses"
+      ],
+      "summary": "This article explains how employees request a corporate credit card for approved business expenses, including eligibility, manager approval, activation, and support paths.",
+      "keyQuestions": [
+        "How do I request a corporate credit card?",
+        "Who is eligible for a corporate card?",
+        "What do I do if my corporate card is declined?"
+      ],
+      "entities": [
+        "Corporate card",
+        "T&E",
+        "MyPepsiCo",
+        "expense portal"
       ]
     },
     "publishedAt": "2025-09-18T17:36:24.626Z",
@@ -525,7 +1129,47 @@
       "lastViewedAt": "2026-05-10T17:36:24.626Z",
       "trend": "down"
     },
-    "sector": "pfna"
+    "sector": "pfna",
+    "lead": "Use this article when your role requires a corporate card for approved business travel, customer visits, field work, or recurring business expenses.",
+    "topics": [
+      "Travel and expense",
+      "Corporate card",
+      "Business spending"
+    ],
+    "aliases": [
+      "company credit card",
+      "request corporate card",
+      "travel card"
+    ],
+    "references": [
+      {
+        "id": "ref-travel-and-expense",
+        "title": "Travel and expense card request standard",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Demo support guidance for corporate card eligibility, manager approval, activation, and declined transaction support.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Travel and Expense Operations",
+    "canonicalSlug": "how-to-request-a-corporate-credit-card",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-010",
@@ -545,15 +1189,28 @@
       "US",
       "CA"
     ],
-    "body": "## What holidays does PepsiCo observe in 2026?\n\nFor U.S. salaried employees, the 2026 paid holiday schedule:\n\n| Date | Holiday | Day |\n|---|---|---|\n| January 1 | New Year's Day | Thursday |\n| January 19 | Martin Luther King Jr. Day | Monday |\n| May 25 | Memorial Day | Monday |\n| July 3 | Independence Day (observed) | Friday |\n| September 7 | Labor Day | Monday |\n| November 26 | Thanksgiving | Thursday |\n| November 27 | Day after Thanksgiving | Friday |\n| December 24 | Christmas Eve | Thursday |\n| December 25 | Christmas Day | Friday |\n\nPlus **2 floating holidays** you can take on any business day with manager approval.\n\n## What about hourly employees in plants and warehouses?\n\nThe holiday schedule at production sites follows the local collective bargaining agreement or site policy. Check with your site HR partner. Some sites pay double-time for working on a recognized holiday; others provide the day off paid.\n\n## When do floating holidays expire?\n\nFloating holidays must be used by December 31 of the calendar year. They don't roll over. Most managers prefer that you book them at least one week in advance. Book through MyPepsiCo under **Time Off > Floating Holiday**.\n\n## What if the holiday falls on a weekend?\n\nWhen Christmas (December 25) falls on a Sunday, the holiday is observed on the following Monday. When it falls on a Saturday, the holiday is observed on the preceding Friday. The same logic applies to New Year's Day and Independence Day.\n\nIn 2026, July 4 falls on a Saturday, so Independence Day is observed on Friday, July 3.\n\n## Do offices close on these days?\n\n- **Corporate offices:** closed.\n- **Plants and warehouses:** generally operating with skeleton crews on a holiday premium pay basis. Check your site's published holiday schedule.\n- **Customer-facing and field sales:** vary by team. Confirm with your manager.\n- **IT Service Desk and Security Operations Center:** open 24/7, 365 days a year. Reach them at the usual numbers.\n\n## What if I'm scheduled to work a holiday?\n\nIf you're a salaried employee and your role requires holiday work (rare; only for on-call rotations or active project deadlines), discuss with your manager. PepsiCo provides a comp day in lieu, taken within 60 days of the worked holiday.\n\nFor hourly employees in plants, holiday work follows the local CBA or site practice, typically time-and-a-half or double-time pay.\n\n## What about religious or cultural observances not on this list?\n\nUse one of your floating holidays, or use PTO. Religious observances that fall on a workday are accommodated under the Reasonable Accommodation Policy. Talk to your HR Business Partner if you need recurring scheduling flexibility.\n\n## What about employees outside the U.S.?\n\nMexico, Canada, and international sites follow their local statutory holiday schedules. For Mexico, see the **Calendario de feriados oficiales México 2026** KA. For other geographies, check the corresponding regional KA or your local HR partner.\n\n## What if a holiday falls during my PTO?\n\nIf a paid company holiday falls within your scheduled PTO, PepsiCo restores that day to your PTO balance. You don't spend PTO on a day that's already a paid holiday.\n\n## When will the 2027 calendar be published?\n\nThe 2027 schedule is typically published in mid-October 2026, after the corporate calendar review. It appears in MyPepsiCo under **Time Off > Holiday Calendar**.\n\n---\n\n**Last updated:** 05/17/2026 \n**Owner:** Total Rewards \n**Next review:** 10/15/2026",
+    "body": "# Holiday schedule 2026\n\nHoliday schedules vary by country, state or province, business unit, union agreement, and site operating needs. Always use the calendar assigned to your employee profile or work location.\n\n## Summary\n\nCorporate calendars usually list observed company holidays for office employees. Manufacturing, warehouse, field, sales, and customer-facing teams may follow site-specific schedules because operations need coverage during peak periods or customer commitments.\n\nYour manager or local HR team can confirm how holidays are handled for your role, including premium pay, floating holidays, or alternate days off.\n\n## Questions\n\n### Where do I find my holiday calendar?\n\nOpen MyPepsiCo and search for **holiday calendar**. Choose the calendar for your country, business unit, and site. If the article lists multiple calendars, use the one that matches your work location in your employee profile.\n\n### Why is my team's schedule different from the corporate calendar?\n\nSome teams operate on customer, production, or route schedules. A site may observe a holiday on a different date, assign coverage rotations, or provide another day off based on local rules.\n\n### What if I recently transferred locations?\n\nCheck that your employee profile reflects the new work location. Holiday eligibility usually follows the active work location and role, not the location you transferred from.\n\n### Do holidays affect payroll deadlines?\n\nYes. Payroll deadlines may move earlier when a holiday falls near the normal submission or approval cutoff. Managers should approve time as early as possible during holiday weeks.\n\n### How do floating holidays work?\n\nFloating holidays depend on country, role, and plan rules. Use the timekeeping or absence tool to check your available balance and any use-by date.\n\n### What if I am scheduled to work on a holiday?\n\nTalk to your manager before the holiday. Your pay, alternate day off, or premium treatment depends on role, country, site policy, and local law.\n\n## Need help?\n\nContact your manager for schedule questions. Contact HR or Payroll support if the calendar, timekeeping tool, or paycheck does not match your approved schedule.",
     "seo": {
-      "title": "Holiday schedule 2026 — FAQ guide",
-      "metaDescription": "FAQ for US employees: holiday schedule 2026. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next time you need",
+      "title": "Holiday schedule 2026",
+      "metaDescription": "FAQ for finding the right 2026 holiday calendar, understanding site differences, floating holidays, payroll deadlines, and support paths.",
       "keywords": [
-        "holiday",
-        "schedule",
+        "holiday schedule",
         "2026",
-        "faq"
+        "calendar",
+        "floating holiday",
+        "payroll"
+      ],
+      "summary": "This FAQ explains how employees find the right holiday calendar, why schedules differ, and who to contact about holidays, timekeeping, or payroll.",
+      "keyQuestions": [
+        "Where is the 2026 holiday calendar?",
+        "Why is my site schedule different?",
+        "What if I work on a holiday?"
+      ],
+      "entities": [
+        "MyPepsiCo",
+        "Human Resources",
+        "Payroll",
+        "Timekeeping"
       ]
     },
     "publishedAt": "2025-02-10T17:36:24.626Z",
@@ -567,7 +1224,48 @@
       "lastViewedAt": "2026-04-18T17:36:24.626Z",
       "trend": "down"
     },
-    "sector": "pfna"
+    "sector": "pfna",
+    "lead": "Use this FAQ to understand where to find your 2026 holiday calendar, how holidays differ by country or site, and what to do if your schedule does not match the published calendar.",
+    "topics": [
+      "Holidays",
+      "Timekeeping",
+      "Payroll"
+    ],
+    "aliases": [
+      "company holidays",
+      "2026 calendar",
+      "floating holiday",
+      "site holiday schedule"
+    ],
+    "references": [
+      {
+        "id": "ref-holiday-calendar-s",
+        "title": "Holiday calendar support standard",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Demo support guidance for country, site, and role-based holiday calendars and payroll impacts.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "HR Operations",
+    "canonicalSlug": "holiday-schedule-2026",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   },
   {
     "id": "pub-001",
@@ -587,15 +1285,28 @@
       "US",
       "CA"
     ],
-    "body": "## Summary\n\nSubmit your business expense report through Concur within 30 days of the trip end date. Reports must include itemized receipts for any single expense of $25 or more, plus a manager-approved trip purpose. Most reports route automatically and reimburse within five business days of approval.\n\n## Who this applies to\n\nAll U.S. salaried and hourly employees who incur reimbursable business expenses on a corporate card or personal funds. Contractors, interns, and temporary workers follow a different process documented in the Contractor Reimbursement KA.\n\n## Before you start\n\n- Confirm the expense is on the [approved spend categories list](#).\n- Save digital receipts as PDFs or photos. Concur accepts JPG, PNG, and PDF up to 10 MB per file.\n- Have your trip purpose, project code, and (if billable) the client account number ready.\n\n## Steps\n\n1. Sign in to Concur at **concur.pepsico.com** with your PepsiCo SSO.\n2. From the home screen, click **+ Create New Report** in the top right.\n3. Enter a **Report Name** that follows the convention: `[Trip purpose] — [Location] — [Month YYYY]`. Example: *Client meetings — NYC — Oct 2026*.\n4. Set the **Report Date** to the last day of the trip.\n5. Add the **Business Purpose** in one or two sentences. Concur uses this in the audit trail.\n6. Click **Next** and start adding expenses one at a time. For each line, attach the corresponding receipt.\n7. When all expenses are entered, click **Submit Report** at the top right.\n\n## Approval flow\n\n| Report total | Approvers |\n|---|---|\n| Up to $500 | Direct manager only |\n| $501 to $5,000 | Direct manager + functional finance partner |\n| Over $5,000 | Direct manager + functional finance partner + VP sponsor |\n\nApproval typically completes within two to three business days. Reimbursement lands in the same bank account as your paycheck within five business days after the last approver signs off.\n\n## Common issues\n\n**My receipt is missing.** Use the **Missing Receipt Affidavit** option inside the expense line. This is allowed once per report.\n\n**A line is flagged 'Out of policy'.** Open the line and read the flag detail. Most flags resolve by adding a longer business purpose or splitting the expense across project codes.\n\n**I traveled internationally.** Switch the line's currency to the local currency at point of sale. Concur converts using the daily rate; don't pre-convert to USD yourself.\n\n## Need help\n\n- Reach the T&E support team at **te-help@pepsico.com**.\n- Concur runs office hours every Tuesday at 2 PM ET. Join the recurring Teams event in your calendar's *PepsiCo, Operations* channel.\n\n---\n\n**Last updated:** 05/12/2026 \n**Owner:** Travel & Expense, Finance Operations \n**Effective:** Immediately \n**Next review:** 12/01/2026",
+    "body": "# How to submit an expense report\n\nSubmit business expenses promptly so your manager, Finance, and Travel and Expense teams can review the cost while the trip or purchase is still fresh. A complete report includes a clear business purpose, itemized receipts, accurate expense categories, and any required attendee or customer details.\n\n## Summary\n\nExpense reports should be submitted through the approved expense tool within the required submission window for your market. U.S. employees should submit reports within 30 days of the trip end date or purchase date unless a stricter team rule applies.\n\nUse a corporate card when one has been issued for the expense type. If you paid with personal funds for an approved business expense, submit the reimbursement request in the same tool and select the appropriate payment method.\n\n## Who this applies to\n\nThis article applies to U.S. and Canada employees who travel for business, host approved customer or team meetings, purchase approved supplies, or reconcile corporate card charges.\n\nContractors, temporary workers, and employees outside this market may have a different reimbursement path. Follow local policy when it is stricter than this article.\n\n## Before you start\n\n- Confirm the expense was approved and has a valid business purpose.\n- Gather itemized receipts, not only credit card slips.\n- Confirm the right cost center, project code, or customer activity code.\n- Add attendee names for meals, events, or customer meetings when required.\n- Separate personal purchases from business expenses before submitting.\n\n## Steps\n\n1. Open the expense tool from MyPepsiCo or the Travel and Expense page.\n2. Start a new report and choose the report type that matches the activity.\n3. Add the trip, meeting, or purchase purpose in plain language.\n4. Import corporate card charges or add reimbursable expenses manually.\n5. Attach itemized receipts and match each receipt to the correct expense line.\n6. Choose the right category, date, currency, and payment method for each expense.\n7. Add attendees, customer names, mileage details, or project codes when prompted.\n8. Review policy warnings and correct any missing information.\n9. Submit the report for manager approval.\n10. Watch for approval or correction messages until the report is paid or fully reconciled.\n\n## Common situations\n\n### A receipt is missing\n\nUse the missing receipt process only after you have tried to recover the receipt from the merchant, hotel, airline, or card provider. Add a note explaining what was purchased, why the receipt is unavailable, and who approved the expense.\n\n### A corporate card charge is wrong\n\nDo not delete the charge. Add notes and contact card support if the merchant, amount, or currency appears incorrect. Disputed charges still need to be tracked in the expense tool.\n\n### The report is returned for correction\n\nOpen the returned report, read the approver comments, correct the specific lines, and resubmit. Do not create a duplicate report unless Travel and Expense support asks you to.\n\n### The expense is older than the submission window\n\nSubmit the report with an explanation and notify your manager. Late reports may require additional approval or may not be reimbursable depending on the policy.\n\n## Need help?\n\nContact Travel and Expense support for policy questions, rejected reports, card reconciliation issues, or payment status. Include the report number, expense date, amount, and the approver comment if the report was returned.",
     "seo": {
-      "title": "How to submit an expense report",
-      "metaDescription": "Knowledge Article for US employees: how to submit an expense report. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the next ",
+      "title": "Submit an expense report",
+      "metaDescription": "How to submit a complete business expense report with receipts, business purpose, approvals, and common correction steps.",
       "keywords": [
-        "submit",
-        "expense",
-        "report",
-        "knowledge-article"
+        "expense report",
+        "reimbursement",
+        "corporate card",
+        "receipts",
+        "travel"
+      ],
+      "summary": "This article explains how employees submit business expenses, attach receipts, resolve returned reports, and contact Travel and Expense support.",
+      "keyQuestions": [
+        "How do I submit an expense report?",
+        "What receipts do I need?",
+        "What if my expense report is returned?"
+      ],
+      "entities": [
+        "Travel and Expense",
+        "MyPepsiCo",
+        "corporate card",
+        "expense tool"
       ]
     },
     "publishedAt": "2024-12-12T17:36:24.626Z",
@@ -611,6 +1322,47 @@
     },
     "archivedAt": "2024-08-15T10:00:00.000Z",
     "archivedBy": "Sarah Chen",
-    "sector": "pfna"
+    "sector": "pfna",
+    "lead": "Use this article when you need to submit business expenses for reimbursement or reconcile charges made on a corporate card after approved work travel or business activity.",
+    "topics": [
+      "Travel and expense",
+      "Reimbursement",
+      "Corporate card"
+    ],
+    "aliases": [
+      "expense reimbursement",
+      "submit receipts",
+      "reconcile corporate card",
+      "travel expenses"
+    ],
+    "references": [
+      {
+        "id": "ref-travel-and-expense",
+        "title": "Travel and expense submission standard",
+        "kind": "note",
+        "source": "reviewer",
+        "excerpt": "Demo support guidance for submitting expense reports, receipt requirements, approver corrections, and corporate card reconciliation.",
+        "addedAt": "2026-08-11T00:00:00.000Z",
+        "addedBy": "Content Governance"
+      }
+    ],
+    "owner": "Travel and Expense Operations",
+    "canonicalSlug": "how-to-submit-an-expense-report",
+    "nextReviewAt": "2027-02-11T01:00:00.000Z",
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    }
   }
 ]

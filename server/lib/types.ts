@@ -155,6 +155,8 @@ export type Article = {
    * from the market's sectorId at read time when missing.
    */
   sector?: string;
+  /** Approved publishing destination selected by the owner or Team Admin. */
+  knowledgeBase?: "myPepsiCo KB" | "PFP KB" | "PepKM KB";
   market: Market;
   /** ISO country codes the article applies to. Always present after Phase A;
    * older seed entries get an empty array filled in at read time. */

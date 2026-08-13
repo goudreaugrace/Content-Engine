@@ -151,23 +151,30 @@ articlesRouter.patch("/:id/owner", async (req, res) => {
 });
 
 articlesRouter.patch("/:id", async (req, res) => {
-  const { body, title, seo } = req.body as {
+  const { body, title, seo, countries, knowledgeBase, sector, globalJustification } = req.body as {
     body?: string;
     title?: string;
     seo?: Article["seo"];
+    countries?: string[];
+    knowledgeBase?: Article["knowledgeBase"];
+    sector?: string;
+    globalJustification?: string;
   };
   const article = await loadById<Article>("articles", req.params.id);
   if (!article) return res.status(404).json({ error: "not found" });
 
   // At least one field has to change for the patch to be meaningful.
-  if (body === undefined && title === undefined && seo === undefined) {
+  if (body === undefined && title === undefined && seo === undefined && countries === undefined && knowledgeBase === undefined && sector === undefined && globalJustification === undefined) {
     return res
       .status(400)
-      .json({ error: "Provide at least one of: body, title, seo." });
+      .json({ error: "Provide at least one editable article field." });
   }
   // Body is still validated when present — empty body would break the renderer.
   if (typeof body === "string" && !body.trim()) {
     return res.status(400).json({ error: "body cannot be empty" });
+  }
+  if ((sector ?? article.sector) === "global" && (globalJustification ?? article.globalJustification ?? "").trim().length < 10) {
+    return res.status(400).json({ error: "Global-sector content requires a cross-sector justification of at least 10 characters." });
   }
 
   const nextBody = typeof body === "string" ? body : article.body;
@@ -189,11 +196,16 @@ articlesRouter.patch("/:id", async (req, res) => {
       }
     : article.seo;
 
+
   const updated: Article = {
     ...article,
     body: nextBody,
     title: nextTitle,
     seo: nextSeo,
+    countries: Array.isArray(countries) ? countries.map((country) => country.trim()).filter(Boolean) : article.countries,
+    knowledgeBase: knowledgeBase ?? article.knowledgeBase,
+    sector: sector ?? article.sector,
+    globalJustification: globalJustification ?? article.globalJustification,
   };
   await upsert("articles", updated);
   res.json(updated);
@@ -392,7 +404,7 @@ articlesRouter.patch("/:id/review", async (req, res) => {
 });
 
 /**
- * Resubmit a rejected article for review. The current rejection (reason +
+ * Resubmit a rejected article or requested-change revision for review. The current rejection (reason +
  * snapshot of the body that was rejected) is moved into the rejections log,
  * the live rejection fields are cleared, version is incremented, and status
  * flips back to "needs-review".
@@ -400,10 +412,13 @@ articlesRouter.patch("/:id/review", async (req, res) => {
 articlesRouter.post("/:id/resubmit", async (req, res) => {
   const article = await loadById<Article>("articles", req.params.id);
   if (!article) return res.status(404).json({ error: "not found" });
-  if (article.status !== "rejected") {
+  if (article.status !== "rejected" && article.status !== "needs-info") {
     return res
       .status(400)
-      .json({ error: "Only rejected articles can be resubmitted" });
+      .json({ error: "Only rejected articles or requested-change revisions can be resubmitted" });
+  }
+  if (article.sector === "global" && (article.globalJustification ?? "").trim().length < 10) {
+    return res.status(400).json({ error: "Add a cross-sector justification before submitting Global content for review." });
   }
 
   const currentVersion = article.version ?? 1;
@@ -424,9 +439,13 @@ articlesRouter.post("/:id/resubmit", async (req, res) => {
     ...article,
     status: "needs-review",
     version: currentVersion + 1,
-    rejections: [...(article.rejections ?? []), entry],
+    rejections:
+      article.status === "rejected"
+        ? [...(article.rejections ?? []), entry]
+        : article.rejections,
     // Clear the live rejection fields — they now live in history.
     rejectionReason: undefined,
+    infoNeeded: undefined,
     reviewedAt: undefined,
     reviewer: undefined,
   };

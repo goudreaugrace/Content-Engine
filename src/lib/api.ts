@@ -332,6 +332,8 @@ export type Article = {
   /** Sector id — the tier above Market (Global, PFNA, PBNA, LatAm, etc.).
    *  Optional in the type only for older seed rows; new articles always set it. */
   sector?: string;
+  /** Approved publishing destination selected by the owner or Team Admin. */
+  knowledgeBase?: "myPepsiCo KB" | "PFP KB" | "PepKM KB";
   market: Market;
   /** Phase A — ISO country codes. Older articles backfill to []. */
   countries: string[];
@@ -518,7 +520,15 @@ export const api = {
     }),
   updateArticle: (
     id: string,
-    body: { body?: string; title?: string; seo?: ArticleSEO },
+    body: {
+      body?: string;
+      title?: string;
+      seo?: ArticleSEO;
+      countries?: string[];
+      knowledgeBase?: Article["knowledgeBase"];
+      sector?: string;
+      globalJustification?: string;
+    },
   ) =>
     request<Article>(`/api/articles/${id}`, {
       method: "PATCH",

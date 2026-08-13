@@ -165,23 +165,23 @@ export function evaluate(article: Article): ApprovalDecision {
   }
 
   // ── Global market requires justification ──
-  if (article.market === "Global") {
+  if (article.market === "Global" || article.sector === "global") {
     if (
       article.globalJustification &&
       article.globalJustification.trim().length >= 10
     ) {
       reasons.push({
         id: "global-justification",
-        label: "Global country-context justification provided",
+        label: "Global cross-sector justification provided",
         severity: "ok",
       });
     } else {
       reasons.push({
         id: "global-justification",
-        label: "Global country context without justification",
+        label: "Global cross-sector justification missing",
         severity: "error",
         reason:
-          "Global articles must include a justification explaining the cross-country intent.",
+          "Global content must include a justification explaining the cross-sector intent.",
       });
     }
   }

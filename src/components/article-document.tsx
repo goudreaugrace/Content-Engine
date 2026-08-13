@@ -1,4 +1,5 @@
-import { Box, Chip, Divider, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Button, Chip, Divider, Stack, TextField, Typography, useTheme } from "@mui/material";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { isValidElement, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -16,6 +17,23 @@ type Props = {
   showMastheadMeta?: boolean;
   presentation?: "standard" | "immersive";
   showMasthead?: boolean;
+  editableSections?: EditableArticleSection[];
+  editingKey?: string | null;
+  onEdit?: (key: string) => void;
+  onDoneEditing?: () => void;
+  onTitleChange?: (value: string) => void;
+  onLeadChange?: (value: string) => void;
+  titleRecommendations?: string[];
+  leadRecommendations?: string[];
+};
+
+export type EditableArticleSection = {
+  key: string;
+  title: string;
+  body: string;
+  recommendations?: string[];
+  onTitleChange?: (value: string) => void;
+  onBodyChange: (value: string) => void;
 };
 
 export function articleAnchorId(value: string) {
@@ -45,6 +63,14 @@ export default function ArticleDocument({
   showMastheadMeta = true,
   presentation = "standard",
   showMasthead = true,
+  editableSections,
+  editingKey,
+  onEdit,
+  onDoneEditing,
+  onTitleChange,
+  onLeadChange,
+  titleRecommendations = [],
+  leadRecommendations = [],
 }: Props) {
   const theme = useTheme();
   const t = theme.palette.tokens;
@@ -53,10 +79,91 @@ export default function ArticleDocument({
   const parsedTitle = body.match(/^#\s+(.+?)\s*$/m)?.[1]?.trim();
   const title = titleProp?.trim() || parsedTitle || "Knowledge article";
   const readerBody = body.replace(/^#\s+.+\n+/, "").trim();
-  const sections = Array.from(readerBody.matchAll(/^##\s+(.+?)\s*$/gm)).map((m) =>
-    m[1].trim(),
-  );
+  const sections =
+    editableSections?.map((section) => section.title).filter(Boolean) ??
+    Array.from(readerBody.matchAll(/^##\s+(.+?)\s*$/gm)).map((m) =>
+      m[1].trim(),
+    );
   const isImmersive = presentation === "immersive";
+  const isEditable = !!onEdit;
+  const editableTitle = titleProp ?? title;
+  const editableLead = lead ?? "";
+
+  const editButton = (key: string) =>
+    isEditable ? (
+      <Button
+        size="small"
+        variant="outlined"
+        className="article-edit-action"
+        onClick={() => onEdit?.(key)}
+        sx={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          minHeight: 30,
+          px: 1.25,
+          borderRadius: 999,
+          bgcolor: "#FFFFFF",
+          borderColor: t.border,
+          color: t.pepsiBlueStrong,
+          fontSize: "0.75rem",
+          fontWeight: 700,
+          opacity: { xs: 1, md: 0 },
+          transition: "opacity 140ms, border-color 140ms, background-color 140ms",
+          "&:hover": {
+            bgcolor: t.pepsiBlueSubtle,
+            borderColor: t.pepsiBlue,
+          },
+        }}
+      >
+        Edit
+      </Button>
+    ) : null;
+
+  const editableBlockSx = {
+    position: "relative",
+    pr: { xs: 0, md: isEditable ? 8 : 0 },
+    py: isEditable ? 0.5 : 0,
+    borderRadius: 1.5,
+    "&:hover .article-edit-action": {
+      opacity: 1,
+    },
+  } as const;
+
+  const recommendationCallouts = (items?: string[]) => {
+    if (!items?.length) return null;
+    return (
+      <Stack spacing={0.75} sx={{ mt: 1.25, mb: 1.5 }}>
+        {items.map((item) => (
+          <Stack
+            key={item}
+            direction="row"
+            spacing={0.75}
+            alignItems="flex-start"
+            sx={{
+              maxWidth: isImmersive ? 860 : 700,
+              px: 1.25,
+              py: 1,
+              borderRadius: 1.25,
+              bgcolor: "#FFF8E6",
+              border: "1px solid rgba(197, 123, 0, 0.28)",
+              color: t.ink,
+            }}
+          >
+            <ErrorOutlineIcon sx={{ mt: 0.1, fontSize: 16, color: t.ember, flexShrink: 0 }} />
+            <Box>
+              <Typography sx={{ fontSize: "0.6875rem", fontWeight: 800, color: t.ember, textTransform: "uppercase", letterSpacing: 0 }}>
+                Recommended improvement
+              </Typography>
+              <Typography sx={{ fontSize: "0.8125rem", color: t.slate, lineHeight: 1.45 }}>
+                {item}
+              </Typography>
+            </Box>
+          </Stack>
+        ))}
+      </Stack>
+    );
+  };
 
   return (
     <Box
@@ -157,21 +264,85 @@ export default function ArticleDocument({
           pb: 2,
         }}
       >
-        <Typography
-          component="h1"
-          sx={{
-            fontFamily: theme.palette.fonts.sans,
-            fontSize: { xs: "2rem", md: isImmersive ? "2.75rem" : "2.35rem" },
-            fontWeight: isImmersive ? 750 : 500,
-            letterSpacing: 0,
-            lineHeight: 1.12,
-            color: t.ink,
-            mb: 1.25,
-          }}
-        >
-          {title}
-        </Typography>
-        {lead && (
+        <Box sx={editableBlockSx}>
+          {editingKey === "title" && onTitleChange ? (
+            <Stack spacing={1}>
+              <TextField
+                autoFocus
+                fullWidth
+                variant="standard"
+                value={editableTitle}
+                onChange={(event) => onTitleChange(event.target.value)}
+                InputProps={{
+                  disableUnderline: true,
+                  sx: {
+                    fontSize: { xs: "2rem", md: isImmersive ? "2.75rem" : "2.35rem" },
+                    fontWeight: isImmersive ? 750 : 500,
+                    lineHeight: 1.12,
+                    color: t.ink,
+                  },
+                }}
+              />
+              <Box>
+                <Button size="small" variant="contained" onClick={onDoneEditing}>
+                  Done
+                </Button>
+              </Box>
+              {recommendationCallouts(titleRecommendations)}
+            </Stack>
+          ) : (
+            <>
+              <Typography
+                component="h1"
+                sx={{
+                  fontFamily: theme.palette.fonts.sans,
+                  fontSize: { xs: "2rem", md: isImmersive ? "2.75rem" : "2.35rem" },
+                  fontWeight: isImmersive ? 750 : 500,
+                  letterSpacing: 0,
+                  lineHeight: 1.12,
+                  color: t.ink,
+                  mb: 1.25,
+                }}
+              >
+                {title}
+              </Typography>
+              {editButton("title")}
+              {recommendationCallouts(titleRecommendations)}
+            </>
+          )}
+        </Box>
+        {(lead || editingKey === "lead" || leadRecommendations.length > 0) && (
+          <Box sx={editableBlockSx}>
+            {editingKey === "lead" && onLeadChange ? (
+              <Stack spacing={1}>
+                <TextField
+                  autoFocus
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  variant="filled"
+                  label="Summary"
+                  value={editableLead}
+                  onChange={(event) => onLeadChange(event.target.value)}
+                  InputProps={{ disableUnderline: true }}
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      bgcolor: t.surfaceContainerLow,
+                      borderRadius: 1.5,
+                      fontSize: isImmersive ? "1.125rem" : "1.0625rem",
+                      lineHeight: 1.65,
+                    },
+                  }}
+                />
+                <Box>
+                  <Button size="small" variant="contained" onClick={onDoneEditing}>
+                    Done
+                  </Button>
+                </Box>
+                {recommendationCallouts(leadRecommendations)}
+              </Stack>
+            ) : (
+              <>
           <Typography
             sx={{
               maxWidth: isImmersive ? 860 : 680,
@@ -183,6 +354,11 @@ export default function ArticleDocument({
           >
             {lead}
           </Typography>
+                {editButton("lead")}
+                {recommendationCallouts(leadRecommendations)}
+              </>
+            )}
+          </Box>
         )}
         {canonicalSlug && (
           <Typography sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.75rem", color: t.granite }}>
@@ -378,21 +554,95 @@ export default function ArticleDocument({
           },
         }}
       >
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            h2: ({ children }) => {
-              const text = textFromChildren(children);
-              return <h2 id={articleAnchorId(text)}>{children}</h2>;
-            },
-            h3: ({ children }) => {
-              const text = textFromChildren(children);
-              return <h3 id={articleAnchorId(text)}>{children}</h3>;
-            },
-          }}
-        >
-          {readerBody}
-        </ReactMarkdown>
+        {editableSections ? (
+          <Stack spacing={1.5}>
+            {editableSections.map((section) => {
+              const isEditing = editingKey === section.key;
+              return (
+                <Box key={section.key} sx={editableBlockSx}>
+                  {isEditing ? (
+                    <Stack spacing={1.25}>
+                      {section.onTitleChange && (
+                        <TextField
+                          autoFocus
+                          fullWidth
+                          variant="filled"
+                          label="Section heading"
+                          value={section.title}
+                          onChange={(event) => section.onTitleChange?.(event.target.value)}
+                          InputProps={{ disableUnderline: true }}
+                          sx={{
+                            "& .MuiInputBase-root": {
+                              bgcolor: t.surfaceContainerLow,
+                              borderRadius: 1.5,
+                              fontWeight: 650,
+                            },
+                          }}
+                        />
+                      )}
+                      <TextField
+                        autoFocus={!section.onTitleChange}
+                        fullWidth
+                        multiline
+                        minRows={6}
+                        variant="filled"
+                        label="Article content"
+                        value={section.body}
+                        onChange={(event) => section.onBodyChange(event.target.value)}
+                        InputProps={{ disableUnderline: true }}
+                        sx={{
+                          "& .MuiInputBase-root": {
+                            bgcolor: t.surfaceContainerLow,
+                            borderRadius: 1.5,
+                            fontSize: isImmersive ? "1rem" : "0.9375rem",
+                            lineHeight: 1.65,
+                          },
+                        }}
+                      />
+                      {recommendationCallouts(section.recommendations)}
+                      <Box>
+                        <Button size="small" variant="contained" onClick={onDoneEditing}>
+                          Done
+                        </Button>
+                      </Box>
+                    </Stack>
+                  ) : (
+                    <>
+                      <h2 id={articleAnchorId(section.title)}>{section.title}</h2>
+                      {section.body.trim() ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {section.body}
+                        </ReactMarkdown>
+                      ) : (
+                        <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
+                          Add content for this section.
+                        </Typography>
+                      )}
+                      {editButton(section.key)}
+                      {recommendationCallouts(section.recommendations)}
+                    </>
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+        ) : (
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              h2: ({ children }) => {
+                const text = textFromChildren(children);
+                return <h2 id={articleAnchorId(text)}>{children}</h2>;
+              },
+              h3: ({ children }) => {
+                const text = textFromChildren(children);
+                return <h3 id={articleAnchorId(text)}>{children}</h3>;
+              },
+            }}
+          >
+            {readerBody}
+          </ReactMarkdown>
+        )}
       </Box>
     </Box>
   );

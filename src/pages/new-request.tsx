@@ -561,6 +561,7 @@ export default function NewRequest() {
   const [selectionToolbar, setSelectionToolbar] =
     useState<SelectionToolbarState | null>(null);
   const [selectionAiPrompt, setSelectionAiPrompt] = useState("");
+  const [reviewEditKey, setReviewEditKey] = useState<string | null>(null);
   const [activeEditorTarget, setActiveEditorTarget] = useState<SelectionTarget>({
     type: "summary",
     key: "lead",
@@ -735,6 +736,73 @@ export default function NewRequest() {
       return [field.key, value];
     }),
   );
+  const titleRecommendations = [
+    !form.title.trim()
+      ? "Add a clear title using the words employees would search for."
+      : form.title.trim().length < 12
+        ? "Make the title more specific so it can stand alone in search results."
+        : "",
+  ].filter(Boolean);
+  const leadRecommendations = [
+    !form.summary.trim()
+      ? "Add a short summary that explains what this article covers, who it helps, and when to use it."
+      : form.summary.trim().length < 80
+        ? "Add one more sentence so the summary gives enough context before employees read the full article."
+        : form.summary.trim().length > 280
+          ? "Shorten this to one or two quick sentences so employees can scan it quickly."
+          : "",
+  ].filter(Boolean);
+  const sectionRecommendations = (field: ArticleSectionField, value: string) => {
+    const trimmed = value.trim();
+    const recommendations: string[] = [];
+    const heading = field.label.trim();
+    const isPlaceholderQuestion = field.faqItemId && /^Question \d+$/.test(heading);
+
+    if (isPlaceholderQuestion) {
+      recommendations.push("Replace the placeholder heading with the employee's actual question.");
+    }
+
+    if (!trimmed) {
+      recommendations.push(
+        field.faqItemId
+          ? "Add a direct answer, then include any timing, eligibility, exceptions, or next steps."
+          : "Add the article text for this section so employees do not have to rely on attachments.",
+      );
+      return recommendations;
+    }
+
+    if (trimmed.length < 160) {
+      recommendations.push(
+        field.faqItemId
+          ? "Make the answer more complete. Start with the answer, then add the details an employee needs to act."
+          : "Add more useful detail here, such as steps, scope, timing, owner, exceptions, or where to go next.",
+      );
+    }
+
+    if (trimmed.length > 1400) {
+      recommendations.push("This section is long. Consider breaking it into bullets, smaller headings, or related articles.");
+    }
+
+    if (form.contentType === "Policy" && field.key === "effectiveDate" && !trimmed) {
+      recommendations.push("Policy articles should include effective date, last review, and next review timing.");
+    }
+
+    return recommendations;
+  };
+  const reviewEditableSections = articleSections.map((field) => ({
+    key: field.key,
+    title: field.label,
+    body: articleAnswers[field.key] ?? "",
+    recommendations: sectionRecommendations(field, articleAnswers[field.key] ?? ""),
+    onTitleChange: (value: string) =>
+      field.faqItemId
+        ? updateFaqItem(field.faqItemId, { question: value })
+        : updateSectionHeading(field.key, value),
+    onBodyChange: (value: string) =>
+      field.faqItemId
+        ? updateFaqItem(field.faqItemId, { answer: value })
+        : updateTemplateAnswer(field.key, value),
+  }));
   const templateHasContent = isFaq
     ? form.faqItems.some((item) => item.question.trim() || item.answer.trim())
     : templateFields.some((field) => (form.templateAnswers[field.key] ?? "").trim());
@@ -1037,9 +1105,6 @@ export default function NewRequest() {
   const previewMarket = marketForPreview(form.markets[0]);
   const hasAiSeed = !!form.title.trim();
   const hasDraftContent = !!form.summary.trim() || templateHasContent;
-  const emptyTemplateCount = articleSections.filter(
-    (field) => !(articleAnswers[field.key] ?? "").trim(),
-  ).length;
   const faqQuestionSuggestions = [
     form.title.trim().endsWith("?")
       ? form.title.trim()
@@ -1072,6 +1137,37 @@ export default function NewRequest() {
       : lengthStatus.tone === "warning"
         ? t.ember
         : t.errorInk;
+  const reviewAccordionSx = {
+    bgcolor: "#FFFFFF",
+    border: 0,
+    borderRadius: "0 !important",
+    borderBottom: `1px solid ${t.border}`,
+    boxShadow: "none",
+    "&:before": { display: "none" },
+    "&.Mui-expanded": { m: 0 },
+    "& .MuiAccordionSummary-root": {
+      minHeight: 58,
+      px: { xs: 1.5, md: 2 },
+      py: 0.25,
+    },
+    "& .MuiAccordionSummary-root.Mui-expanded": {
+      minHeight: 58,
+    },
+    "& .MuiAccordionSummary-content": {
+      my: 1,
+    },
+    "& .MuiAccordionSummary-content.Mui-expanded": {
+      my: 1,
+    },
+    "& .MuiAccordionDetails-root": {
+      px: { xs: 1.5, md: 2 },
+      pt: 0,
+      pb: 2,
+    },
+    "& .MuiAccordionSummary-expandIconWrapper": {
+      color: t.granite,
+    },
+  };
   const publishingFields = [
     { label: "Detected draft language", value: displayLanguage(detectedDraftLanguage) },
     { label: "Country", value: selectedMarketLabelsWithLanguages.join(", ") },
@@ -2460,47 +2556,49 @@ export default function NewRequest() {
                   <Stack direction="row" spacing={1.25} alignItems="flex-start">
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       {field.faqItemId ? (
-                        <TextField
-                          fullWidth
-                          variant="filled"
-                          label="Question"
-                          placeholder={`Question ${index + 1}`}
-                          helperText={`${(faqItem?.question ?? "").length.toLocaleString()} characters`}
-                          FormHelperTextProps={{
-                            sx: {
-                              mx: 0,
-                              textAlign: "right",
-                              fontSize: "0.6875rem",
-                              color: t.granite,
-                            },
-                          }}
-                          value={faqItem?.question ?? ""}
-                          onChange={(e) =>
-                            updateFaqItem(field.faqItemId!, { question: e.target.value })
-                          }
-                          InputProps={{ disableUnderline: true }}
-                          inputProps={editorSelectionProps({
-                            type: "faqQuestion",
-                            key: field.key,
-                            faqItemId: field.faqItemId,
-                          })}
-                          sx={{
-                            mb: 1.25,
-                            "& .MuiInputBase-root": {
-                              bgcolor: t.surfaceContainerLow,
-                              borderRadius: 1.5,
-                              fontSize: "1.0625rem",
-                              fontWeight: 650,
-                            },
-                            "& .MuiInputBase-root:hover": {
-                              bgcolor: t.surfaceContainerLow,
-                            },
-                            "& .MuiInputBase-root.Mui-focused": {
-                              bgcolor: t.paper,
-                              boxShadow: `0 0 0 1px ${t.pepsiBlue}`,
-                            },
-                          }}
-                        />
+                        <>
+                          <TextField
+                            fullWidth
+                            variant="filled"
+                            label="Question"
+                            placeholder={`Question ${index + 1}`}
+                            helperText={`${(faqItem?.question ?? "").length.toLocaleString()} characters`}
+                            FormHelperTextProps={{
+                              sx: {
+                                mx: 0,
+                                textAlign: "right",
+                                fontSize: "0.6875rem",
+                                color: t.granite,
+                              },
+                            }}
+                            value={faqItem?.question ?? ""}
+                            onChange={(e) =>
+                              updateFaqItem(field.faqItemId!, { question: e.target.value })
+                            }
+                            InputProps={{ disableUnderline: true }}
+                            inputProps={editorSelectionProps({
+                              type: "faqQuestion",
+                              key: field.key,
+                              faqItemId: field.faqItemId,
+                            })}
+                            sx={{
+                              mb: 1.25,
+                              "& .MuiInputBase-root": {
+                                bgcolor: t.surfaceContainerLow,
+                                borderRadius: 1.5,
+                                fontSize: "1.0625rem",
+                                fontWeight: 650,
+                              },
+                              "& .MuiInputBase-root:hover": {
+                                bgcolor: t.surfaceContainerLow,
+                              },
+                              "& .MuiInputBase-root.Mui-focused": {
+                                bgcolor: t.paper,
+                                boxShadow: `0 0 0 1px ${t.pepsiBlue}`,
+                              },
+                            }}
+                          />
+                        </>
                       ) : (
                         <TextField
                           fullWidth
@@ -2594,6 +2692,7 @@ export default function NewRequest() {
                 Add question
               </Button>
             )}
+
           </Stack>
         </Box>
 
@@ -2679,32 +2778,6 @@ export default function NewRequest() {
                   No source files uploaded yet.
                 </Typography>
               )}
-            </Box>
-
-            <Box
-              sx={{
-                p: 1.5,
-                borderRadius: 2,
-                bgcolor: t.paper,
-                border: `1px solid ${t.border}`,
-              }}
-            >
-              <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: t.ink, mb: 1 }}>
-                mypepsico writing checks
-              </Typography>
-              <Stack spacing={0.85}>
-                {[
-                  "Lead with the answer in the first two paragraphs.",
-                  "Use sentence case headings and descriptive links.",
-                  "Spell out acronyms the first time.",
-                  "Type every rule, date, and step into the body.",
-                  "Use related articles instead of duplicating long sections.",
-                ].map((tip) => (
-                  <Typography key={tip} sx={{ fontSize: "0.75rem", color: t.slate, lineHeight: 1.45 }}>
-                    {tip}
-                  </Typography>
-                ))}
-              </Stack>
             </Box>
 
             <Box
@@ -2827,12 +2900,12 @@ export default function NewRequest() {
               Review what employees will see
             </Typography>
             <Typography sx={{ mt: 0.5, fontSize: "0.875rem", color: t.slate, maxWidth: "68ch" }}>
-              Read through the article preview first. If it looks right, submit it
-              for approval. Extra details are tucked below.
+              Check the submission details first, then review the employee-facing article.
+              Hover over a section in the article preview to edit it before submitting.
             </Typography>
           </Box>
 
-          <Box>
+          <Box sx={{ order: 2 }}>
             <Stack
               direction={{ xs: "column", sm: "row" }}
               justifyContent="space-between"
@@ -2879,6 +2952,14 @@ export default function NewRequest() {
                   canonicalSlug="preview"
                   presentation="immersive"
                   showMasthead={false}
+                  editableSections={reviewEditableSections}
+                  editingKey={reviewEditKey}
+                  onEdit={setReviewEditKey}
+                  onDoneEditing={() => setReviewEditKey(null)}
+                  onTitleChange={(value) => update("title", value)}
+                  onLeadChange={(value) => update("summary", value)}
+                  titleRecommendations={titleRecommendations}
+                  leadRecommendations={leadRecommendations}
                 />
 
                 <Stack spacing={2} sx={{ position: { xl: "sticky" }, top: { xl: 20 } }}>
@@ -2965,8 +3046,18 @@ export default function NewRequest() {
             </Box>
           </Box>
 
-          <Stack spacing={1}>
-            <Accordion disableGutters elevation={0} sx={{ border: `1px solid ${t.border}`, borderRadius: 1.5, "&:before": { display: "none" } }}>
+          <Stack
+            spacing={0}
+            sx={{
+              order: 1,
+              bgcolor: "#FFFFFF",
+              border: `1px solid ${t.border}`,
+              borderRadius: 2.5,
+              overflow: "hidden",
+              boxShadow: "0 8px 24px rgba(0, 46, 93, 0.06)",
+            }}
+          >
+            <Accordion disableGutters elevation={0} sx={{ ...reviewAccordionSx, order: 0 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
                   <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
@@ -3008,7 +3099,7 @@ export default function NewRequest() {
               </AccordionDetails>
             </Accordion>
 
-            <Accordion disableGutters elevation={0} sx={{ border: `1px solid ${t.border}`, borderRadius: 1.5, "&:before": { display: "none" } }}>
+            <Accordion disableGutters elevation={0} sx={{ ...reviewAccordionSx, order: 1 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
                   <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
@@ -3065,7 +3156,11 @@ export default function NewRequest() {
               </AccordionDetails>
             </Accordion>
 
-            <Accordion disableGutters elevation={0} sx={{ border: `1px solid ${t.border}`, borderRadius: 1.5, "&:before": { display: "none" } }}>
+            <Accordion
+              disableGutters
+              elevation={0}
+              sx={{ ...reviewAccordionSx, order: 2, borderBottom: 0 }}
+            >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
                   <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>

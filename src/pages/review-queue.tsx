@@ -32,7 +32,7 @@ import { localeFor } from "../lib/market";
 import EditableArticle from "../components/editable-article";
 import ApprovalChecklist from "../components/approval-checklist";
 import ArticleDocument from "../components/article-document";
-import ArticleReviewFrame from "../components/article-review-frame";
+import ArticleReadingFrame from "../components/article-reading-frame";
 
 type PendingAction = null | "reject" | "needs-info";
 
@@ -553,9 +553,16 @@ function DraftBody({
       {/* Review queue defaults edit mode ON — reviewers are here specifically
           to take action on each article, so the Edit affordances and AI fix
           cards should be visible from the start (no extra toggle to find). */}
-      <ArticleReviewFrame
-        eyebrow="Article preview"
-        helper="Review and edit the article in the same format employees will see."
+      <ArticleReadingFrame
+        body={draft.body}
+        tags={[
+          draft.contentType,
+          draft.knowledgeBase ?? "myPepsiCo KB",
+          ...(draft.countries?.length ? draft.countries : [draft.market]),
+        ]}
+        selectedLocale={localeFor(draft.market)}
+        primaryLocale={localeFor(draft.market)}
+        availableLocales={[localeFor(draft.market)]}
         article={
           <EditableArticle
             articleId={draft.id}
@@ -657,9 +664,16 @@ function PublishedBody({ published }: { published: PublishedArticle }) {
         </Typography>
       </Box>
 
-      <ArticleReviewFrame
-        eyebrow="Published article"
-        helper="Review the article in the same format employees see."
+      <ArticleReadingFrame
+        body={published.body}
+        tags={[
+          published.contentType,
+          published.knowledgeBase ?? "myPepsiCo KB",
+          ...(published.countries?.length ? published.countries : [published.market]),
+        ]}
+        selectedLocale={localeFor(published.market)}
+        primaryLocale={localeFor(published.market)}
+        availableLocales={[localeFor(published.market), ...Object.keys(published.translations ?? {})]}
         article={
           <ArticleDocument
             body={published.body}
@@ -670,6 +684,7 @@ function PublishedBody({ published }: { published: PublishedArticle }) {
             canonicalSlug={published.canonicalSlug}
             presentation="immersive"
             showMasthead={false}
+            showContents={false}
           />
         }
         details={[

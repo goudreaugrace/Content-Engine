@@ -36,6 +36,7 @@ import {
 import { localeFor } from "../lib/market";
 import { sectorShortLabel, sectorFullLabel } from "../lib/sector";
 import ArticleDocument from "../components/article-document";
+import ArticleReadingFrame from "../components/article-reading-frame";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -472,7 +473,46 @@ export default function PublishedArticleDetail() {
 
       {/* ─── Article body ─── */}
       <Box sx={{ mb: 6 }}>
-        <ArticleDocument body={article.body} market={article.market} />
+        <ArticleReadingFrame
+          body={article.body}
+          tags={[article.contentType, localeFor(article.market), ...(article.countries ?? [])]}
+          selectedLocale={localeFor(article.market)}
+          primaryLocale={localeFor(article.market)}
+          availableLocales={[localeFor(article.market), ...Object.keys(article.translations ?? {})]}
+          quickLinks={[
+            ...(article.archivedAt
+              ? []
+              : [{
+                  label: "Mark as reviewed",
+                  onClick: markReviewed,
+                  disabled: busy,
+                }]),
+          ]}
+          article={
+            <ArticleDocument
+              body={article.body}
+              market={article.market}
+              title={article.title}
+              lead={article.lead}
+              contentType={article.contentType}
+              canonicalSlug={article.canonicalSlug}
+              presentation="immersive"
+              showMasthead={false}
+              showContents={false}
+            />
+          }
+          details={[
+            {
+              title: "Publishing details",
+              rows: [
+                { label: "Status", value: article.archivedAt ? "Archived" : "Published" },
+                { label: "Owner", value: article.owner ?? article.originalSubmittedBy.name },
+                { label: "Version", value: `Version ${article.version}` },
+                { label: "Published", value: formatDate(article.publishedAt) },
+              ],
+            },
+          ]}
+        />
       </Box>
 
       {/* Convert / Delete-and-redirect dialogs removed — both were part of

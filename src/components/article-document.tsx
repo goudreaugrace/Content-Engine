@@ -42,6 +42,13 @@ export function articleAnchorId(value: string) {
   return `section-${value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
 }
 
+export function articleSectionsFromMarkdown(body: string): string[] {
+  const readerBody = body.replace(/^#\s+.+\n+/, "").trim();
+  return Array.from(readerBody.matchAll(/^##\s+(.+?)\s*$/gm)).map((m) =>
+    m[1].trim(),
+  );
+}
+
 function textFromChildren(children: ReactNode): string {
   if (typeof children === "string" || typeof children === "number") return String(children);
   if (Array.isArray(children)) return children.map(textFromChildren).join("");
@@ -61,7 +68,7 @@ export default function ArticleDocument({
   lead,
   contentType,
   canonicalSlug,
-  showContents = true,
+  showContents = false,
   showMastheadMeta = true,
   presentation = "standard",
   showMasthead = true,
@@ -84,9 +91,7 @@ export default function ArticleDocument({
   const readerBody = body.replace(/^#\s+.+\n+/, "").trim();
   const sections =
     editableSections?.map((section) => section.title).filter(Boolean) ??
-    Array.from(readerBody.matchAll(/^##\s+(.+?)\s*$/gm)).map((m) =>
-      m[1].trim(),
-    );
+    articleSectionsFromMarkdown(body);
   const isImmersive = presentation === "immersive";
   const isEditable = !!onEdit;
   const editableTitle = titleProp ?? title;
@@ -172,26 +177,26 @@ export default function ArticleDocument({
     <Box
       sx={{
         bgcolor: "#FFFFFF",
-        border: `1px solid ${t.border}`,
-        borderRadius: isImmersive ? 2.5 : 0,
+        border: `1px solid ${t.articleDivider}`,
+        borderRadius: isImmersive ? 2 : 0,
         overflow: "hidden",
         maxWidth: isImmersive ? "none" : 960,
-        boxShadow: isImmersive ? "0 18px 45px rgba(0, 46, 93, 0.10)" : "none",
+        boxShadow: isImmersive ? "0 12px 30px rgba(0, 46, 93, 0.08)" : "none",
       }}
     >
-      {isImmersive && showMasthead && <Box sx={{ height: 8, bgcolor: t.pepsiBlueStrong }} />}
+      {isImmersive && showMasthead && <Box sx={{ height: 6, bgcolor: t.pepsiBlueDeep }} />}
       {/* Reader masthead */}
       {showMasthead && (
         <Box
           sx={{
             px: { xs: 2.5, md: 4 },
             py: 1.25,
-            borderBottom: `1px solid ${t.border}`,
+            borderBottom: `1px solid ${t.articleDivider}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             gap: 2,
-            bgcolor: isImmersive ? "#F7FBFF" : t.paper,
+            bgcolor: isImmersive ? t.articleRailBg : t.paper,
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
@@ -202,7 +207,7 @@ export default function ArticleDocument({
                 fontWeight: 800,
                 fontSize: "0.8125rem",
                 letterSpacing: 0,
-                color: t.pepsiBlueStrong,
+                color: t.pepsiNavy,
               }}
             >
               pepsico
@@ -211,7 +216,7 @@ export default function ArticleDocument({
               sx={{
                 width: 1,
                 height: 14,
-                bgcolor: t.border,
+                  bgcolor: t.articleDivider,
                 mx: 0.5,
               }}
             />
@@ -264,7 +269,7 @@ export default function ArticleDocument({
         sx={{
           px: { xs: 2.5, md: isImmersive ? 5 : 4 },
           pt: { xs: 3, md: isImmersive ? 5 : 4 },
-          pb: 2,
+          pb: 1.5,
         }}
       >
         <Box sx={editableBlockSx}>
@@ -278,11 +283,12 @@ export default function ArticleDocument({
                 onChange={(event) => onTitleChange(event.target.value)}
                 InputProps={{
                   disableUnderline: true,
-                  sx: {
-                    fontSize: { xs: "2rem", md: isImmersive ? "2.75rem" : "2.35rem" },
-                    fontWeight: isImmersive ? 750 : 500,
+                sx: {
+                    fontFamily: theme.palette.fonts.articleTitle,
+                    fontSize: { xs: "2rem", md: isImmersive ? "2.6rem" : "2.25rem" },
+                    fontWeight: 800,
                     lineHeight: 1.12,
-                    color: t.ink,
+                    color: t.pepsiNavy,
                   },
                 }}
               />
@@ -298,12 +304,12 @@ export default function ArticleDocument({
               <Typography
                 component="h1"
                 sx={{
-                  fontFamily: theme.palette.fonts.sans,
-                  fontSize: { xs: "2rem", md: isImmersive ? "2.75rem" : "2.35rem" },
-                  fontWeight: isImmersive ? 750 : 500,
+                  fontFamily: theme.palette.fonts.articleTitle,
+                  fontSize: { xs: "2rem", md: isImmersive ? "2.6rem" : "2.25rem" },
+                  fontWeight: 800,
                   letterSpacing: 0,
                   lineHeight: 1.12,
-                  color: t.ink,
+                  color: t.pepsiNavy,
                   mb: 1.25,
                 }}
               >
@@ -349,9 +355,9 @@ export default function ArticleDocument({
           <Typography
             sx={{
               maxWidth: isImmersive ? 1040 : 760,
-              color: t.ink,
-              fontSize: isImmersive ? "1.125rem" : "1.0625rem",
-              lineHeight: 1.65,
+              color: t.inkSoft,
+              fontSize: isImmersive ? "1rem" : "0.9375rem",
+              lineHeight: 1.6,
               mb: 1.75,
             }}
           >
@@ -377,15 +383,16 @@ export default function ArticleDocument({
             mb: 2,
             p: 2,
             border: `1px solid ${t.border}`,
-            bgcolor: isImmersive ? "#F7FBFF" : t.surfaceContainerLow,
+            bgcolor: isImmersive ? t.articleRailBg : t.surfaceContainerLow,
+            borderRadius: 1.5,
           }}
         >
           <Typography
             sx={{
-              fontSize: "0.75rem",
+              fontSize: "1.05rem",
               fontWeight: 700,
-              color: t.pepsiBlueStrong,
-              textTransform: "uppercase",
+              color: t.pepsiBlue,
+              textTransform: "none",
               letterSpacing: 0,
               mb: 1,
             }}
@@ -401,8 +408,9 @@ export default function ArticleDocument({
               gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
               columnGap: 3,
               rowGap: 0.5,
-              color: t.pepsiBlueStrong,
-              fontSize: "0.875rem",
+              color: t.pepsiBlue,
+              fontSize: "0.8125rem",
+              lineHeight: 1.5,
               "& li::marker": { color: t.granite },
             }}
           >
@@ -413,7 +421,7 @@ export default function ArticleDocument({
         </Box>
       )}
 
-      <Divider sx={{ borderColor: t.border }} />
+      <Divider sx={{ borderColor: t.articleDivider }} />
 
       {/* Article body */}
       <Box
@@ -421,10 +429,10 @@ export default function ArticleDocument({
           position: "relative",
           px: { xs: 2.5, md: isImmersive ? 5 : 4 },
           py: { xs: 3, md: isImmersive ? 5 : 4 },
-          fontFamily: theme.palette.fonts.sans,
+          fontFamily: theme.palette.fonts.articleBody,
           color: t.ink,
-          fontSize: isImmersive ? "1.0625rem" : "1rem",
-          lineHeight: 1.72,
+          fontSize: isImmersive ? "0.875rem" : "0.85rem",
+          lineHeight: 1.58,
 
           "& > *:first-of-type": { mt: 0 },
           "& > *:last-child": { mb: 0 },
@@ -433,42 +441,43 @@ export default function ArticleDocument({
             display: "none",
           },
           "& h2": {
-            fontFamily: theme.palette.fonts.sans,
-            fontSize: "1.45rem",
-            fontWeight: 600,
+            fontFamily: theme.palette.fonts.articleTitle,
+            fontSize: "1.35rem",
+            fontWeight: 700,
             letterSpacing: 0,
-            lineHeight: 1.3,
-            color: t.ink,
+            lineHeight: 1.35,
+            color: t.pepsiBlue,
             mt: 4,
-            mb: 1.5,
-            pb: 0.75,
-            borderBottom: `1px solid ${t.border}`,
+            mb: 1.25,
+            pb: 0.5,
+            borderBottom: `1px solid ${t.articleDivider}`,
             scrollMarginTop: 24,
           },
           "& h3": {
-            fontFamily: theme.palette.fonts.sans,
-            fontSize: "1.0625rem",
-            fontWeight: 600,
+            fontFamily: theme.palette.fonts.articleBody,
+            fontSize: "0.9375rem",
+            fontWeight: 700,
             letterSpacing: 0,
             lineHeight: 1.35,
-            color: t.pepsiBlueStrong,
-            mt: 3.5,
-            mb: 1,
+            color: t.ink,
+            mt: 2.75,
+            mb: 0.75,
             scrollMarginTop: 24,
           },
           "& h4": {
-            fontSize: "0.9375rem",
-            fontWeight: 600,
+            fontFamily: theme.palette.fonts.articleBody,
+            fontSize: "0.875rem",
+            fontWeight: 700,
             color: t.ink,
-            mt: 3,
-            mb: 0.75,
+            mt: 2.25,
+            mb: 0.5,
           },
 
-          "& p": { my: 1.5, color: t.ink, maxWidth: isImmersive ? 1040 : 760 },
+          "& p": { my: 1.1, color: t.ink, maxWidth: isImmersive ? 1040 : 760 },
 
-          "& ul, & ol": { my: 1.5, pl: 3, maxWidth: isImmersive ? 1040 : 760 },
+          "& ul, & ol": { my: 1.1, pl: 2.75, maxWidth: isImmersive ? 1040 : 760 },
           "& li": {
-            mb: 0.5,
+            mb: 0.35,
             "&::marker": { color: t.pepsiBlue, fontWeight: 600 },
           },
           "& li > p": { my: 0.25 },
@@ -491,7 +500,7 @@ export default function ArticleDocument({
           },
 
           "& code": {
-            fontFamily: theme.palette.fonts.sans,
+            fontFamily: theme.palette.fonts.articleBody,
             fontSize: "0.85em",
             fontWeight: 500,
             bgcolor: t.pepsiBlueSubtle,
@@ -519,41 +528,75 @@ export default function ArticleDocument({
           "& blockquote": {
             borderLeft: `3px solid ${t.pepsiBlue}`,
             pl: 2,
-            py: 0.75,
+            py: 0.7,
             my: 2.5,
             color: t.slate,
+            bgcolor: t.pepsiBlueSubtle,
+            borderRadius: 1,
             "& p": { my: 0.5 },
           },
 
           "& table": {
             borderCollapse: "collapse",
             width: "100%",
-            my: 2.5,
-            fontSize: "0.875rem",
+            my: 2.25,
+            fontSize: "0.8125rem",
+            border: `1px solid ${t.articleDivider}`,
           },
           "& th": {
             textAlign: "left",
-            fontWeight: 600,
-            color: t.pepsiBlue,
-            fontSize: "0.6875rem",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
+            fontWeight: 700,
+            color: "#FFFFFF",
+            fontSize: "0.75rem",
+            fontFamily: theme.palette.fonts.articleBody,
+            textTransform: "none",
+            letterSpacing: 0,
             py: 1,
             px: 1.5,
-            borderBottom: `2px solid ${t.pepsiBlue}`,
-            bgcolor: t.pepsiBlueSubtle,
+            borderBottom: 0,
+            bgcolor: t.pepsiBlueDeep,
           },
           "& td": {
-            py: 1.25,
+            py: 1.05,
             px: 1.5,
-            borderBottom: `1px solid ${t.border}`,
+            borderBottom: `1px solid ${t.articleDivider}`,
             verticalAlign: "top",
           },
+          "& tbody tr:nth-of-type(even)": { bgcolor: "#F8FAFC" },
           "& tr:last-of-type td": { borderBottom: 0 },
+
+          "& details": {
+            my: 1,
+            maxWidth: isImmersive ? 1040 : 760,
+            borderRadius: 1,
+            overflow: "hidden",
+          },
+          "& summary": {
+            cursor: "pointer",
+            listStyle: "none",
+            bgcolor: t.pepsiBlue,
+            color: "#FFFFFF",
+            fontWeight: 700,
+            fontSize: "0.8125rem",
+            px: 1.5,
+            py: 1,
+            "&::-webkit-details-marker": { display: "none" },
+            "&:focus-visible": {
+              outline: `2px solid ${t.pepsiBlueStrong}`,
+              outlineOffset: 2,
+            },
+          },
+          "& details[open]": {
+            border: `1px solid ${t.articleDivider}`,
+            bgcolor: "#FFFFFF",
+          },
+          "& details[open] summary": {
+            mb: 1,
+          },
 
           "& hr": {
             border: 0,
-            borderTop: `1px solid ${t.border}`,
+            borderTop: `1px solid ${t.articleDivider}`,
             my: 5,
           },
         }}

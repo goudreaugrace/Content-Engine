@@ -39,7 +39,7 @@ import { localeFor } from "../lib/market";
 import { sectorShortLabel, sectorFullLabel } from "../lib/sector";
 import ArticleDocument from "../components/article-document";
 import EditableArticle from "../components/editable-article";
-import ArticleReviewFrame from "../components/article-review-frame";
+import ArticleReadingFrame from "../components/article-reading-frame";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 // ArticleEditor was the old whole-article markdown/AI chat editor. Option A
 // consolidated all editing under the page-level Edit toggle + per-section
@@ -486,6 +486,8 @@ export default function ArticleDetail() {
     viewLocale && viewLocale !== primaryLocale
       ? (translations[viewLocale] ?? article.body)
       : article.body;
+  const selectedLocale = viewLocale ?? primaryLocale ?? localeFor(article.market);
+  const countries = article.countries?.length ? article.countries : [article.market];
 
   const downloadPdf = async () => {
     if (!documentRef.current) return;
@@ -1050,14 +1052,6 @@ export default function ArticleDetail() {
           ) : (
             <Box />
           )}
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            {/* Edit moved to the page-level action row under the title +
-                meta strip. Download PDF stays here because it's contextually
-                an "export this view" action tied to the current language. */}
-            <Button size="small" onClick={downloadPdf} disabled={downloading}>
-              {downloading ? "Generating…" : "Download PDF"}
-            </Button>
-          </Stack>
         </Stack>
 
           {translateError && (
@@ -1067,9 +1061,25 @@ export default function ArticleDetail() {
           )}
 
         <Box ref={documentRef}>
-          <ArticleReviewFrame
-            eyebrow={article.status === "published" ? "Published article" : "Article preview"}
-            helper="Review the article in the same format employees see."
+          <ArticleReadingFrame
+            body={displayedBody}
+            tags={[article.contentType, knowledgeBaseLabel(article), ...countries]}
+            quickLinks={[
+              {
+                label: downloading ? "Generating..." : "Download PDF",
+                onClick: downloadPdf,
+                disabled: downloading,
+              },
+              ...(article.status === "published" && article.publishedArticleId
+                ? [{
+                    label: "Open live article",
+                    onClick: () => navigate(`/library/${article.publishedArticleId}`),
+                  }]
+                : []),
+            ]}
+            selectedLocale={selectedLocale}
+            primaryLocale={primaryLocale}
+            availableLocales={availableLocales}
             article={
               article.status !== "published" &&
               (!viewLocale || viewLocale === primaryLocale) ? (
@@ -1104,28 +1114,19 @@ export default function ArticleDetail() {
                   canonicalSlug={article.canonicalSlug}
                   presentation="immersive"
                   showMasthead={false}
+                  showContents={false}
                 />
               )
             }
             details={[
               {
-                title: "Article details",
+                title: "Publishing details",
                 rows: [
                   { label: "Status", value: statusMeta[article.status].label },
-                  { label: "Type", value: article.contentType },
                   { label: "Knowledge base", value: knowledgeBaseLabel(article) },
-                  { label: "Country", value: article.countries?.join(", ") || article.market },
                   { label: "Owner", value: article.owner ?? article.submittedBy.name },
-                  { label: "Submitted", value: formatDate(article.submittedAt) },
                   { label: "Version", value: `Version ${article.version ?? 1}` },
                 ],
-              },
-              {
-                title: "Available translations",
-                rows: availableLocales.map((code) => ({
-                  label: code === primaryLocale ? "Primary" : "Translation",
-                  value: code,
-                })),
               },
             ]}
           />

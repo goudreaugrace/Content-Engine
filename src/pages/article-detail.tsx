@@ -37,7 +37,7 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import { api, type Article, type ArticleSEO, type MarketProfile } from "../lib/api";
 import { localeFor } from "../lib/market";
 import { sectorShortLabel, sectorFullLabel } from "../lib/sector";
-import ArticleDocument from "../components/article-document";
+import ArticleDocument, { articleAnchorId, articleSectionsFromMarkdown } from "../components/article-document";
 import EditableArticle from "../components/editable-article";
 import ArticleReviewFrame from "../components/article-review-frame";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -119,6 +119,144 @@ const SUBMISSION_STAGES = [
   "Under Review",
   "Published",
 ];
+
+function ArticleUtilityRail({
+  article,
+  sections,
+  selectedLocale,
+  primaryLocale,
+  availableLocales,
+  downloading,
+  onDownloadPdf,
+  onOpenLive,
+}: {
+  article: Article;
+  sections: string[];
+  selectedLocale: string;
+  primaryLocale?: string;
+  availableLocales: string[];
+  downloading: boolean;
+  onDownloadPdf: () => void;
+  onOpenLive: () => void;
+}) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const countries = article.countries?.length ? article.countries : [article.market];
+  const tagLabels = [
+    article.contentType,
+    knowledgeBaseLabel(article),
+    ...countries,
+  ].filter(Boolean);
+
+  const RailCard = ({
+    title,
+    children,
+  }: {
+    title: string;
+    children: React.ReactNode;
+  }) => (
+    <Box
+      sx={{
+        p: 1.5,
+        borderRadius: 1.5,
+        bgcolor: "#FFFFFF",
+        border: `1px solid ${t.articleDivider}`,
+      }}
+    >
+      <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: t.pepsiNavy, mb: 1 }}>
+        {title}
+      </Typography>
+      {children}
+    </Box>
+  );
+
+  return (
+    <Stack spacing={1.5}>
+      <RailCard title="Tags">
+        <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+          {tagLabels.slice(0, 6).map((label) => (
+            <Chip
+              key={label}
+              size="small"
+              label={label}
+              color="primary"
+              variant="outlined"
+              sx={{ height: 24, fontSize: "0.6875rem" }}
+            />
+          ))}
+        </Stack>
+      </RailCard>
+
+      <RailCard title="Table of Contents">
+        {sections.length ? (
+          <Stack spacing={0.35}>
+            {sections.map((section) => (
+              <Button
+                key={section}
+                component="a"
+                href={`#${articleAnchorId(section)}`}
+                size="small"
+                variant="text"
+                sx={{
+                  justifyContent: "flex-start",
+                  minHeight: 28,
+                  px: 0.5,
+                  py: 0.25,
+                  borderRadius: 1,
+                  color: t.pepsiBlue,
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  lineHeight: 1.25,
+                  textAlign: "left",
+                  whiteSpace: "normal",
+                }}
+              >
+                {section}
+              </Button>
+            ))}
+          </Stack>
+        ) : (
+          <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
+            No sections detected.
+          </Typography>
+        )}
+      </RailCard>
+
+      <RailCard title="Quick Links">
+        <Stack spacing={0.75}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={onDownloadPdf}
+            disabled={downloading}
+            sx={{ justifyContent: "flex-start", borderRadius: 1.25 }}
+          >
+            {downloading ? "Generating..." : "Download PDF"}
+          </Button>
+          {article.status === "published" && article.publishedArticleId && (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={onOpenLive}
+              sx={{ justifyContent: "flex-start", borderRadius: 1.25 }}
+            >
+              Open live article
+            </Button>
+          )}
+        </Stack>
+      </RailCard>
+
+      <RailCard title="Language">
+        <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: t.ink }}>
+          {selectedLocale}
+        </Typography>
+        <Typography sx={{ mt: 0.25, fontSize: "0.6875rem", color: t.granite }}>
+          {selectedLocale === primaryLocale ? "Original" : "Translation"} · {availableLocales.length || 1} available
+        </Typography>
+      </RailCard>
+    </Stack>
+  );
+}
 
 function SubmissionProgress({ currentStage }: { currentStage: number }) {
   const theme = useTheme();
@@ -486,6 +624,8 @@ export default function ArticleDetail() {
     viewLocale && viewLocale !== primaryLocale
       ? (translations[viewLocale] ?? article.body)
       : article.body;
+  const articleSections = articleSectionsFromMarkdown(displayedBody);
+  const selectedLocale = viewLocale ?? primaryLocale ?? localeFor(article.market);
 
   const downloadPdf = async () => {
     if (!documentRef.current) return;
@@ -1050,14 +1190,6 @@ export default function ArticleDetail() {
           ) : (
             <Box />
           )}
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            {/* Edit moved to the page-level action row under the title +
-                meta strip. Download PDF stays here because it's contextually
-                an "export this view" action tied to the current language. */}
-            <Button size="small" onClick={downloadPdf} disabled={downloading}>
-              {downloading ? "Generating…" : "Download PDF"}
-            </Button>
-          </Stack>
         </Stack>
 
           {translateError && (
@@ -1070,6 +1202,7 @@ export default function ArticleDetail() {
           <ArticleReviewFrame
             eyebrow={article.status === "published" ? "Published article" : "Article preview"}
             helper="Review the article in the same format employees see."
+            showHeader={false}
             article={
               article.status !== "published" &&
               (!viewLocale || viewLocale === primaryLocale) ? (
@@ -1104,28 +1237,31 @@ export default function ArticleDetail() {
                   canonicalSlug={article.canonicalSlug}
                   presentation="immersive"
                   showMasthead={false}
+                  showContents={false}
                 />
               )
             }
+            detailsNode={
+              <ArticleUtilityRail
+                article={article}
+                sections={articleSections}
+                selectedLocale={selectedLocale}
+                primaryLocale={primaryLocale}
+                availableLocales={availableLocales}
+                downloading={downloading}
+                onDownloadPdf={downloadPdf}
+                onOpenLive={() => article.publishedArticleId && navigate(`/library/${article.publishedArticleId}`)}
+              />
+            }
             details={[
               {
-                title: "Article details",
+                title: "Publishing details",
                 rows: [
                   { label: "Status", value: statusMeta[article.status].label },
-                  { label: "Type", value: article.contentType },
                   { label: "Knowledge base", value: knowledgeBaseLabel(article) },
-                  { label: "Country", value: article.countries?.join(", ") || article.market },
                   { label: "Owner", value: article.owner ?? article.submittedBy.name },
-                  { label: "Submitted", value: formatDate(article.submittedAt) },
                   { label: "Version", value: `Version ${article.version ?? 1}` },
                 ],
-              },
-              {
-                title: "Available translations",
-                rows: availableLocales.map((code) => ({
-                  label: code === primaryLocale ? "Primary" : "Translation",
-                  value: code,
-                })),
               },
             ]}
           />

@@ -21,6 +21,7 @@ type Props = {
   details?: DetailCard[];
   detailsNode?: ReactNode;
   maxArticleWidth?: number | string;
+  showHeader?: boolean;
 };
 
 export default function ArticleReviewFrame({
@@ -32,6 +33,7 @@ export default function ArticleReviewFrame({
   details = [],
   detailsNode,
   maxArticleWidth = "minmax(0, 1fr)",
+  showHeader = true,
 }: Props) {
   const theme = useTheme();
   const t = theme.palette.tokens;
@@ -40,29 +42,31 @@ export default function ArticleReviewFrame({
 
   return (
     <Box>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        spacing={1}
-        sx={{ mb: 1.25 }}
-      >
-        <Box>
-          <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>
-            {eyebrow}
-          </Typography>
-          <Typography sx={{ mt: 0.25, fontSize: "0.75rem", color: t.granite }}>
-            {helper}
-          </Typography>
-        </Box>
-        {action}
-      </Stack>
+      {showHeader && (
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          justifyContent="space-between"
+          alignItems={{ xs: "flex-start", sm: "center" }}
+          spacing={1}
+          sx={{ mb: 1.25 }}
+        >
+          <Box>
+            <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>
+              {eyebrow}
+            </Typography>
+            <Typography sx={{ mt: 0.25, fontSize: "0.75rem", color: t.granite }}>
+              {helper}
+            </Typography>
+          </Box>
+          {action}
+        </Stack>
+      )}
 
       <Box
         sx={{
           bgcolor: t.articleFrameBg,
-          borderRadius: 2,
-          p: { xs: 1, md: 1.75 },
+          borderRadius: 1.5,
+          p: { xs: 1, md: 1.5 },
           overflowX: "auto",
         }}
       >
@@ -73,10 +77,10 @@ export default function ArticleReviewFrame({
               xs: "1fr",
               lg: leftRail
                 ? "164px minmax(0, 1fr) 280px"
-                : `${articleColumn} 280px`,
+                : `${articleColumn} 240px`,
               xl: leftRail
                 ? "176px minmax(0, 1fr) 300px"
-                : `${articleColumn} 300px`,
+                : `${articleColumn} 260px`,
             },
             gap: { xs: 1.5, xl: 2 },
             alignItems: "start",
@@ -84,30 +88,30 @@ export default function ArticleReviewFrame({
         >
           {leftRail}
           {article}
-          <Stack spacing={2} sx={{ position: { lg: "sticky" }, top: { lg: 20 } }}>
+          <Stack spacing={1.5} sx={{ position: { lg: "sticky" }, top: { lg: 20 } }}>
             {detailsNode}
             {details.map((card) => (
               <Box
                 key={card.title}
                 sx={{
-                  p: 2,
-                  borderRadius: 2,
+                  p: 1.5,
+                  borderRadius: 1.5,
                   bgcolor: "#FFFFFF",
                   border: `1px solid ${t.articleDivider}`,
-                  boxShadow: "0 8px 20px rgba(0, 46, 93, 0.07)",
+                  boxShadow: "none",
                 }}
               >
-                <Typography sx={{ fontSize: "1rem", fontWeight: 800, color: t.pepsiNavy, mb: 1.5 }}>
+                <Typography sx={{ fontSize: "0.8125rem", fontWeight: 800, color: t.pepsiNavy, mb: 1.25 }}>
                   {card.title}
                 </Typography>
                 {card.rows && (
-                  <Stack spacing={1.1}>
+                  <Stack spacing={0.9}>
                     {card.rows.map((row) => (
                       <Box key={row.label}>
-                        <Typography sx={{ fontSize: "0.6875rem", color: t.granite, mb: 0.25 }}>
+                        <Typography sx={{ fontSize: "0.625rem", color: t.granite, mb: 0.2, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                           {row.label}
                         </Typography>
-                        <Box sx={{ fontSize: "0.8125rem", fontWeight: 650, color: t.ink, lineHeight: 1.35 }}>
+                        <Box sx={{ fontSize: "0.75rem", fontWeight: 650, color: t.ink, lineHeight: 1.35 }}>
                           {row.value}
                         </Box>
                       </Box>

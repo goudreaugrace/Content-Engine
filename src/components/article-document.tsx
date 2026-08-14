@@ -42,6 +42,13 @@ export function articleAnchorId(value: string) {
   return `section-${value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
 }
 
+export function articleSectionsFromMarkdown(body: string): string[] {
+  const readerBody = body.replace(/^#\s+.+\n+/, "").trim();
+  return Array.from(readerBody.matchAll(/^##\s+(.+?)\s*$/gm)).map((m) =>
+    m[1].trim(),
+  );
+}
+
 function textFromChildren(children: ReactNode): string {
   if (typeof children === "string" || typeof children === "number") return String(children);
   if (Array.isArray(children)) return children.map(textFromChildren).join("");
@@ -61,7 +68,7 @@ export default function ArticleDocument({
   lead,
   contentType,
   canonicalSlug,
-  showContents = true,
+  showContents = false,
   showMastheadMeta = true,
   presentation = "standard",
   showMasthead = true,
@@ -84,9 +91,7 @@ export default function ArticleDocument({
   const readerBody = body.replace(/^#\s+.+\n+/, "").trim();
   const sections =
     editableSections?.map((section) => section.title).filter(Boolean) ??
-    Array.from(readerBody.matchAll(/^##\s+(.+?)\s*$/gm)).map((m) =>
-      m[1].trim(),
-    );
+    articleSectionsFromMarkdown(body);
   const isImmersive = presentation === "immersive";
   const isEditable = !!onEdit;
   const editableTitle = titleProp ?? title;

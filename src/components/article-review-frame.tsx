@@ -6,7 +6,7 @@ type DetailRow = {
   value: ReactNode;
 };
 
-type DetailCard = {
+export type DetailCard = {
   title: string;
   rows?: DetailRow[];
   children?: ReactNode;

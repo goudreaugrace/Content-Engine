@@ -52,8 +52,10 @@ const tokens = {
 // Inter across the entire system. Keys kept (sans/serif/mono) so existing
 // component references resolve; all point to Inter now.
 const fontInter = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+const fontPoppins = '"Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+const fontBarlowSemiCondensed = '"Barlow Semi Condensed", "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
 const fontSans = fontInter;
-const fontSerif = fontInter;
+const fontSerif = fontBarlowSemiCondensed;
 const fontMono = fontInter;
 
 // Google-style elevation. Cards stay flat (border only); these are for
@@ -66,11 +68,11 @@ const elevation = {
 declare module "@mui/material/styles" {
   interface Palette {
     tokens: typeof tokens;
-    fonts: { sans: string; serif: string; mono: string };
+    fonts: { sans: string; serif: string; mono: string; articleTitle: string; articleBody: string };
   }
   interface PaletteOptions {
     tokens?: typeof tokens;
-    fonts?: { sans: string; serif: string; mono: string };
+    fonts?: { sans: string; serif: string; mono: string; articleTitle: string; articleBody: string };
   }
 }
 
@@ -88,7 +90,13 @@ export const theme = createTheme({
   palette: {
     mode: "light",
     tokens,
-    fonts: { sans: fontSans, serif: fontSerif, mono: fontMono },
+    fonts: {
+      sans: fontSans,
+      serif: fontSerif,
+      mono: fontMono,
+      articleTitle: fontBarlowSemiCondensed,
+      articleBody: fontPoppins,
+    },
     primary: {
       main: tokens.pepsiBlue,
       light: tokens.pepsiBlueSubtle,

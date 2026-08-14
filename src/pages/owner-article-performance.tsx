@@ -5,6 +5,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { api, type PublishedArticle } from "../lib/api";
 import { ArticlePerformance } from "./published-article-detail";
 import ArticleDocument from "../components/article-document";
+import ArticleReadingFrame from "../components/article-reading-frame";
+import { localeFor } from "../lib/market";
 
 /**
  * Content-owner view of a published article. It deliberately contains no
@@ -70,8 +72,43 @@ export default function OwnerArticlePerformance() {
       </Typography>
       <ArticlePerformance article={article} />
       <Box sx={{ mt: 5, mb: 6 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Article</Typography>
-        <ArticleDocument body={article.body} market={article.market} readDepthPercent={article.metrics.scrollDepthPercent} />
+        <ArticleReadingFrame
+          body={article.body}
+          tags={[article.contentType, localeFor(article.market), ...(article.countries ?? [])]}
+          selectedLocale={localeFor(article.market)}
+          primaryLocale={localeFor(article.market)}
+          availableLocales={[localeFor(article.market), ...Object.keys(article.translations ?? {})]}
+          quickLinks={[
+            {
+              label: "Back to my articles",
+              onClick: () => navigate("/?tab=my-articles"),
+            },
+          ]}
+          article={
+            <ArticleDocument
+              body={article.body}
+              market={article.market}
+              title={article.title}
+              lead={article.lead}
+              contentType={article.contentType}
+              canonicalSlug={article.canonicalSlug}
+              presentation="immersive"
+              showMasthead={false}
+              showContents={false}
+              readDepthPercent={article.metrics.scrollDepthPercent}
+            />
+          }
+          details={[
+            {
+              title: "Publishing details",
+              rows: [
+                { label: "Status", value: article.archivedAt ? "Archived" : "Published" },
+                { label: "Owner", value: article.owner ?? article.originalSubmittedBy.name },
+                { label: "Version", value: `Version ${article.version}` },
+              ],
+            },
+          ]}
+        />
       </Box>
     </Box>
   );

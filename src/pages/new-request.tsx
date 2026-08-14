@@ -44,7 +44,7 @@ import {
   type SimilarMatch,
 } from "../lib/api";
 import ArticleDocument from "../components/article-document";
-import ArticleReviewFrame from "../components/article-review-frame";
+import ArticleReadingFrame from "../components/article-reading-frame";
 import { usePersonaMode } from "../lib/persona";
 
 // ────────────────────────────────────────────────────────────
@@ -2989,16 +2989,21 @@ export default function NewRequest() {
           </Box>
 
           <Box sx={{ order: 2 }}>
-            <ArticleReviewFrame
-              eyebrow="Article preview"
-              helper="This is the reader-facing version, including the right-side article details."
-              action={
-                <Chip
-                  size="small"
-                  label={`Approver: ${selectedApprover.name}`}
-                  sx={{ bgcolor: t.surfaceContainerLow, color: t.slate, fontWeight: 650 }}
-                />
-              }
+            <ArticleReadingFrame
+              body={finalArticleBody}
+              tags={[
+                form.contentType,
+                selectedKnowledgeBase.name,
+                ...selectedMarketLabelsWithLanguages,
+              ]}
+              selectedLocale={displayLanguage(detectedDraftLanguage)}
+              availableLocales={[displayLanguage(detectedDraftLanguage)]}
+              quickLinks={[
+                {
+                  label: `Approver: ${selectedApprover.name}`,
+                  disabled: true,
+                },
+              ]}
               article={
                 <ArticleDocument
                   body={finalArticleBody}
@@ -3009,6 +3014,7 @@ export default function NewRequest() {
                   canonicalSlug="preview"
                   presentation="immersive"
                   showMasthead={false}
+                  showContents={false}
                   editableSections={reviewEditableSections}
                   editingKey={reviewEditKey}
                   onEdit={setReviewEditKey}

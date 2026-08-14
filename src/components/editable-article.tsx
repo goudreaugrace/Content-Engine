@@ -245,7 +245,7 @@ export default function EditableArticle({
           <PepsiMark />
           <Typography
             sx={{
-              fontFamily: theme.palette.fonts.sans,
+              fontFamily: theme.palette.fonts.articleTitle,
               fontWeight: 700,
               fontSize: "0.8125rem",
               letterSpacing: 0,
@@ -257,7 +257,7 @@ export default function EditableArticle({
           <Box sx={{ width: 1, height: 14, bgcolor: t.border }} />
           <Typography
             sx={{
-              fontFamily: theme.palette.fonts.sans,
+              fontFamily: theme.palette.fonts.articleBody,
               fontWeight: 500,
               fontSize: "0.8125rem",
               color: t.slate,
@@ -306,19 +306,19 @@ export default function EditableArticle({
         <Typography
           component="h1"
           sx={{
-            fontFamily: theme.palette.fonts.sans,
-            fontSize: { xs: "2rem", md: "2.35rem" },
-            fontWeight: 500,
+            fontFamily: theme.palette.fonts.articleTitle,
+            fontSize: { xs: "2rem", md: "2.6rem" },
+            fontWeight: 800,
             letterSpacing: 0,
             lineHeight: 1.12,
-            color: t.ink,
+            color: t.pepsiNavy,
             mb: 1.25,
           }}
         >
           {displayTitle}
         </Typography>
         {lead && (
-          <Typography sx={{ maxWidth: 1040, color: t.ink, fontSize: "1.0625rem", lineHeight: 1.65, mb: 1.75 }}>
+          <Typography sx={{ maxWidth: 1040, color: t.inkSoft, fontFamily: theme.palette.fonts.articleBody, fontSize: "0.9375rem", lineHeight: 1.6, mb: 1.75 }}>
             {lead}
           </Typography>
         )}
@@ -329,25 +329,6 @@ export default function EditableArticle({
         )}
       </Box>
 
-      {sections.length > 1 && (
-        <Box
-          sx={{
-            mx: { xs: 2.5, md: 4 },
-            mb: 2,
-            p: 2,
-            border: `1px solid ${t.border}`,
-            bgcolor: t.surfaceContainerLow,
-          }}
-        >
-          <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: t.pepsiBlueStrong, textTransform: "uppercase", letterSpacing: 0, mb: 1 }}>
-            Contents
-          </Typography>
-          <Box component="ol" sx={{ m: 0, pl: 2.25, display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, columnGap: 3, rowGap: 0.5, color: t.pepsiBlueStrong, fontSize: "0.875rem", "& li::marker": { color: t.granite } }}>
-            {sections.map((section) => <li key={section}>{section}</li>)}
-          </Box>
-        </Box>
-      )}
-
       <Divider sx={{ borderColor: t.border }} />
 
       {/* Article body */}
@@ -355,7 +336,7 @@ export default function EditableArticle({
         sx={{
           px: { xs: 2.5, md: 4 },
           py: { xs: 3, md: 4 },
-          fontFamily: theme.palette.fonts.sans,
+          fontFamily: theme.palette.fonts.articleBody,
           color: t.ink,
         }}
       >
@@ -1070,38 +1051,44 @@ function SectionRender({
     <Box
       sx={{
         color: t.ink,
-        fontSize: "0.9375rem",
-        lineHeight: 1.7,
+        fontFamily: theme.palette.fonts.articleBody,
+        fontSize: "0.875rem",
+        lineHeight: 1.58,
         // Mirror the ArticleDocument typography rules so the output reads
         // identically to a non-editable article.
         "& h1": {
-          fontSize: "1.875rem",
-          fontWeight: 700,
-          letterSpacing: "-0.02em",
-          lineHeight: 1.2,
-          color: t.ink,
+          fontFamily: theme.palette.fonts.articleTitle,
+          fontSize: "2rem",
+          fontWeight: 800,
+          letterSpacing: 0,
+          lineHeight: 1.12,
+          color: t.pepsiNavy,
           mt: editable ? 5 : 0,
           mb: 2,
         },
         "& h2": {
-          fontSize: "1.375rem",
+          fontFamily: theme.palette.fonts.articleTitle,
+          fontSize: "1.35rem",
           fontWeight: 700,
-          letterSpacing: "-0.015em",
-          lineHeight: 1.3,
+          letterSpacing: 0,
+          lineHeight: 1.35,
           color: t.pepsiBlue,
-          mt: 4.5,
-          mb: 1.5,
+          mt: 4,
+          mb: 1.25,
+          pb: 0.5,
+          borderBottom: `1px solid ${t.articleDivider}`,
         },
         "& h3": {
-          fontSize: "1.0625rem",
-          fontWeight: 600,
+          fontFamily: theme.palette.fonts.articleBody,
+          fontSize: "0.9375rem",
+          fontWeight: 700,
           color: t.ink,
-          mt: 3.5,
-          mb: 1,
+          mt: 2.75,
+          mb: 0.75,
         },
-        "& p": { my: 1.5, color: t.ink },
-        "& ul, & ol": { my: 1.5, pl: 3 },
-        "& li": { mb: 0.5, "&::marker": { color: t.pepsiBlue, fontWeight: 600 } },
+        "& p": { my: 1.1, color: t.ink },
+        "& ul, & ol": { my: 1.1, pl: 2.75 },
+        "& li": { mb: 0.35, "&::marker": { color: t.pepsiBlue, fontWeight: 600 } },
         "& strong": { fontWeight: 600 },
         "& a": {
           color: t.pepsiBlue,
@@ -1111,7 +1098,7 @@ function SectionRender({
           fontWeight: 500,
         },
         "& code": {
-          fontFamily: theme.palette.fonts.sans,
+          fontFamily: theme.palette.fonts.articleBody,
           fontSize: "0.85em",
           fontWeight: 500,
           bgcolor: t.pepsiBlueSubtle,
@@ -1123,36 +1110,40 @@ function SectionRender({
         "& blockquote": {
           borderLeft: `3px solid ${t.pepsiBlue}`,
           pl: 2,
-          py: 0.5,
-          my: 2,
+          py: 0.7,
+          my: 2.5,
           color: t.slate,
+          bgcolor: t.pepsiBlueSubtle,
+          borderRadius: 1,
         },
         "& table": {
           borderCollapse: "collapse",
           width: "100%",
-          my: 2,
-          fontSize: "0.875rem",
+          my: 2.25,
+          fontSize: "0.8125rem",
+          border: `1px solid ${t.articleDivider}`,
         },
         "& th": {
           textAlign: "left",
-          fontWeight: 600,
-          color: t.pepsiBlue,
-          fontSize: "0.6875rem",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
+          fontWeight: 700,
+          color: "#FFFFFF",
+          fontSize: "0.75rem",
+          textTransform: "none",
+          letterSpacing: 0,
           py: 1,
           px: 1.5,
-          borderBottom: `2px solid ${t.pepsiBlue}`,
-          bgcolor: t.pepsiBlueSubtle,
+          borderBottom: 0,
+          bgcolor: t.pepsiBlueDeep,
         },
         "& td": {
-          py: 1.25,
+          py: 1.05,
           px: 1.5,
-          borderBottom: `1px solid ${t.border}`,
+          borderBottom: `1px solid ${t.articleDivider}`,
           verticalAlign: "top",
         },
+        "& tbody tr:nth-of-type(even)": { bgcolor: "#F8FAFC" },
         "& tr:last-of-type td": { borderBottom: 0 },
-        "& hr": { border: 0, borderTop: `1px solid ${t.border}`, my: 4 },
+        "& hr": { border: 0, borderTop: `1px solid ${t.articleDivider}`, my: 4 },
       }}
     >
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>

@@ -283,8 +283,9 @@ export default function ArticleDocument({
                 onChange={(event) => onTitleChange(event.target.value)}
                 InputProps={{
                   disableUnderline: true,
-                  sx: {
-                    fontSize: { xs: "1.875rem", md: isImmersive ? "2.45rem" : "2.2rem" },
+                sx: {
+                    fontFamily: theme.palette.fonts.articleTitle,
+                    fontSize: { xs: "2rem", md: isImmersive ? "2.6rem" : "2.25rem" },
                     fontWeight: 800,
                     lineHeight: 1.12,
                     color: t.pepsiNavy,
@@ -303,8 +304,8 @@ export default function ArticleDocument({
               <Typography
                 component="h1"
                 sx={{
-                  fontFamily: theme.palette.fonts.sans,
-                  fontSize: { xs: "1.875rem", md: isImmersive ? "2.45rem" : "2.2rem" },
+                  fontFamily: theme.palette.fonts.articleTitle,
+                  fontSize: { xs: "2rem", md: isImmersive ? "2.6rem" : "2.25rem" },
                   fontWeight: 800,
                   letterSpacing: 0,
                   lineHeight: 1.12,
@@ -428,9 +429,9 @@ export default function ArticleDocument({
           position: "relative",
           px: { xs: 2.5, md: isImmersive ? 5 : 4 },
           py: { xs: 3, md: isImmersive ? 5 : 4 },
-          fontFamily: theme.palette.fonts.sans,
+          fontFamily: theme.palette.fonts.articleBody,
           color: t.ink,
-          fontSize: isImmersive ? "0.9375rem" : "0.9rem",
+          fontSize: isImmersive ? "0.875rem" : "0.85rem",
           lineHeight: 1.58,
 
           "& > *:first-of-type": { mt: 0 },
@@ -440,8 +441,8 @@ export default function ArticleDocument({
             display: "none",
           },
           "& h2": {
-            fontFamily: theme.palette.fonts.sans,
-            fontSize: "1.25rem",
+            fontFamily: theme.palette.fonts.articleTitle,
+            fontSize: "1.35rem",
             fontWeight: 700,
             letterSpacing: 0,
             lineHeight: 1.35,
@@ -453,7 +454,7 @@ export default function ArticleDocument({
             scrollMarginTop: 24,
           },
           "& h3": {
-            fontFamily: theme.palette.fonts.sans,
+            fontFamily: theme.palette.fonts.articleBody,
             fontSize: "0.9375rem",
             fontWeight: 700,
             letterSpacing: 0,
@@ -464,6 +465,7 @@ export default function ArticleDocument({
             scrollMarginTop: 24,
           },
           "& h4": {
+            fontFamily: theme.palette.fonts.articleBody,
             fontSize: "0.875rem",
             fontWeight: 700,
             color: t.ink,
@@ -498,7 +500,7 @@ export default function ArticleDocument({
           },
 
           "& code": {
-            fontFamily: theme.palette.fonts.sans,
+            fontFamily: theme.palette.fonts.articleBody,
             fontSize: "0.85em",
             fontWeight: 500,
             bgcolor: t.pepsiBlueSubtle,
@@ -546,6 +548,7 @@ export default function ArticleDocument({
             fontWeight: 700,
             color: "#FFFFFF",
             fontSize: "0.75rem",
+            fontFamily: theme.palette.fonts.articleBody,
             textTransform: "none",
             letterSpacing: 0,
             py: 1,

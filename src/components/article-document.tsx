@@ -144,7 +144,7 @@ export default function ArticleDocument({
             spacing={0.75}
             alignItems="flex-start"
             sx={{
-              maxWidth: isImmersive ? 860 : 700,
+              maxWidth: isImmersive ? 1040 : 760,
               px: 1.25,
               py: 1,
               borderRadius: 1.25,
@@ -175,7 +175,7 @@ export default function ArticleDocument({
         border: `1px solid ${t.border}`,
         borderRadius: isImmersive ? 2.5 : 0,
         overflow: "hidden",
-        maxWidth: isImmersive ? "none" : 820,
+        maxWidth: isImmersive ? "none" : 960,
         boxShadow: isImmersive ? "0 18px 45px rgba(0, 46, 93, 0.10)" : "none",
       }}
     >
@@ -348,7 +348,7 @@ export default function ArticleDocument({
               <>
           <Typography
             sx={{
-              maxWidth: isImmersive ? 860 : 680,
+              maxWidth: isImmersive ? 1040 : 760,
               color: t.ink,
               fontSize: isImmersive ? "1.125rem" : "1.0625rem",
               lineHeight: 1.65,
@@ -464,9 +464,9 @@ export default function ArticleDocument({
             mb: 0.75,
           },
 
-          "& p": { my: 1.5, color: t.ink, maxWidth: isImmersive ? 860 : 700 },
+          "& p": { my: 1.5, color: t.ink, maxWidth: isImmersive ? 1040 : 760 },
 
-          "& ul, & ol": { my: 1.5, pl: 3, maxWidth: isImmersive ? 860 : 700 },
+          "& ul, & ol": { my: 1.5, pl: 3, maxWidth: isImmersive ? 1040 : 760 },
           "& li": {
             mb: 0.5,
             "&::marker": { color: t.pepsiBlue, fontWeight: 600 },

@@ -39,6 +39,7 @@ import { localeFor } from "../lib/market";
 import { sectorShortLabel, sectorFullLabel } from "../lib/sector";
 import ArticleDocument from "../components/article-document";
 import EditableArticle from "../components/editable-article";
+import ArticleReviewFrame from "../components/article-review-frame";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 // ArticleEditor was the old whole-article markdown/AI chat editor. Option A
 // consolidated all editing under the page-level Edit toggle + per-section
@@ -514,7 +515,7 @@ export default function ArticleDetail() {
   };
 
   return (
-    <Box sx={{ maxWidth: 820, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1520, mx: "auto" }}>
       <Button
         startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
         onClick={() => navigate("/")}
@@ -1002,7 +1003,7 @@ export default function ArticleDetail() {
           alignItems="center"
           spacing={2}
           flexWrap="wrap"
-          sx={{ maxWidth: 820, mb: 1.5 }}
+          sx={{ maxWidth: 1040, mb: 1.5 }}
         >
           {availableLocales.length > 1 ? (
             <ToggleButtonGroup
@@ -1060,45 +1061,74 @@ export default function ArticleDetail() {
         </Stack>
 
           {translateError && (
-            <Alert severity="warning" sx={{ maxWidth: 820, mb: 1.5 }}>
+            <Alert severity="warning" sx={{ maxWidth: 1040, mb: 1.5 }}>
               {translateError}
             </Alert>
           )}
 
         <Box ref={documentRef}>
-          {article.status !== "published" &&
-          (!viewLocale || viewLocale === primaryLocale) ? (
-            // EditableArticle owns the per-section UI. It honors `editMode`
-            // — when off it reads as a clean document with no edit chrome;
-            // when on, every section surfaces its Edit affordance. Compliance
-            // badges + AI fix cards still show regardless (they're guided
-            // actions, not edits the reviewer initiated themselves).
-            <EditableArticle
-              articleId={article.id}
-              body={article.body}
-              market={article.market}
-              title={article.title}
-              lead={article.lead}
-              contentType={article.contentType}
-              canonicalSlug={article.canonicalSlug}
-              complianceIssues={article.complianceIssues}
-              editMode={editMode}
-              onUpdated={(newBody) => {
-                const before = article;
-                setArticle((a) => (a ? { ...a, body: newBody } : a));
-                recordSave(before);
-              }}
-            />
-          ) : (
-            <ArticleDocument
-              body={displayedBody}
-              market={article.market}
-              title={article.title}
-              lead={article.lead}
-              contentType={article.contentType}
-              canonicalSlug={article.canonicalSlug}
-            />
-          )}
+          <ArticleReviewFrame
+            eyebrow={article.status === "published" ? "Published article" : "Article preview"}
+            helper="Review the article in the same format employees see."
+            article={
+              article.status !== "published" &&
+              (!viewLocale || viewLocale === primaryLocale) ? (
+                // EditableArticle owns the per-section UI. It honors `editMode`
+                // — when off it reads as a clean document with no edit chrome;
+                // when on, every section surfaces its Edit affordance. Compliance
+                // badges + AI fix cards still show regardless (they're guided
+                // actions, not edits the reviewer initiated themselves).
+                <EditableArticle
+                  articleId={article.id}
+                  body={article.body}
+                  market={article.market}
+                  title={article.title}
+                  lead={article.lead}
+                  contentType={article.contentType}
+                  canonicalSlug={article.canonicalSlug}
+                  complianceIssues={article.complianceIssues}
+                  editMode={editMode}
+                  onUpdated={(newBody) => {
+                    const before = article;
+                    setArticle((a) => (a ? { ...a, body: newBody } : a));
+                    recordSave(before);
+                  }}
+                />
+              ) : (
+                <ArticleDocument
+                  body={displayedBody}
+                  market={article.market}
+                  title={article.title}
+                  lead={article.lead}
+                  contentType={article.contentType}
+                  canonicalSlug={article.canonicalSlug}
+                  presentation="immersive"
+                  showMasthead={false}
+                />
+              )
+            }
+            details={[
+              {
+                title: "Article details",
+                rows: [
+                  { label: "Status", value: statusMeta[article.status].label },
+                  { label: "Type", value: article.contentType },
+                  { label: "Knowledge base", value: knowledgeBaseLabel(article) },
+                  { label: "Country", value: article.countries?.join(", ") || article.market },
+                  { label: "Owner", value: article.owner ?? article.submittedBy.name },
+                  { label: "Submitted", value: formatDate(article.submittedAt) },
+                  { label: "Version", value: `Version ${article.version ?? 1}` },
+                ],
+              },
+              {
+                title: "Available translations",
+                rows: availableLocales.map((code) => ({
+                  label: code === primaryLocale ? "Primary" : "Translation",
+                  value: code,
+                })),
+              },
+            ]}
+          />
         </Box>
       </>
 

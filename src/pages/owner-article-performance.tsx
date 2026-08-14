@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Alert, Box, Button, Chip, CircularProgress, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { api, type PublishedArticle } from "../lib/api";
+import { ArticlePerformance } from "./published-article-detail";
 import ArticleDocument from "../components/article-document";
 
 /**
@@ -72,123 +73,6 @@ export default function OwnerArticlePerformance() {
         <Typography variant="h6" sx={{ mb: 2 }}>Article</Typography>
         <ArticleDocument body={article.body} market={article.market} readDepthPercent={article.metrics.scrollDepthPercent} />
       </Box>
-    </Box>
-  );
-}
-
-function formatDuration(seconds?: number) {
-  if (!seconds) return "No timing yet";
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return mins ? `${mins}m ${secs.toString().padStart(2, "0")}s` : `${secs}s`;
-}
-
-function ArticlePerformance({ article }: { article: PublishedArticle }) {
-  const theme = useTheme();
-  const t = theme.palette.tokens;
-  const metrics = article.metrics;
-  const locations = metrics.locations ?? [];
-  const queries = metrics.searchQueries ?? [];
-
-  return (
-    <Stack spacing={2.5}>
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
-          gap: 1.5,
-        }}
-      >
-        <PerformanceStat label="Views this month" value={metrics.views30d.toLocaleString()} />
-        <PerformanceStat label="All-time views" value={metrics.viewsAllTime.toLocaleString()} />
-        <PerformanceStat label="Average read time" value={formatDuration(metrics.averageEngagementSeconds)} />
-        <PerformanceStat label="Reader depth" value={metrics.scrollDepthPercent ? `${metrics.scrollDepthPercent}%` : "No depth yet"} />
-      </Box>
-
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) minmax(0, 1fr)" },
-          gap: 2,
-        }}
-      >
-        <Box sx={{ border: `1px solid ${t.border}`, borderRadius: 2, p: 2 }}>
-          <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink, mb: 0.5 }}>
-            Searches that found this article
-          </Typography>
-          <Typography sx={{ fontSize: "0.75rem", color: t.slate, mb: 1.25 }}>
-            Top internal search phrases before opening the article.
-          </Typography>
-          <Stack spacing={0.75}>
-            {queries.length > 0 ? (
-              queries.slice(0, 5).map((query) => (
-                <Stack key={query.phrase} direction="row" justifyContent="space-between" spacing={1.5}>
-                  <Typography sx={{ fontSize: "0.8125rem", color: t.ink, minWidth: 0 }}>
-                    {query.phrase}
-                  </Typography>
-                  <Typography sx={{ fontSize: "0.75rem", color: t.granite, whiteSpace: "nowrap" }}>
-                    {query.searches} searches
-                  </Typography>
-                </Stack>
-              ))
-            ) : (
-              <Typography sx={{ fontSize: "0.8125rem", color: t.granite }}>
-                Search terms will appear after the article has traffic.
-              </Typography>
-            )}
-          </Stack>
-        </Box>
-
-        <Box sx={{ border: `1px solid ${t.border}`, borderRadius: 2, p: 2 }}>
-          <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink, mb: 0.5 }}>
-            Reader locations
-          </Typography>
-          <Typography sx={{ fontSize: "0.75rem", color: t.slate, mb: 1.25 }}>
-            Aggregated country-level readership.
-          </Typography>
-          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-            {locations.length > 0 ? (
-              locations.slice(0, 8).map((location) => (
-                <Chip
-                  key={location.code}
-                  size="small"
-                  label={`${location.name} · ${location.views}`}
-                  sx={{ bgcolor: t.surfaceContainerLow, color: t.ink }}
-                />
-              ))
-            ) : (
-              <Typography sx={{ fontSize: "0.8125rem", color: t.granite }}>
-                Location data will appear after the article has traffic.
-              </Typography>
-            )}
-          </Stack>
-          {metrics.cta && (
-            <Box sx={{ mt: 1.75, pt: 1.5, borderTop: `1px solid ${t.border}` }}>
-              <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
-                Next-step clicks
-              </Typography>
-              <Typography sx={{ fontSize: "0.875rem", color: t.ink, fontWeight: 650 }}>
-                {metrics.cta.label}: {metrics.cta.clicks.toLocaleString()}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      </Box>
-    </Stack>
-  );
-}
-
-function PerformanceStat({ label, value }: { label: string; value: string }) {
-  const theme = useTheme();
-  const t = theme.palette.tokens;
-  return (
-    <Box sx={{ border: `1px solid ${t.border}`, borderRadius: 2, p: 2, bgcolor: "#FFFFFF" }}>
-      <Typography sx={{ fontSize: "0.75rem", color: t.granite, mb: 0.5 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ fontSize: "1.35rem", fontWeight: 700, color: t.ink, lineHeight: 1.2 }}>
-        {value}
-      </Typography>
     </Box>
   );
 }

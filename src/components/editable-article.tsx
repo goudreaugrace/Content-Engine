@@ -225,7 +225,7 @@ export default function EditableArticle({
         border: `1px solid ${t.border}`,
         borderRadius: 0,
         overflow: "hidden",
-        maxWidth: 820,
+        maxWidth: "none",
       }}
     >
       {/* Reader masthead — matches ArticleDocument */}
@@ -318,7 +318,7 @@ export default function EditableArticle({
           {displayTitle}
         </Typography>
         {lead && (
-          <Typography sx={{ maxWidth: 680, color: t.ink, fontSize: "1.0625rem", lineHeight: 1.65, mb: 1.75 }}>
+          <Typography sx={{ maxWidth: 1040, color: t.ink, fontSize: "1.0625rem", lineHeight: 1.65, mb: 1.75 }}>
             {lead}
           </Typography>
         )}

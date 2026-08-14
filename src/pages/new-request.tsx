@@ -44,6 +44,8 @@ import {
   type SimilarMatch,
 } from "../lib/api";
 import ArticleDocument from "../components/article-document";
+import ArticleReviewFrame from "../components/article-review-frame";
+import { usePersonaMode } from "../lib/persona";
 
 // ────────────────────────────────────────────────────────────
 // Static reference data
@@ -532,6 +534,7 @@ export default function NewRequest() {
   const navigate = useNavigate();
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const [personaMode] = usePersonaMode();
   const me = currentUser();
   const manager =
     demoPeople.find((person) => person.email === me.email)?.manager ??
@@ -624,6 +627,12 @@ export default function NewRequest() {
 
   const [marketProfiles, setMarketProfiles] = useState<MarketProfile[]>([]);
   const [sectorProfiles, setSectorProfiles] = useState<SectorProfile[]>([]);
+
+  useEffect(() => {
+    if (personaMode !== "non-admin") {
+      navigate("/", { replace: true });
+    }
+  }, [navigate, personaMode]);
 
   useEffect(() => {
     api
@@ -1948,8 +1957,16 @@ export default function NewRequest() {
     }
   };
   // ───────────── Render ─────────────
+  if (personaMode !== "non-admin") {
+    return (
+      <Alert severity="info">
+        Article creation is available to Content Owners. Team Admins and Super Admins manage review, governance, and published content.
+      </Alert>
+    );
+  }
+
   return (
-    <Box sx={{ maxWidth: currentStep === 2 ? 1480 : 1040, mx: "auto" }}>
+    <Box sx={{ maxWidth: currentStep === 2 ? 1600 : 1280, mx: "auto" }}>
       <Box
         sx={{
           mb: 4,
@@ -2972,43 +2989,17 @@ export default function NewRequest() {
           </Box>
 
           <Box sx={{ order: 2 }}>
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              justifyContent="space-between"
-              alignItems={{ xs: "flex-start", sm: "center" }}
-              spacing={1}
-              sx={{ mb: 1.25 }}
-            >
-              <Box>
-                <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>
-                  Article preview
-                </Typography>
-                <Typography sx={{ mt: 0.25, fontSize: "0.75rem", color: t.granite }}>
-                  This is the reader-facing version, including the right-side article details.
-                </Typography>
-              </Box>
-              <Chip
-                size="small"
-                label={`Approver: ${selectedApprover.name}`}
-                sx={{ bgcolor: t.surfaceContainerLow, color: t.slate, fontWeight: 650 }}
-              />
-            </Stack>
-            <Box
-              sx={{
-                bgcolor: "#DDEFFD",
-                borderRadius: 3,
-                p: { xs: 1.25, md: 2.5 },
-                overflowX: "auto",
-              }}
-            >
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 320px" },
-                  gap: { xs: 2, xl: 2.5 },
-                  alignItems: "start",
-                }}
-              >
+            <ArticleReviewFrame
+              eyebrow="Article preview"
+              helper="This is the reader-facing version, including the right-side article details."
+              action={
+                <Chip
+                  size="small"
+                  label={`Approver: ${selectedApprover.name}`}
+                  sx={{ bgcolor: t.surfaceContainerLow, color: t.slate, fontWeight: 650 }}
+                />
+              }
+              article={
                 <ArticleDocument
                   body={finalArticleBody}
                   title={form.title}
@@ -3027,90 +3018,51 @@ export default function NewRequest() {
                   titleRecommendations={titleRecommendations}
                   leadRecommendations={leadRecommendations}
                 />
-
-                <Stack spacing={2} sx={{ position: { xl: "sticky" }, top: { xl: 20 } }}>
-                  <Box
-                    sx={{
-                      p: 2,
-                      borderRadius: 2.5,
-                      bgcolor: "#FFFFFF",
-                      boxShadow: "0 12px 32px rgba(0, 46, 93, 0.10)",
-                    }}
-                  >
-                    <Typography sx={{ fontSize: "1rem", fontWeight: 800, color: t.ink, mb: 1.5 }}>
-                      Article details
-                    </Typography>
-                    <Stack spacing={1.1}>
-                      {[
-                        ["Draft language", displayLanguage(detectedDraftLanguage)],
-                        ["Type", form.contentType],
-                        ["Knowledge base", selectedKnowledgeBase.name],
-                        ["Who can read it", form.audience.join(", ") || "Not selected"],
-                        ["Country", selectedMarketLabelsWithLanguages.join(", ") || "Not selected"],
-                        ["Owner", me.name],
-                        ["Approver", selectedApprover.name],
-                        ["Status", "Draft for approval"],
-                      ].map(([label, value]) => (
-                        <Box key={label}>
-                          <Typography sx={{ fontSize: "0.6875rem", color: t.granite, mb: 0.25 }}>
-                            {label}
-                          </Typography>
-                          <Typography sx={{ fontSize: "0.8125rem", fontWeight: 650, color: t.ink, lineHeight: 1.35 }}>
-                            {value}
-                          </Typography>
-                        </Box>
+              }
+              details={[
+                {
+                  title: "Article details",
+                  rows: [
+                    { label: "Draft language", value: displayLanguage(detectedDraftLanguage) },
+                    { label: "Type", value: form.contentType },
+                    { label: "Knowledge base", value: selectedKnowledgeBase.name },
+                    { label: "Who can read it", value: form.audience.join(", ") || "Not selected" },
+                    { label: "Country", value: selectedMarketLabelsWithLanguages.join(", ") || "Not selected" },
+                    { label: "Owner", value: me.name },
+                    { label: "Approver", value: selectedApprover.name },
+                    { label: "Status", value: "Draft for approval" },
+                  ],
+                },
+                {
+                  title: "Attachments",
+                  children: form.files.length > 0 ? (
+                    <Stack spacing={0.75}>
+                      {form.files.map((file) => (
+                        <Chip
+                          key={file.name}
+                          label={file.name}
+                          size="small"
+                          variant="outlined"
+                          sx={{ justifyContent: "flex-start", maxWidth: "100%" }}
+                        />
                       ))}
                     </Stack>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      p: 2,
-                      borderRadius: 2.5,
-                      bgcolor: "#FFFFFF",
-                      boxShadow: "0 12px 32px rgba(0, 46, 93, 0.10)",
-                    }}
-                  >
-                    <Typography sx={{ fontSize: "1rem", fontWeight: 800, color: t.ink, mb: 1.25 }}>
-                      Attachments
+                  ) : (
+                    <Typography sx={{ fontSize: "0.875rem", fontWeight: 650, color: t.ink }}>
+                      No attachments found
                     </Typography>
-                    {form.files.length > 0 ? (
-                      <Stack spacing={0.75}>
-                        {form.files.map((file) => (
-                          <Chip
-                            key={file.name}
-                            label={file.name}
-                            size="small"
-                            variant="outlined"
-                            sx={{ justifyContent: "flex-start", maxWidth: "100%" }}
-                          />
-                        ))}
-                      </Stack>
-                    ) : (
-                      <Typography sx={{ fontSize: "0.875rem", fontWeight: 650, color: t.ink }}>
-                        No attachments found
-                      </Typography>
-                    )}
-                  </Box>
-
-                  <Box
-                    sx={{
-                      p: 2,
-                      borderRadius: 2.5,
-                      bgcolor: "#FFFFFF",
-                      boxShadow: "0 12px 32px rgba(0, 46, 93, 0.10)",
-                    }}
-                  >
-                    <Typography sx={{ fontSize: "1rem", fontWeight: 800, color: t.ink, mb: 1.25 }}>
-                      Related path
-                    </Typography>
+                  ),
+                },
+                {
+                  title: "Related path",
+                  children: (
                     <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.pepsiBlueStrong, lineHeight: 1.55 }}>
                       {selectedKnowledgeBase.name} › {selectedSectorLabel} › {form.contentType} › {form.title.trim() || "Untitled article"}
                     </Typography>
-                  </Box>
-                </Stack>
-              </Box>
-            </Box>
+                  ),
+                },
+              ]}
+            />
           </Box>
 
           <Stack

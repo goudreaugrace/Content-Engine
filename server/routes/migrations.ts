@@ -8,6 +8,7 @@ import {
 import type { Article, ContentType, Job, Market, TraceEntry } from "../lib/types";
 import { evaluate as evaluateApprovalRules } from "../lib/approval-rules";
 import { runMigrationStandardizationAgent } from "../agents/migration-standardization-agent";
+import { normalizeArticleStandard } from "../lib/article-standard";
 
 export const migrationsRouter = Router();
 
@@ -76,7 +77,20 @@ migrationsRouter.post("/standardize", async (req, res) => {
       countries,
     });
 
-    const baseArticle: Article = {
+    const jobInput: Job["input"] = {
+      title: body.sourceTitle ?? draft.title,
+      contentType,
+      summary: "Migration standardization request",
+      audience: "All employees",
+      markets: [marketId],
+      sectors: [sector?.id ?? sectorId],
+      sourceText: body.sourceContent,
+      submittedBy,
+      countries,
+      seo: draft.seo,
+    };
+
+    const baseArticle: Article = normalizeArticleStandard({
       id: `ka-${randomUUID().slice(0, 8)}`,
       jobId: `job-${randomUUID().slice(0, 8)}`,
       title: draft.title,
@@ -90,7 +104,12 @@ migrationsRouter.post("/standardize", async (req, res) => {
       submittedAt: now(),
       status: "needs-review",
       complianceIssues: [],
-    };
+    }, {
+      input: jobInput,
+      marketSources: market?.sources,
+      sectorSources: sector?.sources,
+      actor: submittedBy.name,
+    });
     const ruling = evaluateApprovalRules(baseArticle);
     const article: Article = {
       ...baseArticle,
@@ -112,18 +131,7 @@ migrationsRouter.post("/standardize", async (req, res) => {
       status: "complete",
       createdAt: now(),
       updatedAt: now(),
-      input: {
-        title: body.sourceTitle ?? draft.title,
-        contentType,
-        summary: "Migration standardization request",
-        audience: "All employees",
-        markets: [marketId],
-        sectors: [sector?.id ?? sectorId],
-        sourceText: body.sourceContent,
-        submittedBy,
-        countries,
-        seo: draft.seo,
-      },
+      input: jobInput,
       articleIds: [article.id],
       trace: [
         trace("migration", "Detected migrated source content", {

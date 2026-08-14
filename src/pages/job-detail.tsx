@@ -111,7 +111,7 @@ export default function JobDetail() {
   const isInFlight = !["complete", "failed", "awaiting_clarification"].includes(job.status);
 
   return (
-    <Box sx={{ maxWidth: 920, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1280, mx: "auto" }}>
       <Button
         startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
         onClick={() => navigate("/")}

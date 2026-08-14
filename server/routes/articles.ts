@@ -16,6 +16,11 @@ import { runSectionRevisionAgent } from "../agents/section-revision-agent";
 import { runTranslationAgent } from "../agents/translation-agent";
 import { findSimilar } from "../lib/similarity";
 import { isMockMode } from "../lib/claude";
+import {
+  defaultFeedback,
+  normalizeArticleStandard,
+  translationBody,
+} from "../lib/article-standard";
 
 const LANG_NAMES: Record<string, string> = {
   en: "English",
@@ -72,7 +77,7 @@ articlesRouter.get("/", async (_req, res) => {
   const articles = await loadAll<Article>("articles");
   // newest first
   articles.sort((a, b) => +new Date(b.submittedAt) - +new Date(a.submittedAt));
-  res.json(articles);
+  res.json(articles.map((a) => normalizeArticleStandard(a)));
 });
 
 /**
@@ -93,16 +98,27 @@ articlesRouter.post("/similar", async (req, res) => {
     return res.json({ matches: [] });
   }
   const corpus = await loadAll<Article>("articles");
+  const published = await loadAll<PublishedArticle>("publishedArticles");
+  const fullCorpus = [
+    ...corpus.map((a) => normalizeArticleStandard(a)),
+    ...published.map((a) => normalizeArticleStandard(a)),
+  ];
   const matches = findSimilar(
     {
       title: title ?? "",
       summary: summary ?? "",
       countries: countries ?? [],
     },
-    corpus.map((a) => ({
+    fullCorpus.map((a) => ({
       id: a.id,
       title: a.title,
-      body: a.body,
+      body: [
+        a.lead,
+        a.body,
+        ...(a.aliases ?? []),
+        ...(a.topics ?? []),
+        ...(a.references ?? []).map((r) => `${r.title} ${r.excerpt ?? ""}`),
+      ].filter(Boolean).join("\n"),
       countries: a.countries ?? [],
       // Carry the full article through so the response can include
       // status / market without a second lookup on the client.
@@ -116,7 +132,7 @@ articlesRouter.post("/similar", async (req, res) => {
       score: Number(m.score.toFixed(3)),
       sharedCountries: m.sharedCountries,
       market: (m.item as any).__article.market as Article["market"],
-      status: (m.item as any).__article.status as Article["status"],
+      status: ((m.item as any).__article.status ?? "published") as Article["status"],
       contentType: (m.item as any).__article.contentType as Article["contentType"],
     })),
   });
@@ -125,7 +141,7 @@ articlesRouter.post("/similar", async (req, res) => {
 articlesRouter.get("/:id", async (req, res) => {
   const article = await loadById<Article>("articles", req.params.id);
   if (!article) return res.status(404).json({ error: "not found" });
-  res.json(article);
+  res.json(normalizeArticleStandard(article));
 });
 
 
@@ -151,23 +167,30 @@ articlesRouter.patch("/:id/owner", async (req, res) => {
 });
 
 articlesRouter.patch("/:id", async (req, res) => {
-  const { body, title, seo } = req.body as {
+  const { body, title, seo, countries, knowledgeBase, sector, globalJustification } = req.body as {
     body?: string;
     title?: string;
     seo?: Article["seo"];
+    countries?: string[];
+    knowledgeBase?: Article["knowledgeBase"];
+    sector?: string;
+    globalJustification?: string;
   };
   const article = await loadById<Article>("articles", req.params.id);
   if (!article) return res.status(404).json({ error: "not found" });
 
   // At least one field has to change for the patch to be meaningful.
-  if (body === undefined && title === undefined && seo === undefined) {
+  if (body === undefined && title === undefined && seo === undefined && countries === undefined && knowledgeBase === undefined && sector === undefined && globalJustification === undefined) {
     return res
       .status(400)
-      .json({ error: "Provide at least one of: body, title, seo." });
+      .json({ error: "Provide at least one editable article field." });
   }
   // Body is still validated when present — empty body would break the renderer.
   if (typeof body === "string" && !body.trim()) {
     return res.status(400).json({ error: "body cannot be empty" });
+  }
+  if ((sector ?? article.sector) === "global" && (globalJustification ?? article.globalJustification ?? "").trim().length < 10) {
+    return res.status(400).json({ error: "Global-sector content requires a cross-sector justification of at least 10 characters." });
   }
 
   const nextBody = typeof body === "string" ? body : article.body;
@@ -189,14 +212,20 @@ articlesRouter.patch("/:id", async (req, res) => {
       }
     : article.seo;
 
+
   const updated: Article = {
     ...article,
     body: nextBody,
     title: nextTitle,
     seo: nextSeo,
+    countries: Array.isArray(countries) ? countries.map((country) => country.trim()).filter(Boolean) : article.countries,
+    knowledgeBase: knowledgeBase ?? article.knowledgeBase,
+    sector: sector ?? article.sector,
+    globalJustification: globalJustification ?? article.globalJustification,
   };
-  await upsert("articles", updated);
-  res.json(updated);
+  const normalized = normalizeArticleStandard(updated);
+  await upsert("articles", normalized);
+  res.json(normalized);
 });
 
 articlesRouter.post("/:id/revise", async (req, res) => {
@@ -352,8 +381,21 @@ articlesRouter.patch("/:id/review", async (req, res) => {
       complianceIssues: article.complianceIssues,
       title: article.title,
       contentType: article.contentType,
+      knowledgeBase: article.knowledgeBase,
+      sector: article.sector,
       market: article.market,
       countries: article.countries,
+      lead: article.lead,
+      canonicalSlug: article.canonicalSlug,
+      aliases: article.aliases,
+      topics: article.topics,
+      references: article.references,
+      relatedArticleIds: article.relatedArticleIds,
+      visibility: article.visibility,
+      owner: article.owner,
+      effectiveAt: article.effectiveAt,
+      nextReviewAt: article.nextReviewAt,
+      approvedBy: article.approvedBy ?? reviewedBy,
       body: article.body,
       seo: article.seo,
       globalJustification: article.globalJustification,
@@ -363,9 +405,18 @@ articlesRouter.patch("/:id/review", async (req, res) => {
       version: 1,
       lastReviewedAt: new Date().toISOString(),
       lastReviewer: reviewedBy,
+      revisionHistory: [{
+        version: 1,
+        at: new Date().toISOString(),
+        by: reviewedBy,
+        summary: "Initial publish",
+        title: article.title,
+        body: article.body,
+      }],
       metrics: initialMetrics,
+      feedback: defaultFeedback(),
     };
-    await upsert("publishedArticles", published);
+    await upsert("publishedArticles", normalizeArticleStandard(published));
     const updatedSource: Article = {
       ...article,
       status: "published",
@@ -392,7 +443,7 @@ articlesRouter.patch("/:id/review", async (req, res) => {
 });
 
 /**
- * Resubmit a rejected article for review. The current rejection (reason +
+ * Resubmit a rejected article or requested-change revision for review. The current rejection (reason +
  * snapshot of the body that was rejected) is moved into the rejections log,
  * the live rejection fields are cleared, version is incremented, and status
  * flips back to "needs-review".
@@ -400,10 +451,13 @@ articlesRouter.patch("/:id/review", async (req, res) => {
 articlesRouter.post("/:id/resubmit", async (req, res) => {
   const article = await loadById<Article>("articles", req.params.id);
   if (!article) return res.status(404).json({ error: "not found" });
-  if (article.status !== "rejected") {
+  if (article.status !== "rejected" && article.status !== "needs-info") {
     return res
       .status(400)
-      .json({ error: "Only rejected articles can be resubmitted" });
+      .json({ error: "Only rejected articles or requested-change revisions can be resubmitted" });
+  }
+  if (article.sector === "global" && (article.globalJustification ?? "").trim().length < 10) {
+    return res.status(400).json({ error: "Add a cross-sector justification before submitting Global content for review." });
   }
 
   const currentVersion = article.version ?? 1;
@@ -424,9 +478,13 @@ articlesRouter.post("/:id/resubmit", async (req, res) => {
     ...article,
     status: "needs-review",
     version: currentVersion + 1,
-    rejections: [...(article.rejections ?? []), entry],
+    rejections:
+      article.status === "rejected"
+        ? [...(article.rejections ?? []), entry]
+        : article.rejections,
     // Clear the live rejection fields — they now live in history.
     rejectionReason: undefined,
+    infoNeeded: undefined,
     reviewedAt: undefined,
     reviewer: undefined,
   };
@@ -450,7 +508,8 @@ articlesRouter.post("/:id/translate", async (req, res) => {
   // ("en") so existing pre-baked translations still resolve when the client
   // asks for a region-qualified locale.
   const cached =
-    article.translations?.[raw] ?? article.translations?.[resolved.base];
+    translationBody(article.translations?.[raw]) ??
+    translationBody(article.translations?.[resolved.base]);
   if (cached) return res.json({ language: raw, body: cached });
 
   const source = languageForMarket(article.market);
@@ -471,7 +530,16 @@ articlesRouter.post("/:id/translate", async (req, res) => {
     if (!isMockMode) {
       const updated: Article = {
         ...article,
-        translations: { ...(article.translations ?? {}), [raw]: translated },
+        translations: {
+          ...(article.translations ?? {}),
+          [raw]: {
+            body: translated,
+            status: "current",
+            sourceVersion: article.version ?? 1,
+            translatedAt: new Date().toISOString(),
+            translatedBy: "Translation Agent",
+          },
+        },
       };
       await upsert("articles", updated);
     }

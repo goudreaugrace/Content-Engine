@@ -32,6 +32,7 @@ import { localeFor } from "../lib/market";
 import EditableArticle from "../components/editable-article";
 import ApprovalChecklist from "../components/approval-checklist";
 import ArticleDocument from "../components/article-document";
+import ArticleReviewFrame from "../components/article-review-frame";
 
 type PendingAction = null | "reject" | "needs-info";
 
@@ -250,7 +251,7 @@ export default function ReviewQueue() {
 
   if (error) {
     return (
-      <Box sx={{ maxWidth: 700, mx: "auto" }}>
+    <Box sx={{ maxWidth: 960, mx: "auto" }}>
         <Alert severity="error">{error}</Alert>
       </Box>
     );
@@ -333,7 +334,7 @@ export default function ReviewQueue() {
   ).length;
 
   return (
-    <Box sx={{ maxWidth: 820, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1520, mx: "auto" }}>
       {/* ─── Top bar ─── */}
       <Stack
         direction="row"
@@ -552,13 +553,37 @@ function DraftBody({
       {/* Review queue defaults edit mode ON — reviewers are here specifically
           to take action on each article, so the Edit affordances and AI fix
           cards should be visible from the start (no extra toggle to find). */}
-      <EditableArticle
-        articleId={draft.id}
-        body={draft.body}
-        market={draft.market}
-        complianceIssues={draft.complianceIssues}
-        editMode
-        onUpdated={onBodyChanged}
+      <ArticleReviewFrame
+        eyebrow="Article preview"
+        helper="Review and edit the article in the same format employees will see."
+        article={
+          <EditableArticle
+            articleId={draft.id}
+            body={draft.body}
+            market={draft.market}
+            title={draft.title}
+            lead={draft.lead}
+            contentType={draft.contentType}
+            canonicalSlug={draft.canonicalSlug}
+            complianceIssues={draft.complianceIssues}
+            editMode
+            onUpdated={onBodyChanged}
+          />
+        }
+        details={[
+          {
+            title: "Article details",
+            rows: [
+              { label: "Status", value: "In review" },
+              { label: "Type", value: draft.contentType },
+              { label: "Knowledge base", value: draft.knowledgeBase ?? "myPepsiCo KB" },
+              { label: "Country", value: draft.countries?.join(", ") || draft.market },
+              { label: "Owner", value: draft.owner ?? draft.submittedBy.name },
+              { label: "Submitted", value: formatDate(draft.submittedAt) },
+              { label: "Version", value: `Version ${draft.version ?? 1}` },
+            ],
+          },
+        ]}
       />
     </>
   );
@@ -632,7 +657,35 @@ function PublishedBody({ published }: { published: PublishedArticle }) {
         </Typography>
       </Box>
 
-      <ArticleDocument body={published.body} market={published.market} />
+      <ArticleReviewFrame
+        eyebrow="Published article"
+        helper="Review the article in the same format employees see."
+        article={
+          <ArticleDocument
+            body={published.body}
+            market={published.market}
+            title={published.title}
+            lead={published.lead}
+            contentType={published.contentType}
+            canonicalSlug={published.canonicalSlug}
+            presentation="immersive"
+            showMasthead={false}
+          />
+        }
+        details={[
+          {
+            title: "Article details",
+            rows: [
+              { label: "Type", value: published.contentType },
+              { label: "Knowledge base", value: published.knowledgeBase ?? "myPepsiCo KB" },
+              { label: "Country", value: published.countries?.join(", ") || published.market },
+              { label: "Owner", value: published.owner ?? published.originalSubmittedBy.name },
+              { label: "Published", value: formatDate(published.publishedAt) },
+              { label: "Version", value: `Version ${published.version}` },
+            ],
+          },
+        ]}
+      />
     </>
   );
 }
@@ -726,7 +779,7 @@ function DraftActions({
             onClick={onStartNeedsInfo}
             disabled={processing}
           >
-            Needs info
+            Request Changes
           </Button>
           <Button
             size="small"

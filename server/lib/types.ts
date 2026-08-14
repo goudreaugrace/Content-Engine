@@ -51,6 +51,8 @@ export type TraceEntry = {
 export type JobInput = {
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected by the requester. */
+  knowledgeBase?: string;
   summary: string;
   audience: string;
   /**
@@ -74,7 +76,10 @@ export type JobInput = {
    */
   markets: string[];
   sourceText: string;
+  /** Final employee-facing article body reviewed by the requester before submission. */
+  finalArticleBody?: string;
   submittedBy: { name: string; email: string };
+  approver?: { name: string; email: string; role?: string };
   /**
    * ISO country codes the article applies to. Required (≥1) by Phase A
    * validation. Separate dimension from `market` — a US-market article
@@ -132,6 +137,61 @@ export type ArticleSEO = {
   entities?: string[];
 };
 
+export type ArticleReference = {
+  id: string;
+  title: string;
+  kind: "url" | "doc" | "policy" | "profile" | "note";
+  url?: string;
+  filePath?: string;
+  excerpt?: string;
+  source?: "submission" | "sector" | "market" | "audience" | "profile" | "reviewer" | "migration";
+  addedAt: string;
+  addedBy: string;
+};
+
+export type ArticleVisibility = {
+  audiences: string[];
+  markets: string[];
+  countries: string[];
+  security: "all-employees" | "restricted";
+  notes?: string;
+};
+
+export type ArticleRevision = {
+  version: number;
+  at: string;
+  by: string;
+  summary: string;
+  title: string;
+  body?: string;
+};
+
+export type ArticleTranslation = {
+  body: string;
+  status: "current" | "stale" | "needs-review";
+  sourceVersion: number;
+  translatedAt: string;
+  translatedBy: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+};
+
+export type ArticleTranslations = Record<string, string | ArticleTranslation>;
+
+export type ArticleFeedbackComment = {
+  id: string;
+  by: string;
+  body: string;
+  at: string;
+};
+
+export type ArticleFeedback = {
+  helpful: number;
+  notHelpful: number;
+  shares: number;
+  comments: ArticleFeedbackComment[];
+};
+
 export type Job = {
   id: string;
   status: JobStatus;
@@ -148,6 +208,8 @@ export type Article = {
   jobId?: string;
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected at creation time. */
+  knowledgeBase?: string;
   /**
    * Sector id — the tier above Market. All articles created after the
    * sector taxonomy migration have this set. Optional in the type only for
@@ -167,6 +229,24 @@ export type Article = {
   replacesArticleId?: string;
   /** Articles deliberately consolidated into this draft. */
   replacesArticleIds?: string[];
+  /** Short standalone summary shown above the body, Wikipedia-lead style. */
+  lead?: string;
+  /** Stable, globally searchable canonical slug. */
+  canonicalSlug?: string;
+  /** Search aliases / redirects that should resolve to this canonical article. */
+  aliases?: string[];
+  /** Primary topic tags for categorization and related-content matching. */
+  topics?: string[];
+  /** Source material this article is grounded in. */
+  references?: ArticleReference[];
+  /** Related canonical published articles. */
+  relatedArticleIds?: string[];
+  /** Audience, market, country, and security controls. */
+  visibility?: ArticleVisibility;
+  owner?: string;
+  effectiveAt?: string;
+  nextReviewAt?: string;
+  approvedBy?: string;
   body: string;
   submittedBy: { name: string; email: string };
   submittedAt: string;
@@ -177,7 +257,7 @@ export type Article = {
   rejectionReason?: string;
   infoNeeded?: string;
   /** Cached translations of the body, keyed by target language code (e.g. "en"). */
-  translations?: Record<string, string>;
+  translations?: ArticleTranslations;
   /**
    * Current version number, starting at 1. Incremented every time a rejected
    * article is resubmitted for review. Lets the UI label history entries
@@ -443,6 +523,24 @@ export type PublishedMetrics = {
   lastViewedAt?: string;
   /** Trend direction over the last two 30-day windows. */
   trend: "up" | "flat" | "down";
+  /** Average time the article was actively in view during the last 30 days. */
+  averageEngagementSeconds?: number;
+  /** Typical percentage of the article reached by readers in the last 30 days. */
+  scrollDepthPercent?: number;
+  /** Present only when the article includes an identifiable next-step CTA. */
+  cta?: { label: string; clicks: number };
+  /** Aggregated readership by country. Small groups are omitted upstream. */
+  locations?: Array<{
+    code: string;
+    name: string;
+    views: number;
+  }>;
+  /** Internal-search phrases that led a reader to this article. */
+  searchQueries?: Array<{
+    phrase: string;
+    searches: number;
+    articleOpens: number;
+  }>;
 };
 
 /**
@@ -478,15 +576,28 @@ export type PublishedArticle = {
   // ── Live content ──
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected at creation time. */
+  knowledgeBase?: string;
   /** Sector id — inherited from the source Article at publish time. */
   sector?: string;
   market: Market;
   countries: string[];
+  lead?: string;
+  canonicalSlug?: string;
+  aliases?: string[];
+  topics?: string[];
+  references?: ArticleReference[];
+  relatedArticleIds?: string[];
+  visibility?: ArticleVisibility;
+  owner?: string;
+  effectiveAt?: string;
+  nextReviewAt?: string;
+  approvedBy?: string;
   body: string;
   seo: ArticleSEO;
   globalJustification?: string;
   /** All translations carried forward from the source Article. */
-  translations?: Record<string, string>;
+  translations?: ArticleTranslations;
 
   // ── Publish event ──
   publishedAt: string;
@@ -495,9 +606,11 @@ export type PublishedArticle = {
   version: number;
   lastReviewedAt?: string;
   lastReviewer?: string;
+  revisionHistory?: ArticleRevision[];
 
   // ── Lifecycle layer ──
   metrics: PublishedMetrics;
+  feedback?: ArticleFeedback;
   /**
    * Set when an admin archives the article. Presence forces the staleness
    * level to "archived" regardless of metrics or review cadence. Clear to

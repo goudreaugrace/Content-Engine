@@ -12,6 +12,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Button,
   IconButton,
@@ -22,9 +23,9 @@ import {
   DialogContent,
   DialogTitle,
   MenuItem,
+  Tooltip,
   Tabs,
   Tab,
-  Tooltip,
   ToggleButton,
   ToggleButtonGroup,
   useTheme,
@@ -46,6 +47,7 @@ import {
 } from "../lib/api";
 import { localeFor } from "../lib/market";
 import { usePersonaMode } from "../lib/persona";
+import { getViewingContentOwner, setViewingContentOwner } from "../lib/content-owner-view";
 import { sectorShortLabel } from "../lib/sector";
 import {
   ARTICLE_TABLE_COL_WIDTHS as W,
@@ -81,6 +83,7 @@ const NON_ADMIN_TRANSFER_OWNERS = [
   { name: "Demo", email: "avery.patel@pepsico.com" },
   { name: "Test Author", email: "sofia.ramirez@pepsico.com" },
 ];
+const TEAM_ARTICLES_PER_PAGE = 15;
 
 function nonAdminOwnerLabel(owner: string): string {
   return NON_ADMIN_OWNER_LABELS[owner] ?? owner;
@@ -90,7 +93,7 @@ function nonAdminStatusLabel(status: NonAdminWorkflowStatus): string {
   return {
     "needs-review": "In review",
     stale: "Stale",
-    "needs-info": "Update requested",
+    "needs-info": "Changes requested",
     rejected: "Rejected",
     published: "Published",
   }[status];
@@ -227,9 +230,6 @@ export default function PublishedLibrary() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // ── URL-synced tab state ──
-  // Reads ?tab=my-articles|published. Default = published health, since
-  // admins monitor live article health before drilling into their own work.
   const tabParam = searchParams.get("tab");
   const activeTab: ArticlesSubTab =
     tabParam === "my-articles" || tabParam === "needs-review" ? "my-articles" : "published";
@@ -241,17 +241,17 @@ export default function PublishedLibrary() {
     setSearchParams(sp, { replace: true });
   };
 
-  // Each tab reports its own row count so we can show compact badges in labels.
   const [myCount, setMyCount] = useState<number | null>(null);
   const [pubCount, setPubCount] = useState<number | null>(null);
   const [personaMode] = usePersonaMode();
+  const isSuperAdmin = personaMode === "super-admin";
 
   if (personaMode === "non-admin") {
     return <NonAdminArticlesPage />;
   }
 
   return (
-    <Box sx={{ maxWidth: 1280, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1520, mx: "auto" }}>
       {/* ─── Shared page header ─── */}
       {/* Stacks until md (~900px) so the title has room to breathe on
           narrower panes; the actions drop below rather than squeezing
@@ -262,21 +262,26 @@ export default function PublishedLibrary() {
         justifyContent="space-between"
         spacing={2}
       >
-        <Box>
-          <Typography variant="h4" component="h1">
-            All Articles
-          </Typography>
-          {/* Subtitle trimmed to a single sentence (M3 medium app-bar pattern).
-              The tab labels distinguish monitoring from owned/team work; the
-              paragraph-length explanation read as docs, not chrome. */}
+          <Box>
+          <Stack direction="row" spacing={1.25} alignItems="center">
+            <Typography variant="h4" component="h1">
+              All Articles
+            </Typography>
+            {isSuperAdmin && (
+              <Chip
+                size="small"
+                label="Super Admin"
+                sx={{ bgcolor: t.pepsiBlueSubtle, color: t.pepsiBlueStrong, fontWeight: 600 }}
+              />
+            )}
+          </Stack>
           <Typography color="text.secondary" sx={{ mt: 0.75, maxWidth: "62ch" }}>
-            Monitor content health at scale, spot owner follow-ups, and keep published knowledge current without opening every article.
+            {isSuperAdmin
+              ? "Monitor organization-wide content health, spot owner follow-ups, and keep published knowledge current."
+              : "This team-approval workspace is ready to be refined around the articles and people an admin supports."}
           </Typography>
         </Box>
-        {/* Persistent action row — always visible regardless of active tab.
-            "Start review cycle" opens the guided review workflow (walks the
-            reviewer through the highest-priority attention items one at a
-            time). "New article" opens the create wizard. */}
+        {/* Persistent admin action row — article creation belongs to Content Owners. */}
         <Stack
           direction="row"
           spacing={1}
@@ -292,100 +297,31 @@ export default function PublishedLibrary() {
           >
             Email log
           </Button>
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
-            onClick={() => navigate("/new")}
-            sx={{ whiteSpace: "nowrap" }}
-          >
-            New article
-          </Button>
         </Stack>
       </Stack>
 
-      {/* ─── Sub-tabs ─── */}
-      {/* Border lives ON the Tabs itself (not the outer Box) so the divider
-          only spans the width of the tab labels, not the entire content area. */}
-      <Box sx={{ mt: 4, mb: 3 }}>
+      <Box sx={{ mt: 4 }}>
         <Tabs
           value={activeTab}
           onChange={(_, v) => setTab(v as ArticlesSubTab)}
           sx={{
-            display: "inline-flex",
-            minHeight: 0,
-            borderBottom: `1px solid ${t.border}`,
-            "& .MuiTab-root": {
-              textTransform: "none",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-              minHeight: 0,
-              py: 1.25,
-              px: 0,
-              mr: 4,
-              color: t.slate,
-              "&.Mui-selected": { color: t.ink },
-            },
+            display: "inline-flex", minHeight: 0, borderBottom: `1px solid ${t.border}`, mb: 3,
+            "& .MuiTab-root": { textTransform: "none", fontSize: "0.875rem", fontWeight: 500, minHeight: 0, py: 1.25, px: 0, mr: 4, color: t.slate, "&.Mui-selected": { color: t.ink } },
             "& .MuiTabs-indicator": { bgcolor: t.ink, height: 2 },
           }}
         >
-          <Tab
-            value="published"
-            label={
-              <Stack direction="row" spacing={1} alignItems="baseline">
-                <span>Published health</span>
-                {pubCount !== null && (
-                  <Box
-                    component="span"
-                    sx={{
-                      fontFamily: theme.palette.fonts.mono,
-                      fontSize: "0.6875rem",
-                      color: t.granite,
-                    }}
-                  >
-                    {pubCount}
-                  </Box>
-                )}
-              </Stack>
-            }
-          />
-          <Tab
-            value="my-articles"
-            label={
-              <Stack direction="row" spacing={1} alignItems="baseline">
-                <span>My articles</span>
-                {myCount !== null && (
-                  <Box
-                    component="span"
-                    sx={{
-                      fontFamily: theme.palette.fonts.mono,
-                      fontSize: "0.6875rem",
-                      color: t.granite,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {myCount}
-                  </Box>
-                )}
-              </Stack>
-            }
-          />
+          <Tab value="published" label={<Stack direction="row" spacing={1} alignItems="baseline"><span>Published health</span>{pubCount !== null && <Box component="span" sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.6875rem", color: t.granite }}>{pubCount}</Box>}</Stack>} />
+          <Tab value="my-articles" label={<Stack direction="row" spacing={1} alignItems="baseline"><span>Team articles</span>{myCount !== null && <Box component="span" sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.6875rem", color: t.granite, fontWeight: 600 }}>{myCount}</Box>}</Stack>} />
         </Tabs>
+        {activeTab === "my-articles" ? <NonAdminArticlesPage embedded onLoaded={setMyCount} /> : <PublishedTab onLoaded={setPubCount} />}
       </Box>
-
-      {/* ─── Active tab body ─── */}
-      {activeTab === "my-articles" ? (
-        <NonAdminArticlesPage embedded onLoaded={setMyCount} />
-      ) : (
-        <PublishedTab onLoaded={setPubCount} />
-      )}
     </Box>
   );
 }
 
 // ────────────────────────────────────────────────────────────
-// NonAdminArticlesPage — POC writer / manager view. One scoped table only:
-// own articles + direct reports, with lifecycle represented as Status.
+// Content Owner / Team Admin article list. Content Owners see only their
+// own work; the embedded Team Admin view includes direct reports.
 // ────────────────────────────────────────────────────────────
 function NonAdminArticlesPage({
   embedded = false,
@@ -397,6 +333,7 @@ function NonAdminArticlesPage({
   const navigate = useNavigate();
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const isTeamView = embedded;
   const [articles, setArticles] = useState<Article[]>([]);
   const [publishedArticles, setPublishedArticles] = useState<PublishedArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -404,6 +341,8 @@ function NonAdminArticlesPage({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<NonAdminStatusFilter>("all");
   const [ownerFilter, setOwnerFilter] = useState("all");
+  const [viewingOwner, setViewingOwner] = useState(getViewingContentOwner);
+  const [page, setPage] = useState(0);
   const [transferArticle, setTransferArticle] = useState<Article | null>(null);
   const [transferOwner, setTransferOwner] = useState(NON_ADMIN_USER);
   const [transferSaving, setTransferSaving] = useState(false);
@@ -446,7 +385,11 @@ function NonAdminArticlesPage({
       rejected: 4,
     };
     return articles
-      .filter((a) => NON_ADMIN_AUTHORS.has(a.submittedBy?.name ?? ""))
+      .filter((a) =>
+        isTeamView
+          ? NON_ADMIN_AUTHORS.has(a.submittedBy?.name ?? "")
+          : a.submittedBy?.name === viewingOwner,
+      )
       .sort((a, b) => {
         const reportA = NON_ADMIN_REPORTS.has(a.submittedBy?.name ?? "") ? -1 : 0;
         const reportB = NON_ADMIN_REPORTS.has(b.submittedBy?.name ?? "") ? -1 : 0;
@@ -459,9 +402,8 @@ function NonAdminArticlesPage({
         if (reportA !== reportB) return reportA - reportB;
         if (priority[statusA] !== priority[statusB]) return priority[statusA] - priority[statusB];
         return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
-      })
-      .slice(0, 15);
-  }, [articles, publishedById, publishedBySourceId]);
+      });
+  }, [articles, isTeamView, publishedById, publishedBySourceId, viewingOwner]);
 
   useEffect(() => {
     onLoaded?.(scoped.length);
@@ -473,7 +415,9 @@ function NonAdminArticlesPage({
       approvals: scoped.filter(
         (a) =>
           nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "needs-review" &&
-          NON_ADMIN_REPORTS.has(a.submittedBy?.name ?? ""),
+          (isTeamView
+            ? NON_ADMIN_REPORTS.has(a.submittedBy?.name ?? "")
+            : a.submittedBy?.name === viewingOwner),
       ).length,
       stale: scoped.filter(
         (a) => nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "stale",
@@ -482,7 +426,7 @@ function NonAdminArticlesPage({
         (a) => nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "published",
       ).length,
     }),
-    [scoped, publishedById, publishedBySourceId],
+    [scoped, isTeamView, publishedById, publishedBySourceId, viewingOwner],
   );
 
   const availableStatuses = useMemo(() => {
@@ -514,13 +458,29 @@ function NonAdminArticlesPage({
     });
   }, [scoped, search, statusFilter, ownerFilter, publishedById, publishedBySourceId]);
 
+  const pageCount = Math.max(1, Math.ceil(filtered.length / TEAM_ARTICLES_PER_PAGE));
+  const currentPage = Math.min(page, pageCount - 1);
+  const pagedArticles = useMemo(
+    () =>
+      filtered.slice(
+        currentPage * TEAM_ARTICLES_PER_PAGE,
+        (currentPage + 1) * TEAM_ARTICLES_PER_PAGE,
+      ),
+    [currentPage, filtered],
+  );
+
+  useEffect(() => {
+    setPage(0);
+  }, [search, statusFilter, ownerFilter, viewingOwner]);
+
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("all");
     setOwnerFilter("all");
   };
 
-  const hasFilters = search.trim() !== "" || statusFilter !== "all" || ownerFilter !== "all";
+  const hasFilters =
+    search.trim() !== "" || statusFilter !== "all" || (isTeamView && ownerFilter !== "all");
 
   const openTransfer = (article: Article) => {
     const currentOwner = article.submittedBy?.name ?? "";
@@ -560,7 +520,7 @@ function NonAdminArticlesPage({
     : NON_ADMIN_TRANSFER_OWNERS;
 
   return (
-    <Box sx={{ maxWidth: embedded ? "none" : 1120, mx: embedded ? 0 : "auto" }}>
+    <Box sx={{ maxWidth: embedded ? "none" : 1440, mx: embedded ? 0 : "auto" }}>
       {!embedded && (
         <Stack
           direction={{ xs: "column", md: "row" }}
@@ -569,11 +529,31 @@ function NonAdminArticlesPage({
           spacing={2}
         >
           <Box>
-            <Typography variant="h4" component="h1">
-              My Articles
-            </Typography>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ sm: "center" }}>
+              <Typography variant="h4" component="h1">
+                My Articles
+              </Typography>
+              <TextField
+                select
+                size="small"
+                label="POC: View as content owner"
+                value={viewingOwner}
+                onChange={(event) => {
+                  setViewingOwner(event.target.value);
+                  setViewingContentOwner(event.target.value);
+                }}
+                sx={{ minWidth: 240 }}
+                SelectProps={{ MenuProps: { PaperProps: { sx: { mt: 0.5 } } } }}
+              >
+                {NON_ADMIN_TRANSFER_OWNERS.map((owner) => (
+                  <MenuItem key={owner.name} value={owner.name}>
+                    {nonAdminOwnerLabel(owner.name)}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
             <Typography color="text.secondary" sx={{ mt: 0.75, maxWidth: "62ch" }}>
-              Track Maya Johnson's articles plus direct-report articles that need manager approval.
+              Track your article status, keep your knowledge current, and respond to review feedback in one place.
             </Typography>
           </Box>
           <Button
@@ -596,9 +576,9 @@ function NonAdminArticlesPage({
 
       <Box sx={{ mt: embedded ? 0 : 4 }}>
         <KpiRow>
-        <KpiItem label="Visible articles" value={counts.total} />
+        <KpiItem label={isTeamView ? "Team articles" : "My articles"} value={counts.total} />
         <KpiItem
-          label="Team approvals"
+          label={isTeamView ? "Team approvals" : "Awaiting approval"}
           value={counts.approvals}
           accent={counts.approvals > 0 ? t.ember : undefined}
         />
@@ -633,20 +613,22 @@ function NonAdminArticlesPage({
             })),
           ]}
         />
-        <FilterSelect
-          label="Owner"
-          value={ownerFilter}
-          onChange={setOwnerFilter}
-          options={[
-            { value: "all", label: `All owners (${scoped.length})` },
-            ...availableOwners.map((owner) => ({
-              value: owner,
-              label: `${nonAdminOwnerLabel(owner)} (${
-                scoped.filter((a) => (a.submittedBy?.name ?? "Unknown") === owner).length
-              })`,
-            })),
-          ]}
-        />
+        {isTeamView && (
+          <FilterSelect
+            label="Owner"
+            value={ownerFilter}
+            onChange={setOwnerFilter}
+            options={[
+              { value: "all", label: `All owners (${scoped.length})` },
+              ...availableOwners.map((owner) => ({
+                value: owner,
+                label: `${nonAdminOwnerLabel(owner)} (${
+                  scoped.filter((a) => (a.submittedBy?.name ?? "Unknown") === owner).length
+                })`,
+              })),
+            ]}
+          />
+        )}
         {hasFilters && (
           <Button size="small" onClick={clearFilters} sx={{ color: t.slate }}>
             Clear
@@ -710,7 +692,7 @@ function NonAdminArticlesPage({
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((article) => {
+              pagedArticles.map((article) => {
                 const status = nonAdminWorkflowStatus(article, publishedById, publishedBySourceId);
                 const published =
                   (article.publishedArticleId ? publishedById.get(article.publishedArticleId) : undefined) ??
@@ -720,10 +702,11 @@ function NonAdminArticlesPage({
                     key={article.id}
                     article={article}
                     status={status}
+                    canTransfer={isTeamView}
                     onTransfer={() => openTransfer(article)}
                     onOpen={() =>
-                      status === "stale" && published
-                        ? navigate(`/library/${published.id}`)
+                      published
+                        ? navigate(`/my-articles/${published.id}`)
                         : navigate(`/articles/${article.id}`)
                     }
                   />
@@ -733,6 +716,27 @@ function NonAdminArticlesPage({
           </TableBody>
         </Table>
       </TableContainer>
+      {filtered.length > TEAM_ARTICLES_PER_PAGE && (
+        <TablePagination
+          component="div"
+          count={filtered.length}
+          page={currentPage}
+          onPageChange={(_, nextPage) => setPage(nextPage)}
+          rowsPerPage={TEAM_ARTICLES_PER_PAGE}
+          rowsPerPageOptions={[TEAM_ARTICLES_PER_PAGE]}
+          labelRowsPerPage=""
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}\u2013${to} of ${count} team articles`
+          }
+          sx={{
+            borderTop: `1px solid ${t.border}`,
+            "& .MuiTablePagination-toolbar": { px: 0 },
+            "& .MuiTablePagination-selectLabel, & .MuiTablePagination-select": {
+              display: "none",
+            },
+          }}
+        />
+      )}
 
       <Dialog open={Boolean(transferArticle)} onClose={closeTransfer} maxWidth="xs" fullWidth>
         <DialogTitle>Transfer ownership</DialogTitle>
@@ -776,11 +780,13 @@ function NonAdminArticlesPage({
 function NonAdminArticleRow({
   article,
   status,
+  canTransfer,
   onTransfer,
   onOpen,
 }: {
   article: Article;
   status: NonAdminWorkflowStatus;
+  canTransfer: boolean;
   onTransfer: () => void;
   onOpen: () => void;
 }) {
@@ -818,7 +824,7 @@ function NonAdminArticleRow({
           <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
             {displayOwner}
           </Typography>
-          {owner !== NON_ADMIN_USER && (
+          {canTransfer && owner !== NON_ADMIN_USER && (
             <Tooltip title="Transfer ownership">
               <IconButton
                 size="small"
@@ -878,7 +884,7 @@ function ArticleStatusChip({
       color: t.errorInk,
       bg: t.errorBg,
     },
-    "needs-info": { label: "Update requested", color: t.granite, bg: t.surfaceContainerLow },
+    "needs-info": { label: "Changes Requested", color: t.granite, bg: t.surfaceContainerLow },
     rejected: { label: "Rejected", color: t.errorInk, bg: t.errorBg },
     published: { label: "Published", color: t.successInk, bg: t.successBg },
   };
@@ -901,7 +907,7 @@ function ArticleStatusChip({
 function statusLabel(status: ArticleStatus): string {
   return {
     "needs-review": "In review",
-    "needs-info": "Needs info",
+    "needs-info": "Changes Requested",
     rejected: "Rejected",
     published: "Published",
   }[status];

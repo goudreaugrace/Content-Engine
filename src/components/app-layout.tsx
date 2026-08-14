@@ -20,8 +20,9 @@ import {
   useTheme,
   alpha,
 } from "@mui/material";
-import { useActivity } from "../lib/use-activity";
 import { usePersonaMode, type PersonaMode } from "../lib/persona";
+import { getUnreadMessageCount, subscribeToMessageReadChanges } from "../lib/message-state";
+import { subscribeToViewingContentOwner } from "../lib/content-owner-view";
 import MenuIcon from "@mui/icons-material/Menu";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
@@ -33,6 +34,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 
 // M3 navigation drawer / rail widths.
 //  - Expanded (272): drawer with icons + labels + section headers.
@@ -57,18 +59,18 @@ type NavItem = {
    */
   badgeCount?: number;
   adminOnly?: boolean;
+  authorOnly?: boolean;
 };
 
-// "New article" is the writer's primary action — surfaced as the top nav item
-// AND as a contextual page-header button on the Articles tab. Multiple entry
-// points, one action. (We tried a FAB-only model earlier; it hurt
-// discoverability for part-time writers who needed to find the action cold.)
+// "New article" is the Content Owner's primary action. Team Admin and Super
+// Admin manage governance/review and should not create articles directly.
 const navItems: NavItem[] = [
-  { label: "New Article", path: "/new", icon: <AddCircleOutlineIcon sx={{ fontSize: 20 }} /> },
+  { label: "New Article", path: "/new", icon: <AddCircleOutlineIcon sx={{ fontSize: 20 }} />, authorOnly: true },
   // Review Cycle used to be its own top-level page. It now lives as the
   // default "Needs review" tab on the All Articles page, so the sidebar
   // carries a single entry that lands on the merged surface.
   { label: "All Articles", path: "/", icon: <LibraryBooksOutlinedIcon sx={{ fontSize: 20 }} />, exact: true },
+  { label: "Messages", path: "/messages", icon: <ChatBubbleOutlineIcon sx={{ fontSize: 20 }} /> },
   { label: "Sectors", path: "/admin/sectors", icon: <PublicOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
   { label: "Audiences", path: "/admin/audiences", icon: <PeopleOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
   { label: "Email Log", path: "/admin/emails", icon: <EmailOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
@@ -89,16 +91,34 @@ export default function AppLayout() {
     }
   }, [location.pathname, navigate, personaMode]);
 
-  // Drives the unread badge on the All Articles nav item — inherited
-  // from the old Review Cycle entry after the two pages were merged.
-  const { unreadCount } = useActivity();
-  // Build the nav list with the badge count injected. Keeps the base
-  // navItems definition declarative + cheap to scan.
+  const [messageUnreadCount, setMessageUnreadCount] = useState(() =>
+    getUnreadMessageCount(personaMode),
+  );
+  useEffect(() => {
+    const refreshUnreadCount = () => setMessageUnreadCount(getUnreadMessageCount(personaMode));
+    refreshUnreadCount();
+    const unsubscribeMessages = subscribeToMessageReadChanges(refreshUnreadCount);
+    const unsubscribeOwner = subscribeToViewingContentOwner(refreshUnreadCount);
+    return () => {
+      unsubscribeMessages();
+      unsubscribeOwner();
+    };
+  }, [personaMode]);
+  // Build the nav list with role-specific labels and the Messages unread badge.
   const visibleNavItems = navItems.filter(
-    (it) => personaMode === "admin" || !it.adminOnly,
+    (it) =>
+      (personaMode !== "non-admin" || !it.adminOnly) &&
+      (!it.authorOnly || personaMode === "non-admin"),
   );
   const navItemsWithBadges: NavItem[] = visibleNavItems.map((it) =>
-    it.path === "/" ? { ...it, badgeCount: unreadCount } : it,
+    it.path === "/messages"
+      ? { ...it, badgeCount: messageUnreadCount }
+      : it.path === "/"
+      ? {
+          ...it,
+          label: personaMode === "non-admin" ? "My Articles" : it.label,
+        }
+      : it,
   );
 
   /**
@@ -371,7 +391,7 @@ export default function AppLayout() {
         }}
       >
         {compact ? (
-          <Tooltip title={personaMode === "admin" ? "Admin · governance" : "Non Admin · writer-manager"} placement="right">
+          <Tooltip title={personaMode === "super-admin" ? "Super Admin · organization-wide governance" : personaMode === "admin" ? "Team Admin · team approvals" : "Content Owner · author workspace"} placement="right">
             <Avatar
               sx={{
                 width: 30,
@@ -411,7 +431,7 @@ export default function AppLayout() {
                 }}
                 noWrap
               >
-                {personaMode === "admin" ? "admin" : "writer-manager"}
+                {personaMode === "super-admin" ? "super admin" : personaMode === "admin" ? "team admin" : "content owner"}
               </Typography>
             </Box>
           </>
@@ -528,10 +548,12 @@ function PersonaSwitcher({
   const t = theme.palette.tokens;
 
   if (compact) {
-    const next = mode === "admin" ? "non-admin" : "admin";
+    const next: PersonaMode =
+      mode === "non-admin" ? "admin" : mode === "admin" ? "super-admin" : "non-admin";
+    const nextLabel = next === "super-admin" ? "Super Admin" : next === "admin" ? "Team Admin" : "Content Owner";
     return (
       <Box sx={{ px: 0.5, pb: 1 }}>
-        <Tooltip title={`Switch to ${next === "admin" ? "Admin" : "Non Admin"}`} placement="right">
+        <Tooltip title={`Switch to ${nextLabel}`} placement="right">
           <IconButton
             size="small"
             onClick={() => onChange(next)}
@@ -540,16 +562,16 @@ function PersonaSwitcher({
               height: 40,
               mx: "auto",
               display: "flex",
-              color: mode === "admin" ? t.pepsiBlueStrong : t.slate,
-              bgcolor: mode === "admin" ? t.pepsiBlueSubtle : "transparent",
+              color: mode === "non-admin" ? t.slate : t.pepsiBlueStrong,
+              bgcolor: mode === "non-admin" ? "transparent" : t.pepsiBlueSubtle,
               "&:hover": { bgcolor: alpha(t.ink, 0.04) },
             }}
             aria-label="Switch persona"
           >
-            {mode === "admin" ? (
-              <AdminPanelSettingsOutlinedIcon sx={{ fontSize: 18 }} />
-            ) : (
+            {mode === "non-admin" ? (
               <PersonOutlineOutlinedIcon sx={{ fontSize: 18 }} />
+            ) : (
+              <AdminPanelSettingsOutlinedIcon sx={{ fontSize: 18 }} />
             )}
           </IconButton>
         </Tooltip>
@@ -579,8 +601,9 @@ function PersonaSwitcher({
           "& .MuiSelect-select": { py: 0.75 },
         }}
       >
-        <MenuItem value="admin">Admin</MenuItem>
-        <MenuItem value="non-admin">Non Admin</MenuItem>
+        <MenuItem value="super-admin">Super Admin</MenuItem>
+        <MenuItem value="admin">Team Admin</MenuItem>
+        <MenuItem value="non-admin">Content Owner</MenuItem>
       </TextField>
     </Box>
   );

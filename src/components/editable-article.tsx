@@ -4,6 +4,8 @@ import {
   Typography,
   Stack,
   Button,
+  Chip,
+  Divider,
   IconButton,
   TextField,
   CircularProgress,
@@ -20,7 +22,7 @@ import SendIcon from "@mui/icons-material/Send";
 import CheckIcon from "@mui/icons-material/Check";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { api, type Market, type ComplianceIssue } from "../lib/api";
+import { api, type Market, type ComplianceIssue, type ContentType } from "../lib/api";
 import { localeFor } from "../lib/market";
 
 // ────────────────────────────────────────────────────────────
@@ -83,6 +85,10 @@ type Props = {
   articleId: string;
   body: string;
   market: Market;
+  title?: string;
+  lead?: string;
+  contentType?: ContentType;
+  canonicalSlug?: string;
   /** Called after the body is updated and persisted. Parent should refresh. */
   onUpdated?: (newBody: string) => void;
   /** Phase C — compliance issues with optional `section` anchors. Used to
@@ -151,6 +157,10 @@ export default function EditableArticle({
   articleId,
   body,
   market,
+  title,
+  lead,
+  contentType,
+  canonicalSlug,
   onUpdated,
   complianceIssues,
   editMode = false,
@@ -203,29 +213,32 @@ export default function EditableArticle({
   };
 
   const locale = localeFor(market);
+  const parsedTitle = body.match(/^#\s+(.+?)\s*$/m)?.[1]?.trim();
+  const displayTitle = title?.trim() || parsedTitle || "Knowledge article";
+  const cleanPreamble = split.preamble.replace(/^#\s+.+\n*/, "").trim();
+  const sections = split.sections.map((s) => sectionHeading(s)).filter((s): s is string => !!s);
 
   return (
     <Box
       sx={{
         bgcolor: "#FFFFFF",
         border: `1px solid ${t.border}`,
-        borderRadius: 1,
+        borderRadius: 0,
         overflow: "hidden",
-        maxWidth: 820,
-        boxShadow: "0 1px 2px rgba(42,37,29,0.04), 0 8px 24px rgba(42,37,29,0.06)",
+        maxWidth: "none",
       }}
     >
-      {/* PepsiCo branding band — matches ArticleDocument */}
+      {/* Reader masthead — matches ArticleDocument */}
       <Box
         sx={{
-          bgcolor: t.pepsiBlue,
-          color: "#FFFFFF",
-          px: { xs: 3, md: 5 },
-          py: 1.5,
+          px: { xs: 2.5, md: 4 },
+          py: 1.25,
+          borderBottom: `1px solid ${t.border}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 2,
+          bgcolor: t.paper,
         }}
       >
         <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -234,34 +247,35 @@ export default function EditableArticle({
             sx={{
               fontFamily: theme.palette.fonts.sans,
               fontWeight: 700,
-              fontSize: "0.875rem",
-              letterSpacing: "0.04em",
-              color: "#FFFFFF",
+              fontSize: "0.8125rem",
+              letterSpacing: 0,
+              color: t.pepsiBlueStrong,
             }}
           >
             PEPSICO
           </Typography>
-          <Box sx={{ width: 1, height: 14, bgcolor: "rgba(255,255,255,0.35)" }} />
+          <Box sx={{ width: 1, height: 14, bgcolor: t.border }} />
           <Typography
             sx={{
               fontFamily: theme.palette.fonts.sans,
               fontWeight: 500,
               fontSize: "0.8125rem",
-              color: "rgba(255,255,255,0.92)",
+              color: t.slate,
             }}
             noWrap
           >
-            MyPepsiCo · Knowledge Article
+            myPortal Knowledge
           </Typography>
         </Stack>
         <Stack direction="row" alignItems="center" spacing={1.5}>
+          {contentType && <Chip size="small" label={contentType} sx={{ height: 22 }} />}
           <Typography
             sx={{
-              fontFamily: theme.palette.fonts.sans,
+              fontFamily: theme.palette.fonts.mono,
               fontWeight: 500,
               fontSize: "0.6875rem",
-              letterSpacing: "0.04em",
-              color: "rgba(255,255,255,0.85)",
+              letterSpacing: 0,
+              color: t.granite,
             }}
           >
             {locale.toUpperCase()}
@@ -274,12 +288,11 @@ export default function EditableArticle({
                 gap: 0.5,
                 px: 0.875,
                 py: 0.375,
-                borderRadius: 4,
-                bgcolor: "rgba(255,255,255,0.15)",
-                color: "rgba(255,255,255,0.95)",
+                border: `1px solid ${t.border}`,
+                color: t.slate,
                 fontSize: "0.6875rem",
                 fontWeight: 500,
-                letterSpacing: "0.02em",
+                letterSpacing: 0,
               }}
             >
               <EditOutlinedIcon sx={{ fontSize: 12 }} />
@@ -289,18 +302,66 @@ export default function EditableArticle({
         </Stack>
       </Box>
 
-      {/* Document body */}
+      <Box sx={{ px: { xs: 2.5, md: 4 }, pt: { xs: 3, md: 4 }, pb: 2 }}>
+        <Typography
+          component="h1"
+          sx={{
+            fontFamily: theme.palette.fonts.sans,
+            fontSize: { xs: "2rem", md: "2.35rem" },
+            fontWeight: 500,
+            letterSpacing: 0,
+            lineHeight: 1.12,
+            color: t.ink,
+            mb: 1.25,
+          }}
+        >
+          {displayTitle}
+        </Typography>
+        {lead && (
+          <Typography sx={{ maxWidth: 1040, color: t.ink, fontSize: "1.0625rem", lineHeight: 1.65, mb: 1.75 }}>
+            {lead}
+          </Typography>
+        )}
+        {canonicalSlug && (
+          <Typography sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.75rem", color: t.granite }}>
+            Article ID: {canonicalSlug}
+          </Typography>
+        )}
+      </Box>
+
+      {sections.length > 1 && (
+        <Box
+          sx={{
+            mx: { xs: 2.5, md: 4 },
+            mb: 2,
+            p: 2,
+            border: `1px solid ${t.border}`,
+            bgcolor: t.surfaceContainerLow,
+          }}
+        >
+          <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: t.pepsiBlueStrong, textTransform: "uppercase", letterSpacing: 0, mb: 1 }}>
+            Contents
+          </Typography>
+          <Box component="ol" sx={{ m: 0, pl: 2.25, display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, columnGap: 3, rowGap: 0.5, color: t.pepsiBlueStrong, fontSize: "0.875rem", "& li::marker": { color: t.granite } }}>
+            {sections.map((section) => <li key={section}>{section}</li>)}
+          </Box>
+        </Box>
+      )}
+
+      <Divider sx={{ borderColor: t.border }} />
+
+      {/* Article body */}
       <Box
         sx={{
-          px: { xs: 3, md: 6 },
-          py: { xs: 4, md: 5 },
+          px: { xs: 2.5, md: 4 },
+          py: { xs: 3, md: 4 },
           fontFamily: theme.palette.fonts.sans,
           color: t.ink,
         }}
       >
-        {/* Preamble (typically H1 + intro). Not section-editable. */}
-        {split.preamble && (
-          <SectionRender markdown={split.preamble} editable={false} />
+        {/* Preamble after the H1. Not section-editable. */}
+        {cleanPreamble && (
+          <SectionRender markdown={cleanPreamble} editable={false} />
         )}
 
         {/* Sections — each one editable */}
@@ -330,9 +391,6 @@ export default function EditableArticle({
           ),
         )}
       </Box>
-
-      {/* Footer accent — matches ArticleDocument */}
-      <Box sx={{ height: 4, bgcolor: t.pepsiBlue }} />
 
       <Snackbar
         open={!!snackbar}

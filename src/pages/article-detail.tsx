@@ -19,6 +19,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
+  MenuItem,
   useTheme,
   alpha,
   InputBase,
@@ -38,12 +39,16 @@ import { localeFor } from "../lib/market";
 import { sectorShortLabel, sectorFullLabel } from "../lib/sector";
 import ArticleDocument from "../components/article-document";
 import EditableArticle from "../components/editable-article";
+import ArticleReviewFrame from "../components/article-review-frame";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 // ArticleEditor was the old whole-article markdown/AI chat editor. Option A
 // consolidated all editing under the page-level Edit toggle + per-section
 // affordances, so the standalone editor is no longer reachable. File kept on
 // disk in case we want it back for a future "rewrite whole article" feature.
 import ApprovalChecklist from "../components/approval-checklist";
+import { usePersonaMode } from "../lib/persona";
+import { getPOCReviewMessage } from "../lib/poc-review-messages";
+import { getViewingContentOwner, sectorsForContentOwner } from "../lib/content-owner-view";
 
 const MARKET_ID_BY_NAME: Record<Article["market"], string | null> = {
   US: "us",
@@ -70,17 +75,29 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { dateStyle: "long" });
 }
 
+function translationBody(value: NonNullable<Article["translations"]>[string] | undefined): string | undefined {
+  if (!value) return undefined;
+  return typeof value === "string" ? value : value.body;
+}
+
+// Source articles do not yet persist a KB destination. Until the KB-access
+// model is added, MyPepsiCo is the explicit prototype default rather than a
+// hidden assumption in the review flow.
+function knowledgeBaseLabel(article: Article): string {
+  return article.knowledgeBase ?? "myPepsiCo KB";
+}
+
 const statusMeta: Record<
   Article["status"],
   { label: string; color: "warning" | "success" | "error" | "info"; icon: React.ReactNode }
 > = {
   "needs-review": {
-    label: "Needs review",
+    label: "In Review",
     color: "warning",
     icon: <RateReviewOutlinedIcon sx={{ fontSize: 13 }} />,
   },
   "needs-info": {
-    label: "Needs info",
+    label: "Changes Requested",
     color: "info",
     icon: <HelpOutlineIcon sx={{ fontSize: 13 }} />,
   },
@@ -96,11 +113,80 @@ const statusMeta: Record<
   },
 };
 
+const SUBMISSION_STAGES = [
+  "Create / Edit Article",
+  "Submit for Review",
+  "Under Review",
+  "Published",
+];
+
+function SubmissionProgress({ currentStage }: { currentStage: number }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+
+  return (
+    <Box sx={{ overflowX: "auto", pb: 0.5 }}>
+      <Stack direction="row" alignItems="flex-start" sx={{ minWidth: 520 }}>
+        {SUBMISSION_STAGES.map((stage, index) => {
+          const isComplete = index < currentStage;
+          const isCurrent = index === currentStage;
+          const dotColor = isComplete ? t.successInk : isCurrent ? t.pepsiBlue : t.borderStrong;
+          return (
+            <Stack key={stage} direction="row" alignItems="flex-start" sx={{ flex: index === SUBMISSION_STAGES.length - 1 ? 0 : 1 }}>
+              <Stack alignItems="center" spacing={0.75} sx={{ width: 86, flexShrink: 0 }}>
+                <Box
+                  sx={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    bgcolor: dotColor,
+                    color: t.paper,
+                    display: "grid",
+                    placeItems: "center",
+                    fontSize: "0.6875rem",
+                    fontWeight: 700,
+                    boxShadow: isCurrent ? `0 0 0 4px ${alpha(t.pepsiBlue, 0.16)}` : "none",
+                  }}
+                >
+                  {isComplete ? "✓" : ""}
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "0.6875rem",
+                    lineHeight: 1.2,
+                    color: isCurrent ? t.ink : t.slate,
+                    fontWeight: isCurrent ? 700 : 500,
+                    textAlign: "center",
+                  }}
+                >
+                  {stage}
+                </Typography>
+              </Stack>
+              {index < SUBMISSION_STAGES.length - 1 && (
+                <Box
+                  sx={{
+                    height: 2,
+                    flex: 1,
+                    minWidth: 20,
+                    mt: 1,
+                    bgcolor: index < currentStage ? t.successInk : t.borderStrong,
+                  }}
+                />
+              )}
+            </Stack>
+          );
+        })}
+      </Stack>
+    </Box>
+  );
+}
+
 export default function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const [personaMode] = usePersonaMode();
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -185,6 +271,30 @@ export default function ArticleDetail() {
     );
 
   const meta = statusMeta[article.status];
+  const isContentOwner = personaMode === "non-admin";
+  const isOwnerReviewLocked = isContentOwner && article.status === "needs-review";
+  const reviewContext = (article.approvalResults ?? [])
+    .filter((result) => result.severity !== "ok")
+    .slice(0, 2);
+  const ownerProgress = {
+    "needs-review": {
+      stage: 2,
+      message: "Your article is with the review team. Editing is paused until they request changes or move it forward.",
+    },
+    "needs-info": {
+      stage: 0,
+      message: "Changes have been requested. Review the feedback, update the article, and submit it again when it is ready.",
+    },
+    rejected: {
+      stage: 0,
+      message: "This submission was not approved. Review the feedback before deciding whether to revise and resubmit it.",
+    },
+    published: {
+      stage: 4,
+      message: `Your article is live in ${knowledgeBaseLabel(article)} and available to its intended audience.`,
+    },
+  }[article.status];
+  const reviewMessage = getPOCReviewMessage(article.id);
 
   const submitReject = async () => {
     setBusy(true);
@@ -352,7 +462,9 @@ export default function ArticleDetail() {
 
     // Server may already have it cached on the article (pre-baked or prior fetch)
     const base = next.split("-")[0];
-    const onArticle = article.translations?.[next] ?? article.translations?.[base];
+    const onArticle =
+      translationBody(article.translations?.[next]) ??
+      translationBody(article.translations?.[base]);
     if (onArticle) {
       setTranslations((m) => ({ ...m, [next]: onArticle }));
       return;
@@ -403,13 +515,13 @@ export default function ArticleDetail() {
   };
 
   return (
-    <Box sx={{ maxWidth: 820, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1520, mx: "auto" }}>
       <Button
         startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
         onClick={() => navigate("/")}
         sx={{ mb: 3, ml: -1 }}
       >
-        All Articles
+        {isContentOwner ? "My Articles" : "All Articles"}
       </Button>
 
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
@@ -477,7 +589,8 @@ export default function ArticleDetail() {
         {article.sector && (
           <Meta label="Sector" value={sectorFullLabel(article.sector)} />
         )}
-        <Meta label="Submitted by" value={article.submittedBy.name} />
+        <Meta label="Content owner & author" value={article.submittedBy.name} />
+        <Meta label="Knowledge base" value={knowledgeBaseLabel(article)} />
         <Meta label="Submitted" value={formatDate(article.submittedAt)} />
         {article.reviewedAt && (
           <Meta
@@ -505,13 +618,60 @@ export default function ArticleDetail() {
         )}
       </Stack>
 
+      {isContentOwner && article.status !== "needs-info" && (
+        <Box sx={{ mb: 4 }}>
+          <Typography
+            sx={{
+              display: "block",
+              color: t.ink,
+              fontSize: "0.9375rem",
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              mb: 1.5,
+            }}
+          >
+            Article progress
+          </Typography>
+          <SubmissionProgress currentStage={ownerProgress.stage} />
+          <Typography sx={{ mt: 1.5, fontSize: "0.875rem", color: t.slate, lineHeight: 1.5 }}>
+            {ownerProgress.message}
+          </Typography>
+        </Box>
+      )}
+
+      {isOwnerReviewLocked && reviewContext.length > 0 && (
+        <Box
+          sx={{
+            mb: 4,
+            p: 2.25,
+            borderRadius: 2,
+            bgcolor: t.pepsiBlueSubtle,
+            border: `1px solid ${alpha(t.pepsiBlue, 0.2)}`,
+          }}
+        >
+          <Stack spacing={1}>
+            <Typography sx={{ fontSize: "0.8125rem", color: t.ink, fontWeight: 700 }}>
+              Review context
+            </Typography>
+            <Stack spacing={0.5}>
+              {reviewContext.map((item) => (
+                <Typography key={item.id} sx={{ fontSize: "0.8125rem", color: t.ink }}>
+                  • {item.label}{item.reason ? ` — ${item.reason}` : ""}
+                </Typography>
+              ))}
+            </Stack>
+          </Stack>
+        </Box>
+      )}
+
       {/* ─────────── Action row ───────────
           Right-aligned decision cluster. The editing affordance lives in
           the persistent EditDock at the bottom of the viewport, not here,
           so this row stays focused on terminal decisions about the article
           (Reject / Needs info / Approve & publish / Resubmit / Open live).
           Renders only when there's at least one decision to make. */}
-      {(article.status === "needs-review" ||
+      {((!isContentOwner && article.status === "needs-review") ||
+        (isContentOwner && article.status === "needs-info") ||
         article.status === "rejected" ||
         article.status === "published") && (
         <Stack
@@ -551,7 +711,7 @@ export default function ArticleDetail() {
                   onClick={() => setInfoOpen(true)}
                   disabled={busy}
                 >
-                  Needs info
+                  Request Changes
                 </Button>
                 <Button
                   size="small"
@@ -576,6 +736,18 @@ export default function ArticleDetail() {
               </Button>
             )}
 
+            {article.status === "needs-info" && isContentOwner && (
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<ReplayIcon sx={{ fontSize: 16 }} />}
+                onClick={resubmit}
+                disabled={busy}
+              >
+                Submit for Review
+              </Button>
+            )}
+
             {/* Source articles at status="published" are audit history —
                 live content lives on the PublishedArticle. Link out so the
                 reviewer can jump to the editable copy. */}
@@ -594,22 +766,33 @@ export default function ArticleDetail() {
       {/* SEO block — editable. Edit toggles the panel into a form with all
           three fields (title, meta description, keywords). Saving PATCHes
           the article's `seo` field via api.updateArticle. */}
-      {article.seo && (
+      {isContentOwner && article.status === "needs-info" ? (
+        <ContentOwnerRevisionDetails
+          article={article}
+          onUpdated={(updated) => {
+            const before = article;
+            setArticle(updated);
+            recordSave(before);
+          }}
+        />
+      ) : article.seo && !isOwnerReviewLocked ? (
         <EditableSeoPanel
+          key={`discovery-${editMode ? "editing" : "reading"}`}
           articleId={article.id}
           seo={article.seo}
           editMode={editMode}
+          editableOnExpand={isContentOwner && article.status === "needs-info"}
           onUpdated={(nextSeo) => {
             const before = article;
             setArticle((a) => (a ? { ...a, seo: nextSeo } : a));
             recordSave(before);
           }}
         />
-      )}
+      ) : null}
 
       {/* Phase C — rules-engine status banner + collapsible pass/fail checklist.
           Renders nothing for articles created before Phase C (no approvalResults). */}
-      {article.status === "needs-review" && (
+      {article.status === "needs-review" && !isContentOwner && (
         <ApprovalChecklist
           results={article.approvalResults}
           autoApproveCandidate={article.autoApproveCandidate}
@@ -733,13 +916,35 @@ export default function ArticleDetail() {
       )}
 
       {article.status === "needs-info" && article.infoNeeded && (
-        <Alert severity="info" icon={<HelpOutlineIcon />} sx={{ mb: 3 }}>
-          <Box component="span" sx={{ fontWeight: 600 }}>
-            More info needed:{" "}
-          </Box>
-          {article.infoNeeded}
-        </Alert>
+        <Box
+          sx={{
+            mb: 3,
+            p: 2.25,
+            borderRadius: 2,
+            bgcolor: t.pepsiBlueSubtle,
+            border: `1px solid ${alpha(t.pepsiBlue, 0.2)}`,
+          }}
+        >
+          <Stack spacing={1.25} alignItems="flex-start">
+            <Box>
+              <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>
+                {reviewMessage?.subject ?? "Changes requested"}
+              </Typography>
+              <Typography sx={{ mt: 0.5, fontSize: "0.75rem", color: t.granite }}>
+                From {reviewMessage?.sender ?? article.reviewer ?? "your reviewer"}
+              </Typography>
+              <Typography sx={{ mt: 0.75, fontSize: "0.875rem", color: t.slate, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
+                {reviewMessage?.body ?? article.infoNeeded}
+              </Typography>
+            </Box>
+            <Button size="small" variant="outlined" onClick={() => navigate("/messages")}>
+              View Message
+            </Button>
+          </Stack>
+        </Box>
       )}
+
+
 
       {article.complianceIssues?.length > 0 && (
         <Box sx={{ mb: 4 }}>
@@ -798,7 +1003,7 @@ export default function ArticleDetail() {
           alignItems="center"
           spacing={2}
           flexWrap="wrap"
-          sx={{ maxWidth: 820, mb: 1.5 }}
+          sx={{ maxWidth: 1040, mb: 1.5 }}
         >
           {availableLocales.length > 1 ? (
             <ToggleButtonGroup
@@ -856,34 +1061,74 @@ export default function ArticleDetail() {
         </Stack>
 
           {translateError && (
-            <Alert severity="warning" sx={{ maxWidth: 820, mb: 1.5 }}>
+            <Alert severity="warning" sx={{ maxWidth: 1040, mb: 1.5 }}>
               {translateError}
             </Alert>
           )}
 
         <Box ref={documentRef}>
-          {article.status !== "published" &&
-          (!viewLocale || viewLocale === primaryLocale) ? (
-            // EditableArticle owns the per-section UI. It honors `editMode`
-            // — when off it reads as a clean document with no edit chrome;
-            // when on, every section surfaces its Edit affordance. Compliance
-            // badges + AI fix cards still show regardless (they're guided
-            // actions, not edits the reviewer initiated themselves).
-            <EditableArticle
-              articleId={article.id}
-              body={article.body}
-              market={article.market}
-              complianceIssues={article.complianceIssues}
-              editMode={editMode}
-              onUpdated={(newBody) => {
-                const before = article;
-                setArticle((a) => (a ? { ...a, body: newBody } : a));
-                recordSave(before);
-              }}
-            />
-          ) : (
-            <ArticleDocument body={displayedBody} market={article.market} />
-          )}
+          <ArticleReviewFrame
+            eyebrow={article.status === "published" ? "Published article" : "Article preview"}
+            helper="Review the article in the same format employees see."
+            article={
+              article.status !== "published" &&
+              (!viewLocale || viewLocale === primaryLocale) ? (
+                // EditableArticle owns the per-section UI. It honors `editMode`
+                // — when off it reads as a clean document with no edit chrome;
+                // when on, every section surfaces its Edit affordance. Compliance
+                // badges + AI fix cards still show regardless (they're guided
+                // actions, not edits the reviewer initiated themselves).
+                <EditableArticle
+                  articleId={article.id}
+                  body={article.body}
+                  market={article.market}
+                  title={article.title}
+                  lead={article.lead}
+                  contentType={article.contentType}
+                  canonicalSlug={article.canonicalSlug}
+                  complianceIssues={article.complianceIssues}
+                  editMode={editMode}
+                  onUpdated={(newBody) => {
+                    const before = article;
+                    setArticle((a) => (a ? { ...a, body: newBody } : a));
+                    recordSave(before);
+                  }}
+                />
+              ) : (
+                <ArticleDocument
+                  body={displayedBody}
+                  market={article.market}
+                  title={article.title}
+                  lead={article.lead}
+                  contentType={article.contentType}
+                  canonicalSlug={article.canonicalSlug}
+                  presentation="immersive"
+                  showMasthead={false}
+                />
+              )
+            }
+            details={[
+              {
+                title: "Article details",
+                rows: [
+                  { label: "Status", value: statusMeta[article.status].label },
+                  { label: "Type", value: article.contentType },
+                  { label: "Knowledge base", value: knowledgeBaseLabel(article) },
+                  { label: "Country", value: article.countries?.join(", ") || article.market },
+                  { label: "Owner", value: article.owner ?? article.submittedBy.name },
+                  { label: "Submitted", value: formatDate(article.submittedAt) },
+                  { label: "Version", value: `Version ${article.version ?? 1}` },
+                ],
+              },
+              {
+                title: "Available translations",
+                rows: availableLocales.map((code) => ({
+                  label: code === primaryLocale ? "Primary" : "Translation",
+                  value: code,
+                })),
+              },
+            ]}
+          />
         </Box>
       </>
 
@@ -922,7 +1167,7 @@ export default function ArticleDetail() {
       </Dialog>
 
       <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Request more info</DialogTitle>
+        <DialogTitle>Request Changes</DialogTitle>
         <DialogContent>
           <Typography color="text.secondary" sx={{ mb: 2, fontSize: "0.875rem" }}>
             What's missing? The author will see this and can resubmit with the details.
@@ -945,7 +1190,7 @@ export default function ArticleDetail() {
             disabled={!infoNote.trim() || busy}
             onClick={submitNeedsInfo}
           >
-            Mark needs info
+            Request Changes
           </Button>
         </DialogActions>
       </Dialog>
@@ -960,7 +1205,7 @@ export default function ArticleDetail() {
           Published articles are frozen at publish time on the source side,
           so we hide the dock entirely — edits on live content happen on
           the PublishedArticle copy via the Library detail page. */}
-      {article.status !== "published" && (
+      {article.status !== "published" && !isOwnerReviewLocked && (
         <EditDock
           editMode={editMode}
           onEnterEdit={toggleEditMode}
@@ -1363,6 +1608,178 @@ function Meta({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+function ContentOwnerRevisionDetails({ article, onUpdated }: { article: Article; onUpdated: (article: Article) => void }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const [expanded, setExpanded] = useState(false);
+  const [title, setTitle] = useState(article.title);
+  const [knowledgeBase, setKnowledgeBase] = useState(knowledgeBaseLabel(article));
+  const [sector, setSector] = useState(article.sector ?? "");
+  const [globalJustification, setGlobalJustification] = useState(article.globalJustification ?? "");
+  const [countries, setCountries] = useState(article.countries.join(", "));
+  const [metaDescription, setMetaDescription] = useState(article.seo.metaDescription);
+  const [keywords, setKeywords] = useState(article.seo.keywords.join(", "));
+  const [summary, setSummary] = useState(article.seo.summary ?? "");
+  const [questions, setQuestions] = useState((article.seo.keyQuestions ?? []).join("\n"));
+  const [entities, setEntities] = useState((article.seo.entities ?? []).join(", "));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setTitle(article.title); setKnowledgeBase(knowledgeBaseLabel(article)); setSector(article.sector ?? ""); setGlobalJustification(article.globalJustification ?? ""); setCountries(article.countries.join(", "));
+    setMetaDescription(article.seo.metaDescription); setKeywords(article.seo.keywords.join(", "));
+    setSummary(article.seo.summary ?? ""); setQuestions((article.seo.keyQuestions ?? []).join("\n")); setEntities((article.seo.entities ?? []).join(", "));
+  }, [article]);
+
+  const split = (value: string, separator = ",") => value.split(separator).map((item) => item.trim()).filter(Boolean);
+  const allowedSectors = sectorsForContentOwner(getViewingContentOwner());
+  const canSave = Boolean(title.trim() && knowledgeBase && sector && split(countries).length) &&
+    (sector !== "global" || globalJustification.trim().length >= 10);
+  const save = async () => {
+    if (!title.trim()) return;
+    setSaving(true);
+    try {
+      onUpdated(await api.updateArticle(article.id, {
+        title: title.trim(), knowledgeBase: knowledgeBase as Article["knowledgeBase"], sector, globalJustification: sector === "global" ? globalJustification.trim() : undefined, countries: split(countries),
+        seo: {
+          title: title.trim(), metaDescription: metaDescription.trim(), keywords: split(keywords),
+          summary: summary.trim() || undefined, keyQuestions: split(questions, "\n"), entities: split(entities),
+        },
+      }));
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <Accordion expanded={expanded} onChange={(_, next) => setExpanded(next)} disableGutters elevation={0} sx={{ mb: 4, bgcolor: t.surfaceContainerLow, borderRadius: 2, "&:before": { display: "none" }, "&.Mui-expanded": { mb: 4 } }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: t.slate }} />} sx={{ px: 2.5, minHeight: 60, "& .MuiAccordionSummary-content": { my: 1.5, alignItems: "center", justifyContent: "space-between" } }}>
+        <Box>
+          <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>Article Details & Discovery</Typography>
+          <Typography sx={{ mt: 0.25, fontSize: "0.75rem", color: t.granite }}>Publishing details, search metadata, and AI-readiness information</Typography>
+        </Box>
+        <Tooltip title="Editable details">
+          <Box sx={{ color: t.pepsiBlueStrong, display: "flex", alignItems: "center" }}>
+            <EditOutlinedIcon sx={{ fontSize: 18 }} />
+          </Box>
+        </Tooltip>
+      </AccordionSummary>
+      <AccordionDetails sx={{ px: 2.5, pt: 0, pb: 2.5 }}>
+        <Stack spacing={2.25}>
+          <Typography variant="overline" sx={{ color: t.granite, letterSpacing: "0.08em", fontSize: "0.625rem", mb: -1 }}>Publishing details</Typography>
+          <TextField required label="Article title" value={title} onChange={(event) => setTitle(event.target.value)} size="small" fullWidth helperText="This is also used as the search and AI discovery title." sx={{ "& .MuiFormLabel-asterisk": { color: "#C62828", fontSize: "1rem", fontWeight: 800 } }} />
+          <TextField required select label="Knowledge base" value={knowledgeBase} onChange={(event) => setKnowledgeBase(event.target.value)} size="small" fullWidth helperText="Choose from the knowledge bases you are approved to publish into." sx={{ "& .MuiFormLabel-asterisk": { color: "#C62828", fontSize: "1rem", fontWeight: 800 } }}>
+            <MenuItem value="myPepsiCo KB">myPepsiCo KB</MenuItem><MenuItem value="PFP KB">PFP KB</MenuItem><MenuItem value="PepKM KB">PepKM KB</MenuItem>
+          </TextField>
+          <TextField required label="Countries / regions" value={countries} onChange={(event) => setCountries(event.target.value)} size="small" fullWidth helperText="Use comma-separated country codes, for example: US, CA, MX." sx={{ "& .MuiFormLabel-asterisk": { color: "#C62828", fontSize: "1rem", fontWeight: 800 } }} />
+          <TextField required select label="Sector" value={sector} onChange={(event) => setSector(event.target.value)} size="small" fullWidth helperText="Only sectors you are approved to publish into are shown." sx={{ "& .MuiFormLabel-asterisk": { color: "#C62828", fontSize: "1rem", fontWeight: 800 } }}>
+            {allowedSectors.map((sectorId) => <MenuItem key={sectorId} value={sectorId}>{sectorFullLabel(sectorId)}</MenuItem>)}
+          </TextField>
+          {sector === "global" && (
+            <Box sx={{ border: `1px solid ${t.border}`, borderRadius: 1.5, p: 2, bgcolor: t.surface }}>
+              <Typography sx={{ mb: 1.5, fontSize: "0.75rem", color: t.granite, lineHeight: 1.55 }}>
+                Most articles should belong to a specific sector so the right country-specific agents draft locale-tuned versions. The Global sector is reserved for corporate content that applies identically across sectors and triggers an extra human review. Briefly explain why this content really is cross-sector.
+              </Typography>
+              <TextField
+                required
+                label="Why is this content cross-sector?"
+                value={globalJustification}
+                onChange={(event) => setGlobalJustification(event.target.value)}
+                size="small"
+                fullWidth
+                multiline
+                minRows={4}
+                helperText={`${globalJustification.trim().length} / 10 minimum characters`}
+                sx={{ "& .MuiFormLabel-asterisk": { color: "#C62828", fontSize: "1rem", fontWeight: 800 } }}
+              />
+            </Box>
+          )}
+          <Box sx={{ borderTop: `1px solid ${t.border}`, pt: 2.25 }}>
+            <Typography variant="overline" sx={{ color: t.granite, letterSpacing: "0.08em", fontSize: "0.625rem" }}>Search & AI discovery</Typography>
+          </Box>
+          <TextField label="Meta description" value={metaDescription} onChange={(event) => setMetaDescription(event.target.value)} size="small" fullWidth multiline minRows={2} helperText={`${metaDescription.trim().length} / 160 characters · Aim for 140–160.`} />
+          <TextField label="Keywords" value={keywords} onChange={(event) => setKeywords(event.target.value)} size="small" fullWidth helperText="Separate keywords with commas." />
+          <TextField label="AI summary" value={summary} onChange={(event) => setSummary(event.target.value)} size="small" fullWidth multiline minRows={3} helperText="A factual summary that an AI assistant can use when answering questions." />
+          <TextField label="Key questions answered" value={questions} onChange={(event) => setQuestions(event.target.value)} size="small" fullWidth multiline minRows={3} helperText="Add one natural-language question per line." />
+          <TextField label="Entity anchors" value={entities} onChange={(event) => setEntities(event.target.value)} size="small" fullWidth helperText="Separate important people, systems, policies, or products with commas." />
+          <Stack direction="row" justifyContent="flex-end"><Button size="small" variant="contained" onClick={save} disabled={saving || !canSave}>{saving ? "Saving…" : "Save Details"}</Button></Stack>
+        </Stack>
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
+function PublishingDetailsPanel({ article, editMode, editableOnExpand = false, onUpdated }: { article: Article; editMode: boolean; editableOnExpand?: boolean; onUpdated: (article: Article) => void }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const [title, setTitle] = useState(article.title);
+  const [knowledgeBase, setKnowledgeBase] = useState(knowledgeBaseLabel(article));
+  const [countries, setCountries] = useState(article.countries.join(", "));
+  const [saving, setSaving] = useState(false);
+  const [expanded, setExpanded] = useState(editMode);
+  const [sectionEditing, setSectionEditing] = useState(editMode);
+  const isEditing = editMode || sectionEditing;
+
+  useEffect(() => {
+    if (editMode) {
+      setExpanded(true);
+      setSectionEditing(true);
+    }
+  }, [editMode]);
+
+  useEffect(() => {
+    setTitle(article.title);
+    setKnowledgeBase(knowledgeBaseLabel(article));
+    setCountries(article.countries.join(", "));
+  }, [article]);
+
+  const save = async () => {
+    const nextCountries = countries.split(",").map((country) => country.trim().toUpperCase()).filter(Boolean);
+    const changed = title.trim() !== article.title || knowledgeBase !== knowledgeBaseLabel(article) || nextCountries.join(",") !== article.countries.join(",");
+    if (!changed) return;
+    setSaving(true);
+    try {
+      onUpdated(await api.updateArticle(article.id, { title: title.trim(), knowledgeBase: knowledgeBase as Article["knowledgeBase"], countries: nextCountries }));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Accordion expanded={expanded} onChange={(_, nextExpanded) => { setExpanded(nextExpanded); if (nextExpanded && editableOnExpand) setSectionEditing(true); }} disableGutters elevation={0} sx={{ mb: 4, bgcolor: t.surfaceContainerLow, borderRadius: 2, "&:before": { display: "none" }, "&.Mui-expanded": { mb: 4 } }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: t.slate }} />} sx={{ px: 2.5, minHeight: 56, "& .MuiAccordionSummary-content": { my: 1.5, alignItems: "center", justifyContent: "space-between" } }}>
+        <Box>
+          <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>Publishing Details</Typography>
+          <Typography sx={{ mt: 0.25, fontSize: "0.75rem", color: t.granite }}>Knowledge base, locations, and article title</Typography>
+        </Box>
+        {!isEditing && <Typography sx={{ fontSize: "0.6875rem", color: t.granite, fontFamily: theme.palette.fonts.mono }}>{knowledgeBaseLabel(article)}</Typography>}
+      </AccordionSummary>
+      <AccordionDetails sx={{ px: 2.5, pt: 0, pb: 2.5 }}>
+        {isEditing ? (
+          <Stack spacing={2}>
+            <TextField label="Article title" value={title} onChange={(event) => setTitle(event.target.value)} size="small" fullWidth />
+            <TextField select label="Knowledge base" value={knowledgeBase} onChange={(event) => setKnowledgeBase(event.target.value)} size="small" fullWidth helperText="Choose from the knowledge bases you are approved to publish into.">
+              <MenuItem value="myPepsiCo KB">myPepsiCo KB</MenuItem>
+              <MenuItem value="PFP KB">PFP KB</MenuItem>
+              <MenuItem value="PepKM KB">PepKM KB</MenuItem>
+            </TextField>
+            <TextField label="Countries / regions" value={countries} onChange={(event) => setCountries(event.target.value)} size="small" fullWidth helperText="Use comma-separated country codes, for example: US, CA, MX." />
+            <Box>
+              <Typography sx={{ fontSize: "0.6875rem", color: t.granite, mb: 0.25 }}>Sector</Typography>
+              <Typography sx={{ fontSize: "0.8125rem", color: t.slate }}>{article.sector ? sectorFullLabel(article.sector) : "Not set"}</Typography>
+              <Typography sx={{ mt: 0.25, fontSize: "0.6875rem", color: t.granite }}>Sector changes are managed by your Team Admin because they affect team-level publishing ownership.</Typography>
+            </Box>
+            <Stack direction="row" justifyContent="flex-end"><Button size="small" variant="contained" onClick={save} disabled={saving || !title.trim()}>{saving ? "Saving…" : "Save Publishing Details"}</Button></Stack>
+          </Stack>
+        ) : (
+          <Stack spacing={1.25}>
+            <Meta label="Knowledge base" value={knowledgeBaseLabel(article)} />
+            <Meta label="Countries / regions" value={article.countries.length ? article.countries.join(", ") : "Not set"} />
+            <Meta label="Sector" value={article.sector ? sectorFullLabel(article.sector) : "Not set"} />
+          </Stack>
+        )}
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
 // ════════════════════════════════════════════════════════════
 // EditableSeoPanel — read-mode card / inline form, no in-panel commit chrome
 // ════════════════════════════════════════════════════════════
@@ -1371,6 +1788,7 @@ function EditableSeoPanel({
   seo,
   onUpdated,
   editMode = false,
+  editableOnExpand = false,
 }: {
   articleId: string;
   seo: ArticleSEO;
@@ -1384,6 +1802,8 @@ function EditableSeoPanel({
    * so the user never has to commit SEO changes explicitly.
    */
   editMode?: boolean;
+  /** Content Owner revision mode: expanding this section reveals editable fields. */
+  editableOnExpand?: boolean;
 }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
@@ -1404,6 +1824,9 @@ function EditableSeoPanel({
   );
   const [entityInput, setEntityInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [expanded, setExpanded] = useState(editMode);
+  const [sectionEditing, setSectionEditing] = useState(editMode);
+  const isEditing = editMode || sectionEditing;
   const [error, setError] = useState<string | null>(null);
 
   // When entering edit mode, refresh drafts from the persisted SEO so the
@@ -1421,6 +1844,8 @@ function EditableSeoPanel({
       setDraftEntities(seo.entities ?? []);
       setEntityInput("");
       setError(null);
+      setExpanded(true);
+      setSectionEditing(true);
     }
     // We intentionally drive this off editMode only — the SEO prop changing
     // mid-edit is handled by the sync effect below.
@@ -1431,14 +1856,15 @@ function EditableSeoPanel({
   // an agent-driven revision). Skip while we're actively editing so we
   // don't trample the user's input mid-typing.
   useEffect(() => {
-    if (editMode) return;
+    if (isEditing) return;
     setDraftTitle(seo.title);
     setDraftMeta(seo.metaDescription);
     setDraftKeywords(seo.keywords);
     setDraftSummary(seo.summary ?? "");
     setDraftQuestions(seo.keyQuestions ?? []);
     setDraftEntities(seo.entities ?? []);
-  }, [seo, editMode]);
+  }, [seo, isEditing]);
+
 
   const hasAnyValue =
     seo.title ||
@@ -1578,7 +2004,11 @@ function EditableSeoPanel({
       // Default closed — the panel was taking too much vertical space when
       // always expanded. Auth and review flows don't need to see search/GEO
       // unless the user is intentionally inspecting it.
-      defaultExpanded={false}
+      expanded={expanded}
+      onChange={(_, nextExpanded) => {
+        setExpanded(nextExpanded);
+        if (nextExpanded && editableOnExpand) setSectionEditing(true);
+      }}
       disableGutters
       elevation={0}
       sx={{
@@ -1651,21 +2081,11 @@ function EditableSeoPanel({
           subsections (Search · AI discovery) only when AT LEAST one GEO
           field has content; otherwise the SEO trio reads as a flat list
           to avoid the noise of an empty "AI discovery" subhead. */}
-      {!editMode && hasAnyValue && (
+      {!isEditing && hasAnyValue && (
         <Stack spacing={2}>
           {/* ── Search subsection ── */}
           {(seo.title || seo.metaDescription || seo.keywords.length > 0) && (
             <Stack spacing={1.25}>
-              {seo.title && (
-                <Box>
-                  <Typography sx={{ fontSize: "0.6875rem", color: t.granite, mb: 0.25 }}>
-                    Title
-                  </Typography>
-                  <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
-                    {seo.title}
-                  </Typography>
-                </Box>
-              )}
               {seo.metaDescription && (
                 <Box>
                   <Typography sx={{ fontSize: "0.6875rem", color: t.granite, mb: 0.25 }}>
@@ -1793,7 +2213,7 @@ function EditableSeoPanel({
           )}
         </Stack>
       )}
-      {!editMode && !hasAnyValue && (
+      {!isEditing && !hasAnyValue && (
         <Typography sx={{ fontSize: "0.8125rem", color: t.granite }}>
           No search or AI-discovery metadata yet. Turn on edit mode to add a
           title, meta description, keywords, a quotable summary, key
@@ -1805,7 +2225,7 @@ function EditableSeoPanel({
           (summary/key questions/entities) below. All fields auto-save on
           blur; arrays save on chip add/remove. No in-panel Save button —
           the EditDock at the bottom owns the session. */}
-      {editMode && (
+      {isEditing && (
         <Stack spacing={2.5}>
           {/* ── Search ── */}
           <Typography
@@ -1819,44 +2239,7 @@ function EditableSeoPanel({
           >
             Search
           </Typography>
-          <TextField
-            label="SEO title"
-            fullWidth
-            size="small"
-            value={draftTitle}
-            onChange={(e) => setDraftTitle(e.target.value)}
-            onBlur={() => commitIfChanged()}
-            helperText={
-              <Box
-                component="span"
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: "0.6875rem",
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{
-                    color:
-                      titleStatus === "good"
-                        ? t.successInk
-                        : titleStatus === "empty"
-                          ? t.granite
-                          : t.errorInk,
-                  }}
-                >
-                  {titleStatus === "empty" && "Aim for 30–60 characters"}
-                  {titleStatus === "short" && "A little short — aim for 30+"}
-                  {titleStatus === "good" && "Looks good"}
-                  {titleStatus === "long" && "Trim to 60 or fewer"}
-                </Box>
-                <Box component="span" sx={{ color: t.granite }}>
-                  {titleLen} / 60
-                </Box>
-              </Box>
-            }
-          />
+          <TextField label="SEO title" fullWidth size="small" value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} onBlur={() => commitIfChanged()} />
           <TextField
             label="Meta description"
             fullWidth

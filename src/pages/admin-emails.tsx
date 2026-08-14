@@ -52,7 +52,7 @@ const MARKET_OPTIONS: { value: MarketFilter; label: string }[] = [
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
   { value: "needs-review", label: "Needs review" },
-  { value: "needs-info", label: "Needs info" },
+  { value: "needs-info", label: "Changes Requested" },
   { value: "rejected", label: "Rejected" },
   { value: "published", label: "Published" },
 ];
@@ -119,7 +119,7 @@ export default function AdminEmails() {
     });
 
   return (
-    <Box sx={{ maxWidth: 820, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto" }}>
       <Typography variant="h4" component="h1">
         Email Log
       </Typography>
@@ -388,7 +388,7 @@ function statusLabel(s?: ArticleStatus): string {
   if (!s) return "—";
   return {
     "needs-review": "Needs review",
-    "needs-info": "Needs info",
+    "needs-info": "Changes Requested",
     rejected: "Rejected",
     published: "Published",
   }[s];

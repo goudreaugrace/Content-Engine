@@ -149,7 +149,160 @@ High-level principles in effect today:
 - **Tables** use uppercase Overline column headers in Slate, no top fill bar. Rows hover to Mist. Cells separated by Border, never stripes.
 - **The sticky save bar** floats with a soft Google-style shadow; the unsaved indicator dot is ember.
 
-## 6. Do's and Don'ts
+## 6. Screenshot-Derived Article Page Pattern
+
+Source analyzed: the myPepsiCo "Early talent hire program" article page screenshot supplied on August 14, 2026.
+
+This screen is not a marketing page and not an admin dashboard. It is a finished knowledge article with a light support rail. The article itself should feel like a stable intranet document: readable, structured, trustworthy, and easy to scan. The supporting controls should help the employee navigate or act without competing with the content.
+
+### Layout
+
+- **Page shell:** full white browser surface with a very light, thin top product bar. The bar contains product name, compact search, language selector, and user avatar.
+- **Content width:** centered article column with a narrow right utility rail. The page breathes around the article; it does not fill edge-to-edge.
+- **Article column:** approximately 650 to 760px wide. The article is the primary visual mass.
+- **Right rail:** approximately 180 to 240px wide. It contains small modules only: tags, table of contents, and quick links.
+- **Gutters:** generous separation between article and rail, roughly 32 to 48px.
+- **Vertical rhythm:** sections are long-form and stacked. Section breaks use whitespace and occasional hairline dividers, not heavy panels.
+- **Sticky affordance:** the right rail can remain sticky while the article scrolls, but it should stay visually quiet.
+
+### Color Extraction
+
+The screenshot uses a PepsiCo blue system with a cool neutral base.
+
+- **Article heading navy:** near `#003B5C` to `#004B73` for the H1. Heavier and darker than link blue.
+- **Interactive blue:** near `#005EA8` to `#0067B1` for links, accordions, table-of-contents entries, and quick-link icons.
+- **Deep table blue:** near `#003F63` for table header bars and accordion rows.
+- **Page background:** `#FFFFFF`.
+- **Article surface:** `#FFFFFF`.
+- **Right rail tile background:** `#FFFFFF` with faint border.
+- **Subtle divider:** near `#E5EAF0`.
+- **Body text:** near `#1F2933`.
+- **Secondary text:** near `#5E6B76`.
+- **Muted metadata:** near `#6B7785`.
+- **Danger/favorite accent:** small red outline heart, used sparingly as a utility affordance, not a primary color.
+
+Rules:
+- Blue owns navigation and expand/collapse controls.
+- Dark navy owns major article identity.
+- Tables and accordions may use deep blue header bars when they are part of the article content, not surrounding admin chrome.
+- Avoid large tinted backgrounds. The screenshot is mostly white.
+
+### Typography
+
+The screenshot reads like a corporate intranet article. Type is compact, practical, and information-dense.
+
+- **Top product bar:** tiny label text, roughly 11 to 12px, medium weight.
+- **Breadcrumb:** compact, 11 to 12px, blue links with separators.
+- **Article H1:** large, heavy, dark navy, roughly 30 to 36px desktop equivalent. Line-height is tight but not compressed.
+- **Updated metadata row:** 12 to 13px, muted grey, placed directly below the title.
+- **Table of Contents heading:** blue, medium/semibold, roughly 18 to 20px.
+- **Section headings:** blue, semibold, roughly 20 to 22px, with clear whitespace above.
+- **Subsection questions:** dark body color, bold/semibold, roughly 14 to 15px.
+- **Body text:** compact, roughly 13 to 14px, line-height 1.45 to 1.6.
+- **Table text:** compact, 12 to 13px. Header row is white text on deep blue.
+- **Right rail labels:** small, 12 to 13px, semibold.
+
+Rules:
+- Article pages can be denser than creation forms because the user is reading, not filling out fields.
+- Headings should use color and weight, not decorative containers.
+- Body paragraphs should stay readable, but not oversized. The screenshot fits a lot before scrolling.
+
+### Article Anatomy
+
+The article follows a strong knowledge-base sequence:
+
+- Breadcrumb path.
+- Utility actions near the top: favorite/subscribe, evaluate translation, view feedback.
+- Title.
+- Last-updated metadata and view count.
+- Table of contents.
+- Primary article sections.
+- Tables for definitions, rates, scopes, and policy comparisons.
+- Question-and-answer prose under each section.
+- Blue accordions for dense supplemental definitions or formulas.
+- Related resources at the end.
+
+Article content should be structured as the artifact employees read, not as a management page. Metadata can appear, but it should be integrated as small reading context.
+
+### Right Rail
+
+The right rail is informational and navigational, not managerial.
+
+- **Tags:** compact chips or small label blocks.
+- **Table of Contents:** small card with jump links. Active state can use a subtle blue indicator or blue text.
+- **Quick Links:** short stacked link buttons with an icon and external-link affordance.
+- **No dense article details table** in the default reading view. Detailed admin metadata belongs below, collapsed, or in an admin-only panel.
+
+Rules:
+- The rail should never be taller or visually louder than the article opening.
+- Rail cards use faint borders and white fill.
+- Labels are short. Avoid explanatory text inside the rail.
+
+### Tables
+
+Tables are a major part of the visual system.
+
+- Table headers use a deep PepsiCo blue fill with white text.
+- Body rows are white or very light grey alternating rows.
+- Grid lines are faint.
+- Cell padding is compact.
+- Tables are used for definitions, eligibility rules, rate bands, and comparisons.
+- Tables should not be placed inside decorative cards; they are part of the article.
+
+### Accordions
+
+Accordions appear as strong blue horizontal bars within the article body.
+
+- Blue bar background.
+- White title text.
+- Right-aligned chevron.
+- 4 to 8px radius.
+- Compact height, roughly 32 to 40px.
+- Stacked accordions have small vertical gaps.
+
+Use accordions for supplemental formulas, long definitions, and optional detail. Do not hide core policy content inside accordions.
+
+### Buttons And Utilities
+
+- Top article utility buttons are small outlined pills.
+- Primary action color remains blue.
+- Secondary buttons use white fill, blue text, and blue or neutral border.
+- Favorite uses a small heart icon without becoming the dominant action.
+- External-link icons are small and consistent.
+
+### Visual Tone
+
+This pattern should feel:
+
+- official;
+- clear;
+- content-first;
+- PepsiCo branded through blue/navy, not decoration;
+- easy to scan;
+- dense enough for real HR/policy content;
+- light enough that the article remains approachable.
+
+It should not feel:
+
+- like an AI-generated card layout;
+- like a dashboard;
+- like a PDF screenshot pasted into the app;
+- like a marketing landing page;
+- like a generic SaaS admin screen.
+
+### Translation Into The Build
+
+Use this screenshot as the target pattern for published article reading surfaces:
+
+- Keep article content in the center and make it feel like the primary document.
+- Keep admin controls outside the article reading surface or collapse them.
+- Use the right rail for tags, contents, and quick links.
+- Use tables and accordions as first-class article content components.
+- Keep top metadata compact: title, updated date, language, views, and useful article actions.
+- Use PepsiCo navy for title and deep blue for table/accordion affordances.
+- Prefer white, borders, and whitespace over large colored containers.
+
+## 7. Do's and Don'ts
 
 ### Do:
 

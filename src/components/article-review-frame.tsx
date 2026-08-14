@@ -60,8 +60,8 @@ export default function ArticleReviewFrame({
 
       <Box
         sx={{
-          bgcolor: "#EAF4FB",
-          borderRadius: 2.5,
+          bgcolor: t.articleFrameBg,
+          borderRadius: 2,
           p: { xs: 1, md: 1.75 },
           overflowX: "auto",
         }}
@@ -91,12 +91,13 @@ export default function ArticleReviewFrame({
                 key={card.title}
                 sx={{
                   p: 2,
-                  borderRadius: 2.5,
+                  borderRadius: 2,
                   bgcolor: "#FFFFFF",
-                  boxShadow: "0 12px 32px rgba(0, 46, 93, 0.10)",
+                  border: `1px solid ${t.articleDivider}`,
+                  boxShadow: "0 8px 20px rgba(0, 46, 93, 0.07)",
                 }}
               >
-                <Typography sx={{ fontSize: "1rem", fontWeight: 800, color: t.ink, mb: 1.5 }}>
+                <Typography sx={{ fontSize: "1rem", fontWeight: 800, color: t.pepsiNavy, mb: 1.5 }}>
                   {card.title}
                 </Typography>
                 {card.rows && (

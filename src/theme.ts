@@ -16,12 +16,12 @@ const tokens = {
   surfaceContainer: "#F1F4F8",        // 3-4% — quiet container surfaces
   surfaceContainerHigh: "#E9EEF5",    // 5-6% — emphasized containers, drawer
   mist: "#F1F3F4",      // hover / secondary surface (Google grey)
-  border: "#DADCE0",    // default border + divider (Google's standard)
-  borderStrong: "#BDC1C6",
-  granite: "#80868B",   // tertiary text, disabled
-  slate: "#5F6368",     // secondary text, labels
-  ink: "#202124",       // primary text, headings
-  inkSoft: "#3C4043",   // hover on ink text
+  border: "#DDE5EC",    // default border + divider, slightly cooler for myPepsiCo pages
+  borderStrong: "#B9C6D2",
+  granite: "#6B7785",   // tertiary text, disabled
+  slate: "#5E6B76",     // secondary text, labels
+  ink: "#1F2933",       // primary text, headings
+  inkSoft: "#334155",   // hover on ink text
 
   // Attention accent — used only for "needs attention" signals (pending review,
   // unsaved changes, in-flight job, active trace step). Primary actions use blue.
@@ -33,14 +33,19 @@ const tokens = {
   successBg: "#E6F4EA",
   errorInk: "#C5221F",    // Google red
   errorBg: "#FCE8E6",
-  infoInk: "#1967D2",     // Google blue — for "needs info" status
-  infoBg: "#E8F0FE",
+  infoInk: "#0067B1",
+  infoBg: "#EAF4FB",
 
   // PepsiCo brand. Doubles as the primary/interactive color across the system
   // (buttons, links, active nav) and the article-document branding.
-  pepsiBlue: "#004B93",
-  pepsiBlueStrong: "#003473",
-  pepsiBlueSubtle: "#E8EFF8",
+  pepsiBlue: "#005EA8",
+  pepsiBlueStrong: "#003B5C",
+  pepsiBlueSubtle: "#EAF4FB",
+  pepsiBlueDeep: "#003F63",
+  pepsiNavy: "#003B5C",
+  articleFrameBg: "#EAF4FB",
+  articleRailBg: "#F7FBFF",
+  articleDivider: "#E5EAF0",
   pepsiRed: "#E32934",
 };
 
@@ -156,7 +161,7 @@ export const theme = createTheme({
       fontSize: "clamp(1.5rem, 3vw, 2rem)",
       lineHeight: 1.25,
       letterSpacing: 0,
-      color: tokens.ink,
+      color: tokens.pepsiNavy,
     },
     h5: { fontWeight: 400, fontSize: "1.5rem", lineHeight: 1.33, letterSpacing: 0 },
     h6: { fontWeight: 500, fontSize: "1.125rem", lineHeight: 1.4, letterSpacing: "0.005em" },
@@ -263,10 +268,10 @@ export const theme = createTheme({
           },
         },
         outlined: {
-          borderColor: tokens.border,
+          borderColor: alpha(tokens.pepsiBlue, 0.45),
           color: tokens.pepsiBlue,
           "&:hover": {
-            borderColor: tokens.borderStrong,
+            borderColor: tokens.pepsiBlue,
             backgroundColor: alpha(tokens.pepsiBlue, 0.04),
           },
         },
@@ -329,6 +334,11 @@ export const theme = createTheme({
           borderColor: tokens.border,
           backgroundColor: tokens.surface,
           color: tokens.slate,
+          "&.MuiChip-colorPrimary": {
+            borderColor: alpha(tokens.pepsiBlue, 0.35),
+            color: tokens.pepsiBlueStrong,
+            backgroundColor: tokens.pepsiBlueSubtle,
+          },
           "&.MuiChip-colorWarning": {
             borderColor: alpha(tokens.ember, 0.4),
             color: tokens.emberStrong,
@@ -610,6 +620,55 @@ export const theme = createTheme({
           fontSize: "0.875rem",
           padding: "8px 14px",
           "&:hover": { backgroundColor: tokens.mist },
+          "&.Mui-selected": {
+            backgroundColor: tokens.pepsiBlueSubtle,
+            color: tokens.pepsiBlueStrong,
+            "&:hover": { backgroundColor: alpha(tokens.pepsiBlue, 0.14) },
+          },
+        },
+      },
+    },
+
+    MuiAccordion: {
+      defaultProps: { elevation: 0, disableGutters: true },
+      styleOverrides: {
+        root: {
+          border: `1px solid ${tokens.border}`,
+          borderRadius: 8,
+          boxShadow: "none",
+          backgroundColor: tokens.surface,
+          overflow: "hidden",
+          "&:before": { display: "none" },
+          "&.Mui-expanded": { margin: 0 },
+          "& + &": { marginTop: 8 },
+        },
+      },
+    },
+
+    MuiAccordionSummary: {
+      styleOverrides: {
+        root: {
+          minHeight: 44,
+          padding: "0 16px",
+          color: tokens.pepsiBlueStrong,
+          "&.Mui-expanded": { minHeight: 44 },
+          "&:hover": { backgroundColor: tokens.pepsiBlueSubtle },
+          "& .MuiAccordionSummary-expandIconWrapper": {
+            color: tokens.pepsiBlueStrong,
+          },
+        },
+        content: {
+          margin: "10px 0",
+          "&.Mui-expanded": { margin: "10px 0" },
+        },
+      },
+    },
+
+    MuiAccordionDetails: {
+      styleOverrides: {
+        root: {
+          borderTop: `1px solid ${tokens.border}`,
+          padding: "14px 16px 16px",
         },
       },
     },

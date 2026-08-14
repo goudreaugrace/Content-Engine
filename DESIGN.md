@@ -90,9 +90,13 @@ A near-white scale, faintly tinted toward the ember hue so the palette retains t
 
 ## 3. Typography
 
-**Primary face:** Inter across the entire system. Loaded from Google Fonts (weights 400, 500, 600, 700).
+**Primary UI face:** Inter across the application chrome. Loaded from Google Fonts (weights 400, 500, 600, 700).
 
-**Character:** Inter is a clean, neutral, screen-optimized sans — exactly the register Google's products live in. Weights stay restrained: display sizes use Regular (400), section heads use Medium (500), and bold (600/700) is reserved for genuine emphasis. The look is calm and legible, never shouty. There is no serif and no mono; hierarchy is a function of weight, size, and color.
+**Article title face:** Barlow Semi Condensed for article titles and major article headings.
+
+**Article body face:** Poppins for article body copy, tables, right-rail article utilities, and editable article prose.
+
+**Character:** Inter keeps the product shell Material-clean and familiar. Barlow Semi Condensed gives articles the myPepsiCo editorial identity: compact, bold, and branded without becoming decorative. Poppins keeps long article reading friendly and dense. Hierarchy is a function of role, weight, size, and color.
 
 ### Hierarchy
 
@@ -106,7 +110,7 @@ A near-white scale, faintly tinted toward the ember hue so the palette retains t
 
 ### Named Rules
 
-**The One Family Rule.** Inter is the only typeface. No serifs, no mono. To differentiate, change weight, size, or color — never the family.
+**The Product/Article Split Rule.** Product UI uses Inter. Article reading surfaces use Barlow Semi Condensed for titles/headings and Poppins for body text. Do not introduce additional article fonts.
 
 **The Restrained Weight Rule.** Display headings are Regular (400), not bold. Section heads are Medium (500). Reserve 600/700 for genuine emphasis (the wordmark, a single key number). Heavy bolding everywhere reads as loud and un-Google.
 
@@ -155,12 +159,22 @@ Source analyzed: the myPepsiCo "Early talent hire program" article page screensh
 
 This screen is not a marketing page and not an admin dashboard. It is a finished knowledge article with a light support rail. The article itself should feel like a stable intranet document: readable, structured, trustworthy, and easy to scan. The supporting controls should help the employee navigate or act without competing with the content.
 
+### Implemented Style Summary
+
+This is the canonical style for all article-reading surfaces in the build: source article previews, review queue previews, new-article review, published admin articles, and non-admin "my articles" views.
+
+- **Material remains the interaction system.** Buttons, chips, menus, accordions, focus states, hover states, and disabled states should remain MUI/Material-driven.
+- **PepsiCo owns the visual article layer.** Article typography, table styling, right-rail rhythm, links, and section headings use the PepsiCo article tokens.
+- **Article shell is shared.** All article routes should render through the shared article-reading frame pattern: main article panel plus sticky right rail.
+- **Article templates control content order.** FAQ, policy, knowledge article, and topic-page templates may change the body anatomy, but the shell, typography, table styling, and right rail stay consistent.
+- **Admin data is secondary.** Publishing status, owner, version, metrics, and lifecycle details can appear around the article, but they should not interrupt the employee-facing article surface.
+
 ### Layout
 
 - **Page shell:** full white browser surface with a very light, thin top product bar. The bar contains product name, compact search, language selector, and user avatar.
 - **Content width:** centered article column with a narrow right utility rail. The page breathes around the article; it does not fill edge-to-edge.
-- **Article column:** approximately 650 to 760px wide. The article is the primary visual mass.
-- **Right rail:** approximately 180 to 240px wide. It contains small modules only: tags, table of contents, and quick links.
+- **Article column:** flexible central column; article content remains the primary visual mass.
+- **Right rail:** approximately 240 to 300px wide in the current implementation. It contains small modules only: tags, table of contents, quick links, language, and compact publishing details.
 - **Gutters:** generous separation between article and rail, roughly 32 to 48px.
 - **Vertical rhythm:** sections are long-form and stacked. Section breaks use whitespace and occasional hairline dividers, not heavy panels.
 - **Sticky affordance:** the right rail can remain sticky while the article scrolls, but it should stay visually quiet.
@@ -191,21 +205,22 @@ Rules:
 
 The screenshot reads like a corporate intranet article. Type is compact, practical, and information-dense.
 
-- **Top product bar:** tiny label text, roughly 11 to 12px, medium weight.
-- **Breadcrumb:** compact, 11 to 12px, blue links with separators.
-- **Article H1:** large, heavy, dark navy, roughly 30 to 36px desktop equivalent. Line-height is tight but not compressed.
+- **Top product bar:** Inter, tiny label text, roughly 11 to 12px, medium weight.
+- **Breadcrumb:** Inter, compact, 11 to 12px, blue links with separators.
+- **Article H1:** Barlow Semi Condensed, large, heavy, dark navy, roughly 32 to 42px desktop equivalent. Line-height is tight but not compressed.
 - **Updated metadata row:** 12 to 13px, muted grey, placed directly below the title.
 - **Table of Contents heading:** blue, medium/semibold, roughly 18 to 20px.
-- **Section headings:** blue, semibold, roughly 20 to 22px, with clear whitespace above.
-- **Subsection questions:** dark body color, bold/semibold, roughly 14 to 15px.
-- **Body text:** compact, roughly 13 to 14px, line-height 1.45 to 1.6.
+- **Section headings:** Barlow Semi Condensed, blue, semibold/bold, roughly 20 to 22px, with clear whitespace above.
+- **Subsection questions:** Poppins, dark body color, bold/semibold, roughly 14 to 15px.
+- **Body text:** Poppins, compact, roughly 13 to 14px, line-height 1.45 to 1.6.
 - **Table text:** compact, 12 to 13px. Header row is white text on deep blue.
-- **Right rail labels:** small, 12 to 13px, semibold.
+- **Right rail labels:** Poppins, small, 12 to 13px, semibold.
 
 Rules:
 - Article pages can be denser than creation forms because the user is reading, not filling out fields.
 - Headings should use color and weight, not decorative containers.
 - Body paragraphs should stay readable, but not oversized. The screenshot fits a lot before scrolling.
+- Do not use Inter for article body text. Inter remains for application UI and admin/product chrome.
 
 ### Article Anatomy
 
@@ -229,8 +244,10 @@ Article content should be structured as the artifact employees read, not as a ma
 The right rail is informational and navigational, not managerial.
 
 - **Tags:** compact chips or small label blocks.
-- **Table of Contents:** small card with jump links. Active state can use a subtle blue indicator or blue text.
+- **Table of Contents:** small card with jump links. It is the canonical location for contents; do not duplicate the same contents block inside the article body.
 - **Quick Links:** short stacked link buttons with an icon and external-link affordance.
+- **Language:** compact current language/original/translation status.
+- **Publishing details:** compact admin or review details may sit below employee utilities, but should remain small.
 - **No dense article details table** in the default reading view. Detailed admin metadata belongs below, collapsed, or in an admin-only panel.
 
 Rules:
@@ -301,13 +318,17 @@ Use this screenshot as the target pattern for published article reading surfaces
 - Keep top metadata compact: title, updated date, language, views, and useful article actions.
 - Use PepsiCo navy for title and deep blue for table/accordion affordances.
 - Prefer white, borders, and whitespace over large colored containers.
+- Use `ArticleReadingFrame` for all article reading surfaces.
+- Use `ArticleDocument` for non-editable article rendering.
+- Use `EditableArticle` only when reviewers or authors need section-level editing; it must mirror `ArticleDocument` typography and table styles.
+- Keep `ArticleDocument.showContents` off by default; the right rail owns the table of contents.
 
 ## 7. Do's and Don'ts
 
 ### Do:
 
 - **Do** keep page and card backgrounds white (`#FFFFFF`). Separate surfaces with thin `#DADCE0` borders and whitespace.
-- **Do** lead every page with a single Inter Regular (400) H1 at a large size. Section heads are Inter Medium (500). Light, calm, Google-like.
+- **Do** lead application pages with a single Inter Regular (400) H1 at a large size. Article pages use Barlow Semi Condensed for the article H1.
 - **Do** use PepsiCo Blue for everything interactive: primary buttons, links, active nav, focus rings, selected toggles.
 - **Do** carry status using a chip plus icon plus label. Color is reinforcement, never the only signal.
 - **Do** reserve ember strictly for "needs attention" signals (pending dot, unsaved changes, in-flight job, active trace step). Never for primary actions.
@@ -324,7 +345,7 @@ Use this screenshot as the target pattern for published article reading surfaces
 - **Don't** echo Workday or Oracle HCM: panel-of-panels density, settings-tab labyrinths, dated buttons, drop shadows on every card.
 - **Don't** use grey or tinted backgrounds for cards and pages. White surfaces, neutral borders. The one allowed tint is the blue-subtle selected state.
 - **Don't** use `#000` for text. Headings and body are Ink (`#202124`).
-- **Don't** mix typefaces. Inter carries every weight, size, and role. No serif, no mono, no system-font escape hatches.
+- **Don't** mix additional typefaces. Inter carries product UI; Barlow Semi Condensed and Poppins carry article reading surfaces.
 - **Don't** bold everything. Display headings are Regular (400); reserve 600/700 for genuine emphasis.
 - **Don't** put resting drop shadows on cards, inputs, or buttons. Shadows are for floating surfaces only.
 - **Don't** use ember for primary actions or decoration. Blue is the action color; ember is the attention signal.

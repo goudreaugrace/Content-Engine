@@ -78,13 +78,13 @@ const contentTypes = [
   },
   {
     value: "Knowledge Article",
-    label: "Knowledge article",
+    label: "Knowledge Article",
     description: "Step-by-step instructions to complete a task.",
     example: "e.g. 'How to submit an expense report'",
   },
   {
     value: "Topic Page",
-    label: "Topic page",
+    label: "Topic Page",
     description: "Broad hub or overview, often linking to related articles.",
     example: "e.g. 'New parent leave benefits hub'",
   },
@@ -2397,6 +2397,30 @@ export default function NewRequest() {
       fontFamily: theme.palette.fonts.articleBody,
     },
   } as const;
+  const topicResourceInputSx = {
+    ...articleCreatorInputSx,
+    "& .MuiInputBase-root": {
+      ...articleCreatorInputSx["& .MuiInputBase-root"],
+      minHeight: 64,
+      alignItems: "flex-start",
+    },
+    "& .MuiFilledInput-input": {
+      px: 1.5,
+      pt: 2.6,
+      pb: 1,
+      fontSize: "0.875rem",
+      lineHeight: 1.35,
+    },
+    "& .MuiFilledInput-inputMultiline": {
+      pt: 2.6,
+      pb: 1,
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: t.granite,
+      opacity: 0.72,
+      fontSize: "0.875rem",
+    },
+  } as const;
 
   const submitStandardization = async () => {
     setMigrationSubmitting(true);
@@ -2516,22 +2540,33 @@ export default function NewRequest() {
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
             {STEP_LABELS.map((label, i) => {
               const active = i === currentStep;
-              const enabled = canVisitStep(i);
+              const enabled = i < currentStep;
               return (
                 <Stack key={label} direction="row" spacing={1} alignItems="center">
                   <Button
                     variant="text"
-                    disabled={!enabled}
+                    disabled={!enabled || active}
                     onClick={() => goToStep(i)}
                     sx={{
                       minWidth: 0,
                       px: 0,
                       py: 0,
+                      borderRadius: 0,
                       color: active ? t.pepsiBlueStrong : enabled ? t.pepsiBlue : t.granite,
                       fontWeight: active ? 800 : 500,
                       fontSize: "0.875rem",
                       textTransform: "none",
-                      "&.Mui-disabled": { color: t.granite },
+                      "&:hover": {
+                        bgcolor: "transparent",
+                        color: t.pepsiBlueStrong,
+                        textDecoration: enabled ? "underline" : "none",
+                        textUnderlineOffset: "3px",
+                      },
+                      "&.Mui-disabled": {
+                        color: active ? t.pepsiBlueStrong : t.granite,
+                        WebkitTextFillColor: active ? t.pepsiBlueStrong : t.granite,
+                        opacity: 1,
+                      },
                     }}
                   >
                     {label}
@@ -2990,10 +3025,12 @@ export default function NewRequest() {
           justifyContent="space-between"
           alignItems={{ xs: "stretch", sm: "flex-start" }}
         >
-          <Box sx={{ minWidth: 0, maxWidth: 640 }}>
+          <Box sx={{ width: "100%", minWidth: 0, maxWidth: 760 }}>
             <TextField
               fullWidth
               variant="standard"
+              multiline
+              minRows={1}
               value={form.title}
               placeholder="Untitled article"
               onChange={(e) => update("title", e.target.value)}
@@ -3008,6 +3045,10 @@ export default function NewRequest() {
                   color: t.pepsiNavy,
                   px: 0,
                   py: 0,
+                  whiteSpace: "normal",
+                  overflow: "visible",
+                  textOverflow: "clip",
+                  wordBreak: "break-word",
                 },
                 "& .MuiInputBase-input::placeholder": {
                   color: t.granite,
@@ -3154,7 +3195,7 @@ export default function NewRequest() {
                       border: `1px solid ${t.articleDivider}`,
                     }}
                   >
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
                       <TextField
                         fullWidth
                         variant="filled"
@@ -3166,7 +3207,7 @@ export default function NewRequest() {
                         }
                         InputLabelProps={{ shrink: true }}
                         InputProps={{ disableUnderline: true }}
-                        sx={articleCreatorInputSx}
+                        sx={topicResourceInputSx}
                       />
                       <TextField
                         fullWidth
@@ -3179,7 +3220,7 @@ export default function NewRequest() {
                         }
                         InputLabelProps={{ shrink: true }}
                         InputProps={{ disableUnderline: true }}
-                        sx={articleCreatorInputSx}
+                        sx={topicResourceInputSx}
                       />
                       {form.topicResources.length > 1 && (
                         <IconButton
@@ -3199,6 +3240,8 @@ export default function NewRequest() {
                       fullWidth
                       variant="filled"
                       label="Description"
+                      multiline
+                      minRows={2}
                       placeholder="When should employees use this resource?"
                       value={resource.description}
                       onChange={(event) =>
@@ -3206,7 +3249,7 @@ export default function NewRequest() {
                       }
                       InputLabelProps={{ shrink: true }}
                       InputProps={{ disableUnderline: true }}
-                      sx={{ mt: 1, ...articleCreatorInputSx }}
+                      sx={{ mt: 1.25, ...topicResourceInputSx }}
                     />
                   </Box>
                 ))}

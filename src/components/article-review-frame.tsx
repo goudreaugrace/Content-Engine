@@ -39,6 +39,7 @@ export default function ArticleReviewFrame({
   const t = theme.palette.tokens;
   const articleColumn =
     typeof maxArticleWidth === "number" ? `${maxArticleWidth}px` : maxArticleWidth;
+  const useFluidArticleColumn = articleColumn === "minmax(0, 1fr)";
 
   return (
     <Box>
@@ -64,9 +65,11 @@ export default function ArticleReviewFrame({
 
       <Box
         sx={{
-          bgcolor: t.articleFrameBg,
-          borderRadius: 1.5,
-          p: { xs: 1, md: 1.5 },
+          bgcolor: "transparent",
+          borderRadius: 0,
+          px: 0,
+          pt: 0,
+          pb: 0,
           overflowX: "auto",
         }}
       >
@@ -76,42 +79,52 @@ export default function ArticleReviewFrame({
             gridTemplateColumns: {
               xs: "1fr",
               lg: leftRail
-                ? "164px minmax(0, 1fr) 280px"
-                : `${articleColumn} 240px`,
+                ? useFluidArticleColumn
+                  ? "164px minmax(0, 1fr) 244px"
+                  : `164px minmax(0, ${articleColumn}) 244px`
+                : useFluidArticleColumn
+                  ? "minmax(0, 1fr) 244px"
+                  : `minmax(0, ${articleColumn}) 244px`,
               xl: leftRail
-                ? "176px minmax(0, 1fr) 300px"
-                : `${articleColumn} 260px`,
+                ? useFluidArticleColumn
+                  ? "176px minmax(0, 1fr) 252px"
+                  : `176px minmax(0, ${articleColumn}) 252px`
+                : useFluidArticleColumn
+                  ? "minmax(0, 1fr) 252px"
+                  : `minmax(0, ${articleColumn}) 252px`,
             },
-            gap: { xs: 1.5, xl: 2 },
+            width: "100%",
+            gap: { xs: 2, lg: 2.5 },
             alignItems: "start",
+            justifyContent: useFluidArticleColumn ? "stretch" : "center",
           }}
         >
           {leftRail}
           {article}
-          <Stack spacing={1.5} sx={{ position: { lg: "sticky" }, top: { lg: 20 } }}>
+          <Stack spacing={1.5} sx={{ position: { lg: "sticky" }, top: { lg: 0 } }}>
             {detailsNode}
             {details.map((card) => (
               <Box
                 key={card.title}
                 sx={{
-                  p: 1.5,
-                  borderRadius: 1.5,
-                  bgcolor: "#FFFFFF",
-                  border: `1px solid ${t.articleDivider}`,
+                  p: 2,
+                  borderRadius: "8px",
+                  bgcolor: t.articleRailBg,
+                  border: 0,
                   boxShadow: "none",
                 }}
               >
-                <Typography sx={{ fontSize: "0.8125rem", fontWeight: 800, color: t.pepsiNavy, mb: 1.25 }}>
+                <Typography sx={{ fontFamily: theme.palette.fonts.articleBody, fontSize: "1rem", fontWeight: 700, color: t.ink, mb: 1.5 }}>
                   {card.title}
                 </Typography>
                 {card.rows && (
-                  <Stack spacing={0.9}>
+                  <Stack spacing={1.1}>
                     {card.rows.map((row) => (
                       <Box key={row.label}>
-                        <Typography sx={{ fontSize: "0.625rem", color: t.granite, mb: 0.2, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                        <Typography sx={{ fontSize: "0.72rem", color: t.granite, mb: 0.25, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                           {row.label}
                         </Typography>
-                        <Box sx={{ fontSize: "0.75rem", fontWeight: 650, color: t.ink, lineHeight: 1.35 }}>
+                        <Box sx={{ fontSize: "0.8125rem", fontWeight: 600, color: t.ink, lineHeight: 1.45 }}>
                           {row.value}
                         </Box>
                       </Box>

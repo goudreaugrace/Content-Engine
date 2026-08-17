@@ -1,10 +1,12 @@
-import { Box, Button, Chip, Divider, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
+import { Box, Button, Chip, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { isValidElement, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ContentType, Market } from "../lib/api";
 import { localeFor } from "../lib/market";
+import ArticleReaderActions from "./article-reader-actions";
 
 type Props = {
   body: string;
@@ -13,6 +15,13 @@ type Props = {
   lead?: string;
   contentType?: ContentType;
   canonicalSlug?: string;
+  localeLabel?: string;
+  updatedLabel?: string;
+  viewCount?: number;
+  showReaderActions?: boolean;
+  availableLocales?: string[];
+  selectedLocale?: string;
+  onLocaleSelect?: (locale: string) => void;
   showContents?: boolean;
   showMastheadMeta?: boolean;
   presentation?: "standard" | "immersive";
@@ -68,7 +77,13 @@ export default function ArticleDocument({
   lead,
   contentType,
   canonicalSlug,
-  showContents = false,
+  updatedLabel = "Updated: recently",
+  viewCount,
+  showReaderActions = true,
+  availableLocales,
+  selectedLocale,
+  onLocaleSelect,
+  showContents = true,
   showMastheadMeta = true,
   presentation = "standard",
   showMasthead = true,
@@ -176,12 +191,12 @@ export default function ArticleDocument({
   return (
     <Box
       sx={{
-        bgcolor: "#FFFFFF",
-        border: `1px solid ${t.articleDivider}`,
-        borderRadius: isImmersive ? 2 : 0,
+        bgcolor: t.articleRailBg,
+        border: 0,
+        borderRadius: isImmersive ? "8px" : 0,
         overflow: "hidden",
         maxWidth: isImmersive ? "none" : 960,
-        boxShadow: isImmersive ? "0 12px 30px rgba(0, 46, 93, 0.08)" : "none",
+        boxShadow: "none",
       }}
     >
       {isImmersive && showMasthead && <Box sx={{ height: 6, bgcolor: t.pepsiBlueDeep }} />}
@@ -267,11 +282,18 @@ export default function ArticleDocument({
       {/* Article header */}
       <Box
         sx={{
-          px: { xs: 2.5, md: isImmersive ? 5 : 4 },
-          pt: { xs: 3, md: isImmersive ? 5 : 4 },
+          px: { xs: 2.5, md: 3 },
+          pt: { xs: 2.5, md: 3 },
           pb: 1.5,
         }}
       >
+        {showReaderActions && (
+          <ArticleReaderActions
+            selectedLocale={selectedLocale ?? locale}
+            availableLocales={availableLocales ?? [selectedLocale ?? locale]}
+            onLocaleSelect={onLocaleSelect}
+          />
+        )}
         <Box sx={editableBlockSx}>
           {editingKey === "title" && onTitleChange ? (
             <Stack spacing={1}>
@@ -285,9 +307,9 @@ export default function ArticleDocument({
                   disableUnderline: true,
                 sx: {
                     fontFamily: theme.palette.fonts.articleTitle,
-                    fontSize: { xs: "2rem", md: isImmersive ? "2.6rem" : "2.25rem" },
+                    fontSize: { xs: "2.25rem", md: isImmersive ? "2.85rem" : "2.5rem" },
                     fontWeight: 800,
-                    lineHeight: 1.12,
+                    lineHeight: 0.95,
                     color: t.pepsiNavy,
                   },
                 }}
@@ -305,10 +327,10 @@ export default function ArticleDocument({
                 component="h1"
                 sx={{
                   fontFamily: theme.palette.fonts.articleTitle,
-                  fontSize: { xs: "2rem", md: isImmersive ? "2.6rem" : "2.25rem" },
+                  fontSize: { xs: "2.25rem", md: isImmersive ? "2.85rem" : "2.5rem" },
                   fontWeight: 800,
                   letterSpacing: 0,
-                  lineHeight: 1.12,
+                  lineHeight: 0.95,
                   color: t.pepsiNavy,
                   mb: 1.25,
                 }}
@@ -320,6 +342,33 @@ export default function ArticleDocument({
             </>
           )}
         </Box>
+        {showMastheadMeta && (
+          <Stack
+            direction="row"
+            spacing={2}
+            useFlexGap
+            flexWrap="wrap"
+            alignItems="center"
+            sx={{
+              mb: 1.5,
+              fontFamily: theme.palette.fonts.articleBody,
+              color: t.ink,
+              fontSize: "0.875rem",
+            }}
+          >
+            <Typography sx={{ fontSize: "inherit", fontWeight: 500, color: t.ink }}>
+              {updatedLabel}
+            </Typography>
+            {viewCount !== undefined && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <VisibilityOutlinedIcon sx={{ fontSize: 18, color: t.ink }} />
+                <Typography sx={{ fontSize: "inherit", fontWeight: 500, color: t.ink }}>
+                  {viewCount} Views
+                </Typography>
+              </Stack>
+            )}
+          </Stack>
+        )}
         {(lead || editingKey === "lead" || leadRecommendations.length > 0) && (
           <Box sx={editableBlockSx}>
             {editingKey === "lead" && onLeadChange ? (
@@ -356,7 +405,7 @@ export default function ArticleDocument({
             sx={{
               maxWidth: isImmersive ? 1040 : 760,
               color: t.inkSoft,
-              fontSize: isImmersive ? "1rem" : "0.9375rem",
+              fontSize: "0.875rem",
               lineHeight: 1.6,
               mb: 1.75,
             }}
@@ -369,7 +418,7 @@ export default function ArticleDocument({
             )}
           </Box>
         )}
-        {canonicalSlug && (
+        {!isImmersive && canonicalSlug && (
           <Typography sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.75rem", color: t.granite }}>
             Article ID: {canonicalSlug}
           </Typography>
@@ -380,59 +429,70 @@ export default function ArticleDocument({
         <Box
           sx={{
             mx: { xs: 2.5, md: isImmersive ? 5 : 4 },
-            mb: 2,
-            p: 2,
-            border: `1px solid ${t.border}`,
-            bgcolor: isImmersive ? t.articleRailBg : t.surfaceContainerLow,
-            borderRadius: 1.5,
+            mb: 2.5,
+            pb: 2,
+            borderBottom: `1px solid ${t.articleDivider}`,
           }}
         >
           <Typography
             sx={{
-              fontSize: "1.05rem",
-              fontWeight: 700,
+              fontFamily: theme.palette.fonts.articleBody,
+              fontSize: "1.125rem",
+              fontWeight: 600,
               color: t.pepsiBlue,
               textTransform: "none",
               letterSpacing: 0,
-              mb: 1,
+              mb: 0.75,
             }}
           >
-            Contents
+            Table Of Contents
           </Typography>
           <Box
-            component="ol"
+            component="ul"
             sx={{
               m: 0,
-              pl: 2.25,
+              pl: 2,
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
               columnGap: 3,
-              rowGap: 0.5,
+              rowGap: 0.35,
               color: t.pepsiBlue,
+              fontFamily: theme.palette.fonts.articleBody,
               fontSize: "0.8125rem",
-              lineHeight: 1.5,
-              "& li::marker": { color: t.granite },
+              lineHeight: 1.55,
+              "& li::marker": { color: t.pepsiBlue },
+              "& a": {
+                color: t.pepsiBlue,
+                fontWeight: 600,
+                textDecoration: "none",
+                "&:hover": {
+                  color: t.pepsiBlueStrong,
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
+                },
+              },
             }}
           >
             {sections.map((section) => (
-              <li key={section}>{section}</li>
+              <li key={section}>
+                <a href={`#${articleAnchorId(section)}`}>{section}</a>
+              </li>
             ))}
           </Box>
         </Box>
       )}
 
-      <Divider sx={{ borderColor: t.articleDivider }} />
-
       {/* Article body */}
       <Box
         sx={{
           position: "relative",
-          px: { xs: 2.5, md: isImmersive ? 5 : 4 },
-          py: { xs: 3, md: isImmersive ? 5 : 4 },
+          px: { xs: 2.5, md: 3 },
+          py: { xs: 2.5, md: 3 },
           fontFamily: theme.palette.fonts.articleBody,
           color: t.ink,
-          fontSize: isImmersive ? "0.875rem" : "0.85rem",
-          lineHeight: 1.58,
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          lineHeight: 1.55,
 
           "& > *:first-of-type": { mt: 0 },
           "& > *:last-child": { mb: 0 },
@@ -441,41 +501,41 @@ export default function ArticleDocument({
             display: "none",
           },
           "& h2": {
-            fontFamily: theme.palette.fonts.articleTitle,
-            fontSize: "1.35rem",
-            fontWeight: 700,
+            fontFamily: theme.palette.fonts.articleBody,
+            fontSize: "1.25rem",
+            fontWeight: 600,
             letterSpacing: 0,
-            lineHeight: 1.35,
+            lineHeight: 1.05,
             color: t.pepsiBlue,
             mt: 4,
             mb: 1.25,
-            pb: 0.5,
-            borderBottom: `1px solid ${t.articleDivider}`,
+            pb: 0,
+            borderBottom: 0,
             scrollMarginTop: 24,
           },
           "& h3": {
             fontFamily: theme.palette.fonts.articleBody,
             fontSize: "0.9375rem",
-            fontWeight: 700,
+            fontWeight: 600,
             letterSpacing: 0,
             lineHeight: 1.35,
-            color: t.ink,
-            mt: 2.75,
+            color: t.slate,
+            mt: 2.25,
             mb: 0.75,
             scrollMarginTop: 24,
           },
           "& h4": {
             fontFamily: theme.palette.fonts.articleBody,
             fontSize: "0.875rem",
-            fontWeight: 700,
-            color: t.ink,
+            fontWeight: 600,
+            color: t.slate,
             mt: 2.25,
             mb: 0.5,
           },
 
-          "& p": { my: 1.1, color: t.ink, maxWidth: isImmersive ? 1040 : 760 },
+          "& p": { my: 1.15, color: t.ink, maxWidth: "none" },
 
-          "& ul, & ol": { my: 1.1, pl: 2.75, maxWidth: isImmersive ? 1040 : 760 },
+          "& ul, & ol": { my: 1.1, pl: 3, maxWidth: "none" },
           "& li": {
             mb: 0.35,
             "&::marker": { color: t.pepsiBlue, fontWeight: 600 },
@@ -513,7 +573,7 @@ export default function ArticleDocument({
           "& pre": {
             bgcolor: t.mist,
             p: 2,
-            borderRadius: 1,
+            borderRadius: "8px",
             overflow: "auto",
             my: 2,
             "& code": {
@@ -532,7 +592,7 @@ export default function ArticleDocument({
             my: 2.5,
             color: t.slate,
             bgcolor: t.pepsiBlueSubtle,
-            borderRadius: 1,
+            borderRadius: "8px",
             "& p": { my: 0.5 },
           },
 
@@ -545,9 +605,9 @@ export default function ArticleDocument({
           },
           "& th": {
             textAlign: "left",
-            fontWeight: 700,
+            fontWeight: 600,
             color: "#FFFFFF",
-            fontSize: "0.75rem",
+            fontSize: "0.8125rem",
             fontFamily: theme.palette.fonts.articleBody,
             textTransform: "none",
             letterSpacing: 0,
@@ -567,8 +627,8 @@ export default function ArticleDocument({
 
           "& details": {
             my: 1,
-            maxWidth: isImmersive ? 1040 : 760,
-            borderRadius: 1,
+            maxWidth: "none",
+            borderRadius: "8px",
             overflow: "hidden",
           },
           "& summary": {
@@ -576,7 +636,7 @@ export default function ArticleDocument({
             listStyle: "none",
             bgcolor: t.pepsiBlue,
             color: "#FFFFFF",
-            fontWeight: 700,
+            fontWeight: 600,
             fontSize: "0.8125rem",
             px: 1.5,
             py: 1,

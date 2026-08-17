@@ -3012,9 +3012,9 @@ export default function NewRequest() {
                   contentType={form.contentType}
                   market={previewMarket}
                   canonicalSlug="preview"
+                  localeLabel={displayLanguage(detectedDraftLanguage)}
                   presentation="immersive"
                   showMasthead={false}
-                  showContents={false}
                   editableSections={reviewEditableSections}
                   editingKey={reviewEditKey}
                   onEdit={setReviewEditKey}

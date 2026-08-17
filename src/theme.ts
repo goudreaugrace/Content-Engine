@@ -7,7 +7,7 @@ import { createTheme, alpha } from "@mui/material/styles";
 // ============================================================================
 
 const tokens = {
-  paper: "#FFFFFF",     // page background — white
+  paper: "#FFFFFF",     // app background — original white
   surface: "#FFFFFF",   // cards, panels — white
   // Material 3 surface tint hierarchy. Subtle blue-grey washes layered on
   // top of pure white. The page background is `paper`; cards sit on
@@ -38,13 +38,13 @@ const tokens = {
 
   // PepsiCo brand. Doubles as the primary/interactive color across the system
   // (buttons, links, active nav) and the article-document branding.
-  pepsiBlue: "#005EA8",
+  pepsiBlue: "#155798",
   pepsiBlueStrong: "#003B5C",
   pepsiBlueSubtle: "#EAF4FB",
-  pepsiBlueDeep: "#003F63",
-  pepsiNavy: "#003B5C",
-  articleFrameBg: "#EAF4FB",
-  articleRailBg: "#F7FBFF",
+  pepsiBlueDeep: "#02355A",
+  pepsiNavy: "#02355A",
+  articleFrameBg: "#FFFFFF",
+  articleRailBg: "#FAFAFA",
   articleDivider: "#E5EAF0",
   pepsiRed: "#E32934",
 };

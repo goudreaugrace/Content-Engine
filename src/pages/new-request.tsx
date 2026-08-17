@@ -7,6 +7,7 @@ import {
   TextField,
   MenuItem,
   Button,
+  IconButton,
   Chip,
   Checkbox,
   ListItemText,
@@ -20,6 +21,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Menu,
   useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -32,6 +34,14 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import CloseIcon from "@mui/icons-material/Close";
 import LinkIcon from "@mui/icons-material/Link";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import FormatBoldIcon from "@mui/icons-material/FormatBold";
+import FormatItalicIcon from "@mui/icons-material/FormatItalic";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import {
   api,
   currentUser,
@@ -154,6 +164,21 @@ type TemplateField = {
 
 type ArticleSectionField = TemplateField & {
   faqItemId?: string;
+  customId?: string;
+  required?: boolean;
+};
+
+type CustomSection = {
+  id: string;
+  title: string;
+  body: string;
+};
+
+type TopicResource = {
+  id: string;
+  label: string;
+  url: string;
+  description: string;
 };
 
 type AssistantAction = "fill" | "polish" | "employee";
@@ -169,15 +194,6 @@ type SelectionTarget = {
   type: "summary" | "faqQuestion" | "section";
   key: string;
   faqItemId?: string;
-};
-
-type SelectionToolbarState = {
-  target: SelectionTarget;
-  start: number;
-  end: number;
-  text: string;
-  x: number;
-  y: number;
 };
 
 const CONTENT_TEMPLATES: Record<ContentType, TemplateField[]> = {
@@ -211,7 +227,8 @@ const CONTENT_TEMPLATES: Record<ContentType, TemplateField[]> = {
   ],
   "Topic Page": [
     { key: "overview", label: "Overview", placeholder: "Explain the topic and when employees should use this page.", minRows: 5 },
-    { key: "keyResources", label: "Key resources", placeholder: "List the main links, tools, teams, or documents this page should connect.", minRows: 6 },
+    { key: "details", label: "Details", placeholder: "Add the context employees need before choosing a resource. Keep this overview short and link to separate articles for detailed instructions.", minRows: 5 },
+    { key: "keyResources", label: "Key resources", placeholder: "List the main links, tools, teams, or documents this page should connect.", minRows: 5 },
     { key: "relatedTopics", label: "Related topics", placeholder: "Adjacent topics that should link to this page or from this page.", minRows: 4 },
   ],
 };
@@ -559,6 +576,16 @@ export default function NewRequest() {
     templateAnswers: {} as Record<string, string>,
     sectionHeadings: {} as Record<string, string>,
     faqItems: [{ id: "faq-1", question: "", answer: "" }],
+    customSections: [] as CustomSection[],
+    policyMeta: {
+      effectiveDate: "",
+      nextReviewDate: "",
+      policyOwner: "",
+      exceptionApprover: "",
+    },
+    topicResources: [
+      { id: "resource-1", label: "", url: "", description: "" },
+    ] as TopicResource[],
     vaReady: true,
     approverEmail: manager.email,
     files: [] as File[],
@@ -590,14 +617,21 @@ export default function NewRequest() {
   const [enhancerOpen, setEnhancerOpen] = useState(false);
   const [enhancerTarget, setEnhancerTarget] = useState("article");
   const [enhancerPrompt, setEnhancerPrompt] = useState("");
-  const [selectionToolbar, setSelectionToolbar] =
-    useState<SelectionToolbarState | null>(null);
-  const [selectionAiPrompt, setSelectionAiPrompt] = useState("");
   const [reviewEditKey, setReviewEditKey] = useState<string | null>(null);
   const [activeEditorTarget, setActiveEditorTarget] = useState<SelectionTarget>({
     type: "summary",
     key: "lead",
   });
+  const [activeInlineEditorTarget, setActiveInlineEditorTarget] =
+    useState<SelectionTarget | null>(null);
+  const [editorSelections, setEditorSelections] = useState<
+    Record<string, { start: number; end: number }>
+  >({});
+  const [improveMenuAnchor, setImproveMenuAnchor] =
+    useState<HTMLElement | null>(null);
+  const [improveMenuTarget, setImproveMenuTarget] =
+    useState<SelectionTarget | null>(null);
+  const [knowledgeStepCount, setKnowledgeStepCount] = useState(1);
   const [assistantSuggestion, setAssistantSuggestion] =
     useState<AssistantSuggestion | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -730,6 +764,61 @@ export default function NewRequest() {
           ? f.faqItems
           : f.faqItems.filter((item) => item.id !== id),
     }));
+  const updateCustomSection = (id: string, patch: Partial<CustomSection>) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === id ? { ...section, ...patch } : section,
+      ),
+    }));
+  const addCustomSection = () =>
+    setForm((f) => ({
+      ...f,
+      customSections: [
+        ...f.customSections,
+        {
+          id: `custom-${Date.now().toString(36)}`,
+          title: "",
+          body: "",
+        },
+      ],
+    }));
+  const removeCustomSection = (id: string) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.filter((section) => section.id !== id),
+    }));
+  const updatePolicyMeta = (
+    key: keyof typeof form.policyMeta,
+    value: string,
+  ) =>
+    setForm((f) => ({
+      ...f,
+      policyMeta: { ...f.policyMeta, [key]: value },
+    }));
+  const updateTopicResource = (id: string, patch: Partial<TopicResource>) =>
+    setForm((f) => ({
+      ...f,
+      topicResources: f.topicResources.map((resource) =>
+        resource.id === id ? { ...resource, ...patch } : resource,
+      ),
+    }));
+  const addTopicResource = () =>
+    setForm((f) => ({
+      ...f,
+      topicResources: [
+        ...f.topicResources,
+        { id: `resource-${Date.now().toString(36)}`, label: "", url: "", description: "" },
+      ],
+    }));
+  const removeTopicResource = (id: string) =>
+    setForm((f) => ({
+      ...f,
+      topicResources:
+        f.topicResources.length <= 1
+          ? f.topicResources
+          : f.topicResources.filter((resource) => resource.id !== id),
+    }));
   const updateMigration = <K extends keyof typeof migrationForm>(
     k: K,
     v: (typeof migrationForm)[K],
@@ -752,24 +841,38 @@ export default function NewRequest() {
     manager;
   const templateFields = CONTENT_TEMPLATES[form.contentType];
   const isFaq = form.contentType === "FAQ";
-  const articleSections: ArticleSectionField[] = isFaq
-    ? [
-        ...form.faqItems.map((item, index) => ({
-          key: item.id,
-          faqItemId: item.id,
-          label: item.question.trim() || `Question ${index + 1}`,
-          placeholder: "Write the answer. Start direct, then add context or exceptions.",
-          minRows: 5,
-        })),
-      ]
+  const requiredArticleSections: ArticleSectionField[] = isFaq
+    ? form.faqItems.map((item, index) => ({
+        key: item.id,
+        faqItemId: item.id,
+        label: item.question.trim() || `Question ${index + 1}`,
+        placeholder: "Write the answer. Start direct, then add context or exceptions.",
+        minRows: 5,
+        required: true,
+      }))
     : templateFields.map((field) => ({
         ...field,
         label: form.sectionHeadings[field.key]?.trim() || field.label,
+        required: true,
       }));
+  const customArticleSections: ArticleSectionField[] = form.customSections.map((section, index) => ({
+    key: section.id,
+    customId: section.id,
+    label: section.title.trim() || `Additional section ${index + 1}`,
+    placeholder: "Add employee-facing details that do not fit the required template sections.",
+    minRows: 4,
+    required: false,
+  }));
+  const articleSections: ArticleSectionField[] = [
+    ...requiredArticleSections,
+    ...customArticleSections,
+  ];
   const articleAnswers = Object.fromEntries(
     articleSections.map((field) => {
       const value = field.faqItemId
         ? form.faqItems.find((item) => item.id === field.faqItemId)?.answer ?? ""
+        : field.customId
+          ? form.customSections.find((section) => section.id === field.customId)?.body ?? ""
         : form.templateAnswers[field.key] ?? "";
       return [field.key, value];
     }),
@@ -821,8 +924,50 @@ export default function NewRequest() {
       recommendations.push("This section is long. Consider breaking it into bullets, smaller headings, or related articles.");
     }
 
-    if (form.contentType === "Policy" && field.key === "effectiveDate" && !trimmed) {
-      recommendations.push("Policy articles should include effective date, last review, and next review timing.");
+    if (form.contentType === "FAQ" && field.faqItemId) {
+      if (!heading.trim().endsWith("?")) {
+        recommendations.push("Write the heading as the question employees would type into search.");
+      }
+      if (!/^(yes|no|use|select|open|contact|submit|employees|you|the)\b/i.test(trimmed)) {
+        recommendations.push("Start with the direct answer before adding background.");
+      }
+    }
+
+    if (form.contentType === "Knowledge Article" && field.key === "steps") {
+      if (!/^\s*(1\.|-)\s+/m.test(trimmed)) {
+        recommendations.push("Format this as numbered steps or short bullets so employees can follow it while working.");
+      }
+      if (!/\b(confirm|save|submit|open|select|review|contact)\b/i.test(trimmed)) {
+        recommendations.push("Use action verbs so each step tells the employee exactly what to do.");
+      }
+    }
+
+    if (form.contentType === "Policy") {
+      if (field.key === "whoApplies" && !/\b(applies|covered|eligible|not covered|excludes|role|country)\b/i.test(trimmed)) {
+        recommendations.push("Make the scope explicit: who is covered, who is excluded, and any country or role limits.");
+      }
+      if (field.key === "policyDetails" && !/\b(must|required|may|should|approved|not permitted)\b/i.test(trimmed)) {
+        recommendations.push("Use policy language that clearly states what is required, allowed, or not permitted.");
+      }
+      if (field.key === "effectiveDate" && (!form.policyMeta.effectiveDate.trim() || !form.policyMeta.nextReviewDate.trim())) {
+        recommendations.push("Complete the structured effective date and next review fields above the article.");
+      }
+    }
+
+    if (form.contentType === "Topic Page") {
+      if (field.key === "overview" && trimmed.length > 900) {
+        recommendations.push("Keep the overview short. Move detailed instructions into related articles or resource links.");
+      }
+      if (
+        field.key === "keyResources" &&
+        !form.topicResources.some(
+          (resource) =>
+            resource.label.trim() || resource.url.trim() || resource.description.trim(),
+        ) &&
+        !/https?:\/\/|www\.|myPepsiCo|MyPepsiCo/i.test(trimmed)
+      ) {
+        recommendations.push("Add at least one curated resource link so this works as a hub.");
+      }
     }
 
     return recommendations;
@@ -835,15 +980,23 @@ export default function NewRequest() {
     onTitleChange: (value: string) =>
       field.faqItemId
         ? updateFaqItem(field.faqItemId, { question: value })
-        : updateSectionHeading(field.key, value),
+        : field.customId
+          ? updateCustomSection(field.customId, { title: value })
+          : updateSectionHeading(field.key, value),
     onBodyChange: (value: string) =>
       field.faqItemId
         ? updateFaqItem(field.faqItemId, { answer: value })
-        : updateTemplateAnswer(field.key, value),
+        : field.customId
+          ? updateCustomSection(field.customId, { body: value })
+          : updateTemplateAnswer(field.key, value),
   }));
-  const templateHasContent = isFaq
+  const customSectionsHaveContent = form.customSections.some(
+    (section) => section.title.trim() || section.body.trim(),
+  );
+  const templateHasContent = (isFaq
     ? form.faqItems.some((item) => item.question.trim() || item.answer.trim())
-    : templateFields.some((field) => (form.templateAnswers[field.key] ?? "").trim());
+    : templateFields.some((field) => (form.templateAnswers[field.key] ?? "").trim())) ||
+    customSectionsHaveContent;
   const templateSourceText = () =>
     articleSections
       .map((field) => {
@@ -934,15 +1087,23 @@ export default function NewRequest() {
   }, [form.title, form.summary]);
 
   useEffect(() => {
-    if (!selectionToolbar) return;
-    const closeSelectionTools = () => setSelectionToolbar(null);
-    window.addEventListener("scroll", closeSelectionTools, true);
-    window.addEventListener("resize", closeSelectionTools);
-    return () => {
-      window.removeEventListener("scroll", closeSelectionTools, true);
-      window.removeEventListener("resize", closeSelectionTools);
+    if (currentStep !== 1) return;
+    const closeInactiveEditor = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.closest?.("[data-inline-editor-field='true']") ||
+        target?.closest?.("[data-inline-editor-tools='true']") ||
+        (improveMenuAnchor && target?.closest?.(".MuiMenu-paper"))
+      ) {
+        return;
+      }
+      setActiveInlineEditorTarget(null);
+      setImproveMenuAnchor(null);
+      setImproveMenuTarget(null);
     };
-  }, [selectionToolbar]);
+    document.addEventListener("mousedown", closeInactiveEditor);
+    return () => document.removeEventListener("mousedown", closeInactiveEditor);
+  }, [currentStep, improveMenuAnchor]);
 
   // Build the suggestion input from the current basics + content state.
   // Recomputes on every render — cheap, all-local string ops.
@@ -980,12 +1141,6 @@ export default function NewRequest() {
   const stepValid = [step0Valid, step1Valid, step2Valid];
   const canAdvance = stepValid[currentStep];
   const canSubmit = step0Valid && step1Valid;
-  const currentStepTitle =
-    currentStep === 0
-      ? "Set up the article"
-      : currentStep === 1
-        ? "Write the article"
-        : "Review and submit";
   const canVisitStep = (target: number) =>
     target <= currentStep || stepValid.slice(0, target).every(Boolean);
 
@@ -1164,12 +1319,53 @@ export default function NewRequest() {
         (item) => item.question.trim().toLowerCase() === question.trim().toLowerCase(),
       ),
   );
-  const finalArticleBody = buildArticleMarkdown({
+  const baseArticleBody = buildArticleMarkdown({
     title: form.title,
     lead: form.summary,
     fields: articleSections,
     answers: articleAnswers,
   });
+  const policyAtAGlanceRows = [
+    ["Effective date", form.policyMeta.effectiveDate],
+    ["Next review", form.policyMeta.nextReviewDate],
+    ["Policy owner", form.policyMeta.policyOwner],
+    ["Exception approver", form.policyMeta.exceptionApprover],
+  ].filter(([, value]) => value.trim());
+  const topicResourceRows = form.topicResources.filter(
+    (resource) =>
+      resource.label.trim() || resource.url.trim() || resource.description.trim(),
+  );
+  const policyAtAGlanceMarkdown =
+    form.contentType === "Policy" && policyAtAGlanceRows.length > 0
+      ? [
+          "## At a glance",
+          "",
+          "| Detail | Value |",
+          "| --- | --- |",
+          ...policyAtAGlanceRows.map(
+            ([label, value]) => `| ${label} | ${value.trim()} |`,
+          ),
+        ].join("\n")
+      : "";
+  const topicResourceMarkdown =
+    form.contentType === "Topic Page" && topicResourceRows.length > 0
+      ? [
+          "## Resource links",
+          "",
+          ...topicResourceRows.map((resource) => {
+            const label = resource.label.trim() || resource.url.trim() || "Resource";
+            const url = resource.url.trim();
+            const description = resource.description.trim();
+            const link = url ? `[${label}](${url})` : label;
+            return `- ${link}${description ? ` — ${description}` : ""}`;
+          }),
+        ].join("\n")
+      : "";
+  const finalArticleBody = [
+    baseArticleBody,
+    policyAtAGlanceMarkdown,
+    topicResourceMarkdown,
+  ].filter(Boolean).join("\n\n");
   const detectedDraftLanguage = detectDraftLanguage(finalArticleBody);
   const articleBodyCharacterCount = finalArticleBody.replace(/^#\s+.+\n+/, "").length;
   const lengthStatus = articleLengthStatus(articleBodyCharacterCount);
@@ -1217,6 +1413,38 @@ export default function NewRequest() {
     { label: "Sector", value: selectedSectorLabel },
     { label: "Who can read it", value: form.audience.join(", ") },
   ];
+  const templateSpecificChecks =
+    form.contentType === "FAQ"
+      ? [
+          {
+            label: "FAQ has at least one complete question and answer",
+            done: form.faqItems.some((item) => item.question.trim() && item.answer.trim()),
+          },
+        ]
+      : form.contentType === "Policy"
+        ? [
+            {
+              label: "Policy has effective date, next review, owner, and exception approver",
+              done:
+                !!form.policyMeta.effectiveDate.trim() &&
+                !!form.policyMeta.nextReviewDate.trim() &&
+                !!form.policyMeta.policyOwner.trim() &&
+                !!form.policyMeta.exceptionApprover.trim(),
+            },
+          ]
+        : form.contentType === "Knowledge Article"
+          ? [
+              {
+                label: "How-to article uses step formatting",
+                done: /^\s*(1\.|-)\s+/m.test(form.templateAnswers.steps ?? ""),
+              },
+            ]
+          : [
+              {
+                label: "Topic page includes curated resource links",
+                done: topicResourceRows.length > 0,
+              },
+            ];
   const askpepChecks = [
     {
       label: "Article body has enough text for employees and askpep",
@@ -1242,7 +1470,11 @@ export default function NewRequest() {
       label: "Search words and employee question are generated",
       done: generatedSearch.keywords.length > 0 && generatedSearch.questions.length > 0,
     },
+    ...templateSpecificChecks,
   ];
+  const recommendedReviewUpdates = askpepChecks
+    .filter((item) => !item.done)
+    .map((item) => item.label);
   const targetSection = articleSections.find((field) => field.key === enhancerTarget);
   const enhancerTargetHasContent =
     enhancerTarget === "article"
@@ -1257,7 +1489,52 @@ export default function NewRequest() {
       updateFaqItem(section.faqItemId, { answer: value });
       return;
     }
+    if (section.customId) {
+      updateCustomSection(section.customId, { body: value });
+      return;
+    }
       updateTemplateAnswer(section.key, value);
+  };
+  const parseKnowledgeSteps = (value: string) =>
+    value
+      .split("\n")
+      .map((line) => line.replace(/^\s*(?:\d+\.|-)\s*/, "").trim())
+      .filter(Boolean);
+  const formatKnowledgeSteps = (steps: string[]) =>
+    steps
+      .map((step, index) => {
+        const text = step.trim();
+        return text ? `${index + 1}. ${text}` : "";
+      })
+      .filter(Boolean)
+      .join("\n");
+  const knowledgeStepsForEditor = (value: string) => {
+    const steps = parseKnowledgeSteps(value);
+    const targetLength = Math.max(knowledgeStepCount, steps.length, 1);
+    return Array.from({ length: targetLength }, (_, index) => steps[index] ?? "");
+  };
+  const updateKnowledgeStep = (index: number, value: string) => {
+    const steps = knowledgeStepsForEditor(form.templateAnswers.steps ?? "");
+    steps[index] = value;
+    setKnowledgeStepCount(Math.max(steps.length, 1));
+    updateTemplateAnswer("steps", formatKnowledgeSteps(steps));
+  };
+  const addKnowledgeStep = () => {
+    const steps = knowledgeStepsForEditor(form.templateAnswers.steps ?? "");
+    setKnowledgeStepCount(steps.length + 1);
+  };
+  const removeKnowledgeStep = (index: number) => {
+    const steps = knowledgeStepsForEditor(form.templateAnswers.steps ?? "");
+    if (steps.length <= 1) {
+      setKnowledgeStepCount(1);
+      updateTemplateAnswer("steps", "");
+      return;
+    }
+    setKnowledgeStepCount(steps.length - 1);
+    updateTemplateAnswer(
+      "steps",
+      formatKnowledgeSteps(steps.filter((_, stepIndex) => stepIndex !== index)),
+    );
   };
   const getSelectionTargetValue = (target: SelectionTarget) => {
     if (target.type === "summary") return form.summary;
@@ -1267,6 +1544,8 @@ export default function NewRequest() {
     if (target.faqItemId) {
       return form.faqItems.find((item) => item.id === target.faqItemId)?.answer ?? "";
     }
+    const customSection = form.customSections.find((section) => section.id === target.key);
+    if (customSection) return customSection.body;
     return form.templateAnswers[target.key] ?? "";
   };
   const setSelectionTargetValue = (target: SelectionTarget, value: string) => {
@@ -1282,81 +1561,60 @@ export default function NewRequest() {
       updateFaqItem(target.faqItemId, { answer: value });
       return;
     }
+    if (form.customSections.some((section) => section.id === target.key)) {
+      updateCustomSection(target.key, { body: value });
+      return;
+    }
     updateTemplateAnswer(target.key, value);
   };
   const sameSelectionTarget = (a: SelectionTarget, b: SelectionTarget) =>
     a.type === b.type && a.key === b.key && a.faqItemId === b.faqItemId;
+  const selectionTargetId = (target: SelectionTarget) =>
+    `${target.type}:${target.key}:${target.faqItemId ?? ""}`;
   const activateEditor = (target: SelectionTarget) => {
     setActiveEditorTarget(target);
+    setActiveInlineEditorTarget(target);
   };
-  const handleEditorSelection = (
+  const rememberEditorSelection = (
     event: any,
     target: SelectionTarget,
   ) => {
     activateEditor(target);
     const element = event.currentTarget as HTMLInputElement | HTMLTextAreaElement;
     const start = element.selectionStart ?? 0;
-    const end = element.selectionEnd ?? 0;
-
-    if (end <= start) {
-      if (
-        selectionToolbar &&
-        sameSelectionTarget(selectionToolbar.target, target)
-      ) {
-        setSelectionToolbar(null);
-        setSelectionAiPrompt("");
-      }
-      return;
-    }
-
-    const selectedText = element.value.slice(start, end);
-    if (!selectedText.trim()) {
-      setSelectionToolbar(null);
-      setSelectionAiPrompt("");
-      return;
-    }
-
-    const rect = element.getBoundingClientRect();
-    const toolbarWidth = 304;
-    const toolbarHeight = 420;
-    const eventX =
-      typeof event.clientX === "number" && event.clientX > 0
-        ? event.clientX
-        : rect.left + Math.min(rect.width - 24, 180);
-    const eventY =
-      typeof event.clientY === "number" && event.clientY > 0
-        ? event.clientY
-        : rect.top + 48;
-    setSelectionToolbar({
-      target,
-      start,
-      end,
-      text: selectedText,
-      x: Math.max(12, Math.min(window.innerWidth - toolbarWidth - 12, eventX - 28)),
-      y: Math.max(12, Math.min(window.innerHeight - toolbarHeight - 12, eventY + 12)),
-    });
-    setSelectionAiPrompt("");
+    const end = element.selectionEnd ?? start;
+    setEditorSelections((current) => ({
+      ...current,
+      [selectionTargetId(target)]: { start, end },
+    }));
   };
   const editorSelectionProps = (target: SelectionTarget) => ({
-    onFocus: () => activateEditor(target),
-    onClick: (event: any) => handleEditorSelection(event, target),
-    onMouseUp: (event: any) => handleEditorSelection(event, target),
-    onKeyUp: (event: any) => handleEditorSelection(event, target),
-    onSelect: (event: any) => handleEditorSelection(event, target),
+    "data-inline-editor-field": "true",
+    "data-inline-editor-id": selectionTargetId(target),
+    onFocus: (event: any) => rememberEditorSelection(event, target),
+    onClick: (event: any) => rememberEditorSelection(event, target),
+    onMouseUp: (event: any) => rememberEditorSelection(event, target),
+    onKeyUp: (event: any) => rememberEditorSelection(event, target),
+    onSelect: (event: any) => rememberEditorSelection(event, target),
   });
-  const getActiveEditContext = () => {
-    const target =
-      selectionToolbar &&
-      sameSelectionTarget(selectionToolbar.target, activeEditorTarget)
-        ? selectionToolbar.target
-        : activeEditorTarget;
+  const getActiveEditContext = (targetOverride?: SelectionTarget) => {
+    const target = targetOverride ?? activeInlineEditorTarget ?? activeEditorTarget;
     const current = getSelectionTargetValue(target);
-    const selectionIsActive =
-      selectionToolbar &&
-      sameSelectionTarget(selectionToolbar.target, target) &&
-      selectionToolbar.end > selectionToolbar.start;
-    const start = selectionIsActive ? selectionToolbar.start : 0;
-    const end = selectionIsActive ? selectionToolbar.end : current.length;
+    const active = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
+    const targetId = selectionTargetId(target);
+    const hasTextSelection =
+      (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) &&
+      active.dataset.inlineEditorId === targetId;
+    const remembered = editorSelections[targetId];
+    const selectionStart = hasTextSelection
+      ? (active.selectionStart ?? 0)
+      : (remembered?.start ?? current.length);
+    const selectionEnd = hasTextSelection
+      ? (active.selectionEnd ?? selectionStart)
+      : (remembered?.end ?? selectionStart);
+    const selectionIsActive = selectionEnd > selectionStart;
+    const start = selectionIsActive ? selectionStart : selectionStart;
+    const end = selectionIsActive ? selectionEnd : selectionStart;
     return {
       target,
       start,
@@ -1366,18 +1624,8 @@ export default function NewRequest() {
       current,
     };
   };
-  const getToolbarEditContext = () => {
-    if (!selectionToolbar) return getActiveEditContext();
-    const current = getSelectionTargetValue(selectionToolbar.target);
-    return {
-      target: selectionToolbar.target,
-      start: selectionToolbar.start,
-      end: selectionToolbar.end,
-      text: current.slice(selectionToolbar.start, selectionToolbar.end),
-      isSelection: true,
-      current,
-    };
-  };
+  const getToolbarEditContext = (targetOverride?: SelectionTarget) =>
+    getActiveEditContext(targetOverride);
   const buildDraftForActiveTarget = (target: SelectionTarget, prompt?: string) => {
     const direction = (prompt ?? "").toLowerCase();
     const lead =
@@ -1421,8 +1669,11 @@ export default function NewRequest() {
       contextOverride ?? getToolbarEditContext();
     const nextValue = `${current.slice(0, start)}${replacement}${current.slice(end)}`;
     setSelectionTargetValue(target, nextValue);
-    setSelectionToolbar(null);
-    setSelectionAiPrompt("");
+    const nextCursor = start + replacement.length;
+    setEditorSelections((selections) => ({
+      ...selections,
+      [selectionTargetId(target)]: { start: nextCursor, end: nextCursor },
+    }));
     window.setTimeout(() => setAiWriting(null), 180);
   };
   const formatSelectedText = (
@@ -1437,10 +1688,30 @@ export default function NewRequest() {
       | "numbered"
       | "quote"
       | "clear",
+    targetOverride?: SelectionTarget,
   ) => {
-    const context = getToolbarEditContext();
-    if (!context.text.trim()) return;
-    const text = context.text;
+    const context = getToolbarEditContext(targetOverride);
+    const inlineOnlyKinds = ["bold", "italic", "underline", "strike", "code", "link"];
+    const actionText =
+      context.isSelection || !inlineOnlyKinds.includes(kind)
+        ? context.isSelection
+          ? context.text
+          : context.current
+        : "";
+    if (!actionText.trim() && !["bold", "italic", "link"].includes(kind)) return;
+    if (
+      !context.isSelection &&
+      ["underline", "strike", "code"].includes(kind)
+    ) {
+      return;
+    }
+    const text =
+      actionText.trim() ||
+      (kind === "bold"
+        ? "bold text"
+        : kind === "italic"
+          ? "italic text"
+          : "link text");
     const lines = text
       .split(/\n+/)
       .map((line) => line.trim())
@@ -1468,25 +1739,40 @@ export default function NewRequest() {
                             .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
                             .replace(/(\*\*|__|~~|`|<\/?u>)/g, "")
                             .replace(/^(\s*)([-*>]|\d+\.)\s+/gm, "$1");
-    replaceSelectedText(next, context);
+    replaceSelectedText(
+      next,
+      context.isSelection
+        ? context
+        : {
+            ...context,
+            start: ["bold", "italic", "link"].includes(kind)
+              ? context.start
+              : 0,
+            end: ["bold", "italic", "link"].includes(kind)
+              ? context.end
+              : context.current.length,
+            text,
+          },
+    );
   };
   const runSelectionAiAction = (
-    action: "improve" | "proofread" | "explain" | "shorten" | "bullets" | "prompt",
+    action: "improve" | "proofread" | "explain" | "longer" | "shorten" | "bullets" | "prompt",
     promptOverride?: string,
+    targetOverride?: SelectionTarget,
   ) => {
-    const context = getToolbarEditContext();
+    const context = getToolbarEditContext(targetOverride);
     setAiWriting("polish");
-    const originalText = context.text;
+    const originalText = context.isSelection ? context.text : context.current;
     const leadingSpace = originalText.match(/^\s*/)?.[0] ?? "";
     const trailingSpace = originalText.match(/\s*$/)?.[0] ?? "";
     const selectedText = originalText.trim();
-    const promptText = promptOverride ?? selectionAiPrompt;
+    const promptText = promptOverride ?? "";
     const direction = promptText.trim().toLowerCase();
     let next = selectedText;
 
     if (!selectedText) {
       next = buildDraftForActiveTarget(context.target, promptText);
-      replaceSelectedText(next);
+      replaceSelectedText(next, context);
       return;
     }
 
@@ -1494,7 +1780,9 @@ export default function NewRequest() {
       next = applyEnhancerDirection(
         lightlyPolish(selectedText)
           .replace(/\binfo\b/gi, "information")
-          .replace(/\basap\b/gi, "as soon as possible"),
+          .replace(/\basap\b/gi, "as soon as possible")
+          .replace(/\bthing\b/gi, "item")
+          .replace(/\bstuff\b/gi, "information"),
         "employee-facing",
       );
     } else if (action === "proofread") {
@@ -1504,8 +1792,16 @@ export default function NewRequest() {
         .replace(/\s+\./g, ".");
     } else if (action === "explain") {
       next = `${selectedText}\n\nIn plain language, this means employees should follow the guidance when it matches their role, location, and timing.`;
+    } else if (action === "longer") {
+      const addedDetail =
+        context.target.type === "summary"
+          ? "This summary should also clarify who the article is for and when employees should use it."
+          : context.target.type === "faqQuestion"
+            ? "Make the question specific enough that employees can recognize their situation before opening the answer."
+            : "Include the timing, ownership, exceptions, and next step employees should know before they act.";
+      next = `${lightlyPolish(selectedText)}\n\n${addedDetail}`;
     } else if (action === "shorten") {
-      next = trimToSentence(selectedText, 180);
+      next = trimToSentence(selectedText, 140);
     } else if (action === "bullets") {
       next = selectedText
         .split(/(?<=\.)\s+|\n+/)
@@ -1530,7 +1826,17 @@ export default function NewRequest() {
       next = applyEnhancerDirection(lightlyPolish(selectedText), "employee-facing");
     }
 
-    replaceSelectedText(`${leadingSpace}${next}${trailingSpace}`);
+    replaceSelectedText(
+      `${leadingSpace}${next}${trailingSpace}`,
+      context.isSelection
+        ? context
+        : {
+            ...context,
+            start: 0,
+            end: context.current.length,
+            text: context.current,
+          },
+    );
   };
   const applyEnhancerDirection = (text: string, promptOverride?: string) => {
     const direction = (promptOverride ?? enhancerPrompt).trim().toLowerCase();
@@ -1813,7 +2119,7 @@ export default function NewRequest() {
         ...f,
         summary,
         templateAnswers: Object.fromEntries(
-          articleSections.map((field) => [
+          requiredArticleSections.map((field) => [
             field.key,
             applyEnhancerDirection(lightlyPolish(f.templateAnswers[field.key] || fallback[field.key] || ""), promptOverride),
           ]),
@@ -1872,6 +2178,222 @@ export default function NewRequest() {
     setSectionValue(targetSection, applyEnhancerDirection(nextValue, action === "employee" ? "employee-facing" : undefined));
     window.setTimeout(() => setAiWriting(null), 300);
   };
+
+  const renderInlineEditorTools = (
+    target: SelectionTarget,
+    options?: { inline?: boolean },
+  ) => {
+    const isActive =
+      !!activeInlineEditorTarget &&
+      sameSelectionTarget(activeInlineEditorTarget, target);
+    if (!isActive) return null;
+    const hasText = !!getSelectionTargetValue(target).trim();
+    return (
+      <Box
+        data-inline-editor-tools="true"
+        onMouseDown={(event) => event.preventDefault()}
+        sx={{
+          width: options?.inline ? "auto" : "100%",
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          mb: options?.inline ? 0 : 0.75,
+          flexShrink: 0,
+        }}
+      >
+        <Stack
+          direction="row"
+          spacing={0.25}
+          alignItems="center"
+          flexWrap="wrap"
+          useFlexGap
+          sx={{
+            display: "inline-flex",
+            px: 0.5,
+            py: 0.35,
+            borderRadius: "8px",
+            bgcolor: t.surfaceContainerLow,
+            border: `1px solid ${t.articleDivider}`,
+            boxShadow: "0 1px 2px rgba(15, 23, 42, 0.04)",
+          }}
+        >
+          <Button
+            size="small"
+            title="Bold selected text"
+            onMouseDown={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              formatSelectedText("bold", target);
+            }}
+            sx={{
+              minWidth: 28,
+              width: 28,
+              height: 28,
+              p: 0,
+              color: t.ink,
+              borderRadius: 1,
+              "&:hover": { bgcolor: "#FFFFFF" },
+            }}
+          >
+            <FormatBoldIcon sx={{ fontSize: 16 }} />
+          </Button>
+          <Button
+            size="small"
+            title="Italic selected text"
+            onMouseDown={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              formatSelectedText("italic", target);
+            }}
+            sx={{
+              minWidth: 28,
+              width: 28,
+              height: 28,
+              p: 0,
+              color: t.ink,
+              borderRadius: 1,
+              "&:hover": { bgcolor: "#FFFFFF" },
+            }}
+          >
+            <FormatItalicIcon sx={{ fontSize: 16 }} />
+          </Button>
+          <Button
+            size="small"
+            title="Bulleted list"
+            onMouseDown={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              formatSelectedText("bullet", target);
+            }}
+            sx={{
+              minWidth: 28,
+              width: 28,
+              height: 28,
+              p: 0,
+              color: t.ink,
+              borderRadius: 1,
+              "&:hover": { bgcolor: "#FFFFFF" },
+            }}
+          >
+            <FormatListBulletedIcon sx={{ fontSize: 16 }} />
+          </Button>
+          <Button
+            size="small"
+            title="Numbered list"
+            onMouseDown={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              formatSelectedText("numbered", target);
+            }}
+            sx={{
+              minWidth: 28,
+              width: 28,
+              height: 28,
+              p: 0,
+              color: t.ink,
+              borderRadius: 1,
+              "&:hover": { bgcolor: "#FFFFFF" },
+            }}
+          >
+            <FormatListNumberedIcon sx={{ fontSize: 16 }} />
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            disabled={!!aiWriting || !hasText}
+            onClick={(event) => {
+              setImproveMenuAnchor(event.currentTarget);
+              setImproveMenuTarget(target);
+            }}
+            endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 15 }} />}
+            sx={{
+              ml: 0.25,
+              minHeight: 28,
+              px: 1.1,
+              borderRadius: "8px",
+              borderColor: t.articleDivider,
+              color: t.pepsiBlueStrong,
+              fontSize: "0.6875rem",
+              fontWeight: 750,
+              textTransform: "none",
+              bgcolor: "#FFFFFF",
+              "&:hover": {
+                borderColor: t.pepsiBlue,
+                bgcolor: t.pepsiBlueSubtle,
+              },
+              "&.Mui-disabled": { color: t.granite },
+            }}
+          >
+            Improve
+          </Button>
+        </Stack>
+      </Box>
+    );
+  };
+  const improveActions = [
+    { label: "Improve writing", action: "improve" },
+    { label: "Proofread", action: "proofread" },
+    { label: "Make longer", action: "longer" },
+    { label: "Make shorter", action: "shorten" },
+    { label: "Turn into bullets", action: "bullets" },
+  ] as const;
+  const applyImproveMenuAction = (action: (typeof improveActions)[number]["action"]) => {
+    const target = improveMenuTarget;
+    setImproveMenuAnchor(null);
+    setImproveMenuTarget(null);
+    setActiveInlineEditorTarget(null);
+    if (!target) return;
+    window.setTimeout(() => {
+      runSelectionAiAction(action, undefined, target);
+    }, 0);
+  };
+  const articleCreatorInputSx = {
+    "& .MuiInputLabel-root": {
+      color: t.granite,
+      fontSize: "0.75rem",
+      fontFamily: theme.palette.fonts.articleBody,
+      fontWeight: 600,
+    },
+    "& .MuiInputLabel-root.Mui-focused": {
+      color: t.pepsiBlue,
+    },
+    "& .MuiInputBase-root": {
+      bgcolor: "#FFFFFF",
+      borderRadius: "8px",
+      border: `1px solid ${t.articleDivider}`,
+      fontFamily: theme.palette.fonts.articleBody,
+      fontSize: "0.875rem",
+      fontWeight: 500,
+      lineHeight: 1.55,
+      transition: "border-color 140ms, background-color 140ms, box-shadow 140ms",
+      "&:before, &:after": { display: "none" },
+    },
+    "& .MuiInputBase-root:hover": {
+      bgcolor: "#FFFFFF",
+      borderColor: t.borderStrong,
+    },
+    "& .MuiInputBase-root.Mui-focused": {
+      bgcolor: "#FFFFFF",
+      borderColor: t.pepsiBlue,
+      boxShadow: "0 1px 0 rgba(0, 75, 147, 0.16)",
+    },
+    "& .MuiFilledInput-input": {
+      px: 1.5,
+      pt: 1.35,
+      pb: 0.75,
+    },
+    "& .MuiFilledInput-inputMultiline": {
+      pt: 1.35,
+      pb: 0.75,
+    },
+    "& .MuiFormHelperText-root": {
+      mx: 0,
+      mt: 0.5,
+      fontSize: "0.6875rem",
+      color: t.granite,
+      fontFamily: theme.palette.fonts.articleBody,
+    },
+  } as const;
 
   const submitStandardization = async () => {
     setMigrationSubmitting(true);
@@ -1969,7 +2491,7 @@ export default function NewRequest() {
     <Box sx={{ maxWidth: currentStep === 2 ? 1600 : 1280, mx: "auto" }}>
       <Box
         sx={{
-          mb: 4,
+          mb: currentStep === 1 ? 8 : 4,
         }}
       >
         <Stack
@@ -1982,9 +2504,11 @@ export default function NewRequest() {
             <Typography variant="h4" component="h1">
               New Article
             </Typography>
-            <Typography sx={{ mt: 0.75, fontSize: "0.875rem", color: t.slate }}>
-              {currentStepTitle}
-            </Typography>
+            {currentStep === 1 && (
+              <Typography sx={{ mt: 0.75, fontSize: "0.8125rem", color: t.granite, lineHeight: 1.5, maxWidth: 620 }}>
+                Draft the employee-facing content. Put the answer near the top, write in plain language, and keep important facts in text.
+              </Typography>
+            )}
           </Box>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
             {STEP_LABELS.map((label, i) => {
@@ -2027,145 +2551,46 @@ export default function NewRequest() {
         </Alert>
       )}
 
-      {selectionToolbar && currentStep === 1 && (
-        <Box
-          onMouseDown={(event) => {
-            const target = event.target as HTMLElement;
-            if (target.closest("input, textarea")) return;
-            event.preventDefault();
-          }}
-          sx={{
-            position: "fixed",
-            left: selectionToolbar?.x ?? 0,
-            top: selectionToolbar?.y ?? 0,
-            zIndex: theme.zIndex.modal + 2,
-            width: { xs: "calc(100vw - 24px)", sm: 304 },
-            maxWidth: 304,
-            p: 1,
-            borderRadius: 2.25,
-            bgcolor: t.paper,
-            border: `1px solid ${t.border}`,
-            boxShadow: "0 18px 48px rgba(17, 24, 39, 0.18)",
-            maxHeight: "min(420px, calc(100vh - 24px))",
-            overflowY: "auto",
-          }}
-        >
-          <Stack spacing={1}>
-            <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap" useFlexGap>
-              {[
-                { label: "B", title: "Bold", action: "bold", weight: 800 },
-                { label: "I", title: "Italic", action: "italic", italic: true },
-                { label: "U", title: "Underline", action: "underline", underline: true },
-                { label: "Link", title: "Add link", action: "link" },
-                { label: "List", title: "Bulleted list", action: "bullet" },
-                { label: "1.", title: "Numbered list", action: "numbered" },
-                { label: "Tx", title: "Clear style", action: "clear" },
-              ].map((item) => (
-                <Button
-                  key={item.title}
-                  title={item.title}
-                  size="small"
-                  variant="text"
-                  onClick={() =>
-                    formatSelectedText(
-                      item.action as
-                        | "bold"
-                        | "italic"
-                        | "underline"
-                        | "link"
-                        | "bullet"
-                        | "numbered"
-                        | "clear",
-                    )
-                  }
-                  sx={{
-                    minWidth: 34,
-                    width: item.label.length <= 2 ? 34 : "auto",
-                    height: 34,
-                    px: item.label.length <= 2 ? 0 : 1,
-                    borderRadius: 1.5,
-                    color: t.ink,
-                    fontWeight: item.weight ?? 500,
-                    fontStyle: item.italic ? "italic" : "normal",
-                    textDecoration: item.underline ? "underline" : "none",
-                    textTransform: "none",
-                    "&:hover": { bgcolor: t.surfaceContainerLow },
-                  }}
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </Stack>
-
-            <Divider />
-
-            <Typography sx={{ fontSize: "0.75rem", color: t.granite, px: 0.5 }}>
-              AI edits
-            </Typography>
-            <Stack spacing={0.2}>
-              {[
-                { label: "Improve writing", action: "improve" },
-                { label: "Proofread", action: "proofread" },
-                { label: "Make shorter", action: "shorten" },
-                { label: "Turn into bullets", action: "bullets" },
-              ].map((item) => (
-                <Button
-                  key={item.label}
-                  variant="text"
-                  size="small"
-                  disabled={!!aiWriting}
-                  onClick={() =>
-                    runSelectionAiAction(
-                      item.action as
-                        | "improve"
-                        | "proofread"
-                        | "shorten"
-                        | "bullets",
-                    )
-                  }
-                  sx={{
-                    justifyContent: "flex-start",
-                    px: 0.5,
-                    color: t.ink,
-                    fontSize: "0.8125rem",
-                    textTransform: "none",
-                    fontWeight: 500,
-                    "&:hover": { bgcolor: t.surfaceContainerLow },
-                  }}
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </Stack>
-
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Edit with AI"
-              value={selectionAiPrompt}
-              onChange={(e) => setSelectionAiPrompt(e.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && selectionAiPrompt.trim()) {
-                  event.preventDefault();
-                  runSelectionAiAction("prompt");
-                }
-              }}
-              helperText="Press Enter to apply to the selected text."
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 1.5,
-                  bgcolor: t.paper,
-                },
-                "& .MuiFormHelperText-root": {
-                  ml: 0,
-                  fontSize: "0.6875rem",
-                  color: t.granite,
-                },
-              }}
-            />
-          </Stack>
-        </Box>
-      )}
+      <Menu
+        anchorEl={improveMenuAnchor}
+        open={!!improveMenuAnchor && !!improveMenuTarget}
+        onClose={() => {
+          setImproveMenuAnchor(null);
+          setImproveMenuTarget(null);
+        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 0.5,
+              minWidth: 184,
+              borderRadius: "8px",
+              border: `1px solid ${t.articleDivider}`,
+              boxShadow: "0 10px 28px rgba(17, 24, 39, 0.12)",
+              "& .MuiMenu-list": { py: 0.5 },
+            },
+          },
+        }}
+      >
+        {improveActions.map((item) => (
+          <MenuItem
+            key={item.action}
+            onClick={() => applyImproveMenuAction(item.action)}
+            sx={{
+              mx: 0.5,
+              my: 0.125,
+              borderRadius: 1,
+              fontFamily: theme.palette.fonts.articleBody,
+              fontSize: "0.8125rem",
+              color: t.ink,
+              "&:hover": { bgcolor: t.pepsiBlueSubtle },
+            }}
+          >
+            {item.label}
+          </MenuItem>
+        ))}
+      </Menu>
 
       {/* ─── Step 1: Basics ─── */}
       {currentStep === 0 && (
@@ -2563,12 +2988,30 @@ export default function NewRequest() {
           alignItems={{ xs: "stretch", sm: "flex-start" }}
         >
           <Box sx={{ minWidth: 0, maxWidth: 640 }}>
-            <Typography sx={{ fontSize: "1.5rem", fontWeight: 650, color: t.ink, lineHeight: 1.2 }}>
-              {form.title.trim() || "Untitled article"}
-            </Typography>
-            <Typography sx={{ mt: 0.75, fontSize: "0.8125rem", color: t.granite, lineHeight: 1.5 }}>
-              Draft the employee-facing content. Put the answer near the top, write in plain language, and keep important facts in text.
-            </Typography>
+            <TextField
+              fullWidth
+              variant="standard"
+              value={form.title}
+              placeholder="Untitled article"
+              onChange={(e) => update("title", e.target.value)}
+              InputProps={{ disableUnderline: true }}
+              sx={{
+                "& .MuiInputBase-input": {
+                  fontFamily: theme.palette.fonts.articleTitle,
+                  fontSize: "1.75rem",
+                  fontWeight: 800,
+                  letterSpacing: 0,
+                  lineHeight: 1,
+                  color: t.pepsiNavy,
+                  px: 0,
+                  py: 0,
+                },
+                "& .MuiInputBase-input::placeholder": {
+                  color: t.granite,
+                  opacity: 1,
+                },
+              }}
+            />
           </Box>
         </Stack>
 
@@ -2579,12 +3022,14 @@ export default function NewRequest() {
         >
         <Box sx={{ flex: 1, minWidth: 0, maxWidth: 760 }}>
           <Box sx={{ mb: 3, position: "relative" }}>
+            {renderInlineEditorTools({ type: "summary", key: "lead" })}
             <TextField
               fullWidth
               variant="filled"
               label="Summary"
               multiline
               minRows={2}
+              InputLabelProps={{ shrink: true }}
               helperText={
                 <Stack direction="row" justifyContent="space-between" spacing={1}>
                   <span>Employees see this above the article. One or two sentences is enough.</span>
@@ -2604,47 +3049,207 @@ export default function NewRequest() {
               InputProps={{ disableUnderline: true }}
               inputProps={editorSelectionProps({ type: "summary", key: "lead" })}
               sx={{
+                ...articleCreatorInputSx,
                 "& .MuiInputBase-root": {
-                  bgcolor: t.surfaceContainerLow,
-                  borderRadius: 1.5,
-                  fontSize: "1rem",
-                  lineHeight: 1.65,
-                },
-                "& .MuiInputBase-root:hover": {
-                  bgcolor: t.surfaceContainerLow,
-                },
-                "& .MuiInputBase-root.Mui-focused": {
-                  bgcolor: t.paper,
-                  boxShadow: `0 0 0 1px ${t.pepsiBlue}`,
+                  ...articleCreatorInputSx["& .MuiInputBase-root"],
+                  fontSize: "0.875rem",
+                  color: t.inkSoft,
                 },
               }}
             />
           </Box>
 
-          <Stack spacing={2.25}>
+          {form.contentType === "Policy" && (
+            <Box sx={{ mb: 3.25 }}>
+              <Typography
+                sx={{
+                  fontFamily: theme.palette.fonts.articleBody,
+                  fontSize: "0.6875rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: t.granite,
+                  mb: 1.25,
+                }}
+              >
+                Policy at a glance
+              </Typography>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                  gap: 1.25,
+                }}
+              >
+                {[
+                  ["effectiveDate", "Effective date", "When this policy starts"],
+                  ["nextReviewDate", "Next review", "When this article should be checked again"],
+                  ["policyOwner", "Policy owner", "Team, role, or person accountable"],
+                  ["exceptionApprover", "Exception approver", "Who can approve exceptions"],
+                ].map(([key, label, placeholder]) => (
+                  <TextField
+                    key={key}
+                    fullWidth
+                    variant="filled"
+                    label={label}
+                    placeholder={placeholder}
+                    value={form.policyMeta[key as keyof typeof form.policyMeta]}
+                    onChange={(event) =>
+                      updatePolicyMeta(
+                        key as keyof typeof form.policyMeta,
+                        event.target.value,
+                      )
+                    }
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{ disableUnderline: true }}
+                    sx={articleCreatorInputSx}
+                  />
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {form.contentType === "Topic Page" && (
+            <Box sx={{ mb: 3.25 }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
+                <Typography
+                  sx={{
+                    fontFamily: theme.palette.fonts.articleBody,
+                    fontSize: "0.6875rem",
+                    fontWeight: 800,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: t.granite,
+                  }}
+                >
+                  Resource links
+                </Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={addTopicResource}
+                  startIcon={<AddIcon sx={{ fontSize: 14 }} />}
+                  sx={{
+                    minHeight: 28,
+                    borderRadius: "8px",
+                    textTransform: "none",
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  Add resource
+                </Button>
+              </Stack>
+              <Stack spacing={1.25}>
+                {form.topicResources.map((resource, resourceIndex) => (
+                  <Box
+                    key={resource.id}
+                    sx={{
+                      p: 1.25,
+                      borderRadius: "8px",
+                      bgcolor: "#FFFFFF",
+                      border: `1px solid ${t.articleDivider}`,
+                    }}
+                  >
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                      <TextField
+                        fullWidth
+                        variant="filled"
+                        label="Resource title"
+                        placeholder={`Resource ${resourceIndex + 1}`}
+                        value={resource.label}
+                        onChange={(event) =>
+                          updateTopicResource(resource.id, { label: event.target.value })
+                        }
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{ disableUnderline: true }}
+                        sx={articleCreatorInputSx}
+                      />
+                      <TextField
+                        fullWidth
+                        variant="filled"
+                        label="Link"
+                        placeholder="https://"
+                        value={resource.url}
+                        onChange={(event) =>
+                          updateTopicResource(resource.id, { url: event.target.value })
+                        }
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{ disableUnderline: true }}
+                        sx={articleCreatorInputSx}
+                      />
+                      {form.topicResources.length > 1 && (
+                        <IconButton
+                          size="small"
+                          title="Remove resource"
+                          onClick={() => removeTopicResource(resource.id)}
+                          sx={{
+                            alignSelf: { xs: "flex-start", sm: "center" },
+                            color: t.granite,
+                          }}
+                        >
+                          <DeleteOutlineIcon sx={{ fontSize: 17 }} />
+                        </IconButton>
+                      )}
+                    </Stack>
+                    <TextField
+                      fullWidth
+                      variant="filled"
+                      label="Description"
+                      placeholder="When should employees use this resource?"
+                      value={resource.description}
+                      onChange={(event) =>
+                        updateTopicResource(resource.id, { description: event.target.value })
+                      }
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{ disableUnderline: true }}
+                      sx={{ mt: 1, ...articleCreatorInputSx }}
+                    />
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+          )}
+
+          <Stack spacing={0}>
             {articleSections.map((field, index) => {
               const faqItem = field.faqItemId
                 ? form.faqItems.find((item) => item.id === field.faqItemId)
                 : null;
+              const customSection = field.customId
+                ? form.customSections.find((section) => section.id === field.customId)
+                : null;
               const sectionValue = articleAnswers[field.key] ?? "";
+              const knowledgeStepValues =
+                form.contentType === "Knowledge Article" && field.key === "steps"
+                  ? knowledgeStepsForEditor(sectionValue)
+                  : [];
               return (
                 <Box
                   key={field.key}
                   sx={{
-                    py: 1.5,
+                    pt: index === 0 ? 0.5 : 3,
+                    pb: 3,
                     position: "relative",
-                    borderTop: index === 0 ? "none" : `1px solid ${t.border}`,
                   }}
                 >
                   <Stack direction="row" spacing={1.25} alignItems="flex-start">
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       {field.faqItemId ? (
-                        <>
+                        <Box sx={{ mb: 1.25 }}>
+                          {renderInlineEditorTools({
+                            type: "faqQuestion",
+                            key: field.key,
+                            faqItemId: field.faqItemId,
+                          })}
                           <TextField
                             fullWidth
                             variant="filled"
                             label="Question"
+                            multiline
+                            minRows={1}
                             placeholder={`Question ${index + 1}`}
+                            InputLabelProps={{ shrink: true }}
                             helperText={`${(faqItem?.question ?? "").length.toLocaleString()} characters`}
                             FormHelperTextProps={{
                               sx: {
@@ -2665,86 +3270,296 @@ export default function NewRequest() {
                               faqItemId: field.faqItemId,
                             })}
                             sx={{
-                              mb: 1.25,
+                              ...articleCreatorInputSx,
                               "& .MuiInputBase-root": {
-                                bgcolor: t.surfaceContainerLow,
-                                borderRadius: 1.5,
+                                ...articleCreatorInputSx["& .MuiInputBase-root"],
                                 fontSize: "1.0625rem",
                                 fontWeight: 650,
-                              },
-                              "& .MuiInputBase-root:hover": {
-                                bgcolor: t.surfaceContainerLow,
-                              },
-                              "& .MuiInputBase-root.Mui-focused": {
-                                bgcolor: t.paper,
-                                boxShadow: `0 0 0 1px ${t.pepsiBlue}`,
+                                color: t.pepsiNavy,
                               },
                             }}
                           />
-                        </>
+                        </Box>
+                      ) : field.customId ? (
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                          <TextField
+                            fullWidth
+                            variant="standard"
+                            placeholder="Section title"
+                            value={customSection?.title ?? ""}
+                            onChange={(e) =>
+                              updateCustomSection(field.customId!, { title: e.target.value })
+                            }
+                            InputProps={{ disableUnderline: true }}
+                            sx={{
+                              "& .MuiInputBase-input": {
+                                fontFamily: theme.palette.fonts.articleBody,
+                                fontSize: "1.25rem",
+                                fontWeight: 600,
+                                lineHeight: 1.05,
+                                color: t.pepsiBlue,
+                                px: 0,
+                                py: 0.25,
+                              },
+                            }}
+                          />
+                          {!isFaq && (
+                            <IconButton
+                              size="small"
+                              title="Edit section title"
+                              tabIndex={-1}
+                              sx={{
+                                flexShrink: 0,
+                                color: t.granite,
+                                width: 24,
+                                height: 24,
+                                p: 0,
+                                opacity: 0.55,
+                                "&:hover": {
+                                  opacity: 1,
+                                  bgcolor: t.surfaceContainerLow,
+                                  color: t.pepsiBlue,
+                                },
+                              }}
+                            >
+                              <EditOutlinedIcon sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          )}
+                          <Button
+                            size="small"
+                            color="inherit"
+                            onClick={() => removeCustomSection(field.customId!)}
+                            startIcon={<DeleteOutlineIcon sx={{ fontSize: 15 }} />}
+                            sx={{
+                              flexShrink: 0,
+                              mt: -0.25,
+                              color: t.granite,
+                              fontSize: "0.75rem",
+                              textTransform: "none",
+                            }}
+                          >
+                            Remove
+                          </Button>
+                          {!isFaq &&
+                            renderInlineEditorTools(
+                              {
+                                type: "section",
+                                key: field.key,
+                                faqItemId: field.faqItemId,
+                              },
+                              { inline: true },
+                            )}
+                        </Stack>
                       ) : (
-                        <TextField
-                          fullWidth
-                          variant="standard"
-                          value={field.label}
-                          onChange={(e) => updateSectionHeading(field.key, e.target.value)}
-                          InputProps={{ disableUnderline: true }}
-                          sx={{
-                            mb: 0.75,
-                            "& .MuiInputBase-input": {
-                              fontSize: "1.0625rem",
-                              fontWeight: 650,
-                              color: t.ink,
-                              px: 0,
-                              py: 0.25,
-                            },
-                          }}
-                        />
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
+                          <TextField
+                            fullWidth
+                            variant="standard"
+                            value={field.label}
+                            onChange={(e) => updateSectionHeading(field.key, e.target.value)}
+                            InputProps={{ disableUnderline: true }}
+                            sx={{
+                              flex: 1,
+                              "& .MuiInputBase-input": {
+                                fontFamily: theme.palette.fonts.articleBody,
+                                fontSize: "1.25rem",
+                                fontWeight: 600,
+                                lineHeight: 1.05,
+                                color: t.pepsiBlue,
+                                px: 0,
+                                py: 0.25,
+                              },
+                            }}
+                          />
+                          {!isFaq && (
+                            <IconButton
+                              size="small"
+                              title="Edit section title"
+                              tabIndex={-1}
+                              sx={{
+                                flexShrink: 0,
+                                color: t.granite,
+                                width: 24,
+                                height: 24,
+                                p: 0,
+                                opacity: 0.55,
+                                "&:hover": {
+                                  opacity: 1,
+                                  bgcolor: t.surfaceContainerLow,
+                                  color: t.pepsiBlue,
+                                },
+                              }}
+                            >
+                              <EditOutlinedIcon sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          )}
+                          {!isFaq &&
+                            renderInlineEditorTools(
+                              {
+                                type: "section",
+                                key: field.key,
+                                faqItemId: field.faqItemId,
+                              },
+                              { inline: true },
+                            )}
+                        </Stack>
                       )}
-                      <TextField
-                        fullWidth
-                        variant="filled"
-                        label={field.faqItemId ? "Answer" : "Body"}
-                        multiline
-                        minRows={field.minRows ?? 3}
-                        placeholder={field.placeholder}
-                        helperText={`${sectionValue.length.toLocaleString()} characters`}
-                        FormHelperTextProps={{
-                          sx: {
-                            mx: 0,
-                            textAlign: "right",
-                            fontSize: "0.6875rem",
-                            color: t.granite,
-                          },
-                        }}
-                        value={sectionValue}
-                        InputProps={{ disableUnderline: true }}
-                        inputProps={editorSelectionProps({
+                      {isFaq &&
+                        renderInlineEditorTools({
                           type: "section",
                           key: field.key,
                           faqItemId: field.faqItemId,
                         })}
-                        onChange={(e) =>
-                          field.faqItemId
-                            ? updateFaqItem(field.faqItemId, { answer: e.target.value })
-                            : updateTemplateAnswer(field.key, e.target.value)
-                        }
-                        sx={{
-                          "& .MuiInputBase-root": {
-                            bgcolor: t.surfaceContainerLow,
-                            borderRadius: 1.5,
-                            fontSize: "0.9375rem",
-                            lineHeight: 1.65,
-                          },
-                          "& .MuiInputBase-root:hover": {
-                            bgcolor: t.surfaceContainerLow,
-                          },
-                          "& .MuiInputBase-root.Mui-focused": {
-                            bgcolor: t.paper,
-                            boxShadow: `0 0 0 1px ${t.pepsiBlue}`,
-                          },
-                        }}
-                      />
+                      {form.contentType === "Knowledge Article" && field.key === "steps" ? (
+                        <Stack
+                          spacing={0.5}
+                          sx={{
+                            py: 0.5,
+                          }}
+                        >
+                          {knowledgeStepValues.map((step, stepIndex) => (
+                            <Box
+                              key={`${field.key}-${stepIndex}`}
+                              sx={{
+                                display: "grid",
+                                gridTemplateColumns: knowledgeStepValues.length > 1 ? "28px 1fr 28px" : "28px 1fr",
+                                columnGap: 1,
+                                alignItems: "flex-start",
+                                py: 0.35,
+                                borderBottom:
+                                  stepIndex === knowledgeStepValues.length - 1
+                                    ? "none"
+                                    : `1px solid ${t.articleDivider}`,
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  minHeight: 32,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "flex-end",
+                                  textAlign: "right",
+                                  color: t.pepsiBlueStrong,
+                                  fontFamily: theme.palette.fonts.articleBody,
+                                  fontSize: "0.875rem",
+                                  fontWeight: 800,
+                                  lineHeight: 1,
+                                }}
+                              >
+                                {stepIndex + 1}.
+                              </Box>
+                              <TextField
+                                fullWidth
+                                variant="standard"
+                                multiline
+                                minRows={1}
+                                placeholder={
+                                  stepIndex === 0
+                                    ? "Start with the first action the employee should take."
+                                    : "Add the next action."
+                                }
+                                value={step}
+                                InputProps={{ disableUnderline: true }}
+                                onChange={(event) =>
+                                  updateKnowledgeStep(stepIndex, event.target.value)
+                                }
+                                sx={{
+                                  flex: 1,
+                                  minWidth: 0,
+                                  "& .MuiInputBase-root": {
+                                    alignItems: "flex-start",
+                                  },
+                                  "& .MuiInputBase-input": {
+                                    fontFamily: theme.palette.fonts.articleBody,
+                                    fontSize: "0.875rem",
+                                    fontWeight: 500,
+                                    lineHeight: 1.6,
+                                    color: t.inkSoft,
+                                    px: 0,
+                                    py: 0.35,
+                                  },
+                                  "& .MuiInputBase-input::placeholder": {
+                                    color: t.granite,
+                                    opacity: 0.75,
+                                  },
+                                }}
+                              />
+                              {knowledgeStepValues.length > 1 && (
+                                <IconButton
+                                  size="small"
+                                  title="Remove step"
+                                  onClick={() => removeKnowledgeStep(stepIndex)}
+                                  sx={{
+                                    mt: 0,
+                                    width: 24,
+                                    height: 32,
+                                    p: 0,
+                                    color: t.granite,
+                                    opacity: 0.6,
+                                    "&:hover": {
+                                      opacity: 1,
+                                      bgcolor: t.surfaceContainerLow,
+                                      color: t.ink,
+                                    },
+                                  }}
+                                >
+                                  <CloseIcon sx={{ fontSize: 15 }} />
+                                </IconButton>
+                              )}
+                            </Box>
+                          ))}
+                          <Button
+                            variant="text"
+                            onClick={addKnowledgeStep}
+                            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                            sx={{
+                              alignSelf: "flex-start",
+                              mt: 0.5,
+                              px: 0,
+                              color: t.pepsiBlueStrong,
+                              fontSize: "0.8125rem",
+                              fontWeight: 700,
+                              textTransform: "none",
+                            }}
+                          >
+                            Add step
+                          </Button>
+                        </Stack>
+                      ) : (
+                        <TextField
+                          fullWidth
+                          variant="filled"
+                          label={field.faqItemId ? "Answer" : "Body"}
+                          multiline
+                          minRows={field.minRows ?? 3}
+                          InputLabelProps={{ shrink: true }}
+                          placeholder={field.placeholder}
+                          helperText={`${sectionValue.length.toLocaleString()} characters`}
+                          FormHelperTextProps={{
+                            sx: {
+                              mx: 0,
+                              textAlign: "right",
+                              fontSize: "0.6875rem",
+                              color: t.granite,
+                            },
+                          }}
+                          value={sectionValue}
+                          InputProps={{ disableUnderline: true }}
+                          inputProps={editorSelectionProps({
+                            type: "section",
+                            key: field.key,
+                            faqItemId: field.faqItemId,
+                          })}
+                          onChange={(e) => setSectionValue(field, e.target.value)}
+                          sx={{
+                            ...articleCreatorInputSx,
+                            "& .MuiInputBase-root": {
+                              ...articleCreatorInputSx["& .MuiInputBase-root"],
+                              fontSize: "0.875rem",
+                            },
+                          }}
+                        />
+                      )}
                       {field.faqItemId && form.faqItems.length > 1 && (
                         <Button
                           size="small"
@@ -2761,20 +3576,50 @@ export default function NewRequest() {
                 </Box>
               );
             })}
-            {isFaq && (
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ pt: 0.75 }}>
+              {isFaq && (
+                <Button
+                  variant="outlined"
+                  onClick={() => addFaqItem()}
+                  startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    borderRadius: 999,
+                    color: t.pepsiBlueStrong,
+                    borderColor: t.articleDivider,
+                    bgcolor: "#FFFFFF",
+                    fontSize: "0.8125rem",
+                    fontWeight: 700,
+                    textTransform: "none",
+                    "&:hover": {
+                      borderColor: t.pepsiBlue,
+                      bgcolor: t.pepsiBlueSubtle,
+                    },
+                  }}
+                >
+                  Add question
+                </Button>
+              )}
               <Button
-                variant="text"
-                onClick={() => addFaqItem()}
+                variant="outlined"
+                onClick={addCustomSection}
+                startIcon={<AddIcon sx={{ fontSize: 16 }} />}
                 sx={{
-                  alignSelf: "flex-start",
-                  px: 0,
+                  borderRadius: 999,
                   color: t.pepsiBlueStrong,
-                  fontWeight: 650,
+                  borderColor: t.articleDivider,
+                  bgcolor: "#FFFFFF",
+                  fontSize: "0.8125rem",
+                  fontWeight: 700,
+                  textTransform: "none",
+                  "&:hover": {
+                    borderColor: t.pepsiBlue,
+                    bgcolor: t.pepsiBlueSubtle,
+                  },
                 }}
               >
-                Add question
+                Add section
               </Button>
-            )}
+            </Stack>
 
           </Stack>
         </Box>
@@ -3228,6 +4073,32 @@ export default function NewRequest() {
                       {lengthStatus.helper}
                     </Typography>
                   </Box>
+
+                  {recommendedReviewUpdates.length > 0 && (
+                    <Box
+                      sx={{
+                        p: 1.25,
+                        borderRadius: 1.5,
+                        bgcolor: "#FFFFFF",
+                        border: `1px solid ${t.articleDivider}`,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink }}>
+                        Recommended updates before submitting
+                      </Typography>
+                      <Stack component="ul" spacing={0.6} sx={{ m: 0, mt: 0.8, pl: 2 }}>
+                        {recommendedReviewUpdates.map((recommendation) => (
+                          <Typography
+                            key={recommendation}
+                            component="li"
+                            sx={{ fontSize: "0.75rem", color: t.slate, lineHeight: 1.45 }}
+                          >
+                            {recommendation}
+                          </Typography>
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
 
                   {askpepChecks.map((item) => (
                     <Stack

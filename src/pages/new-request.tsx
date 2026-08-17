@@ -1297,6 +1297,9 @@ export default function NewRequest() {
   const selectedKnowledgeBase =
     knowledgeBases.find((kb) => kb.id === form.knowledgeBase) ??
     knowledgeBases[0];
+  const selectedContentTypeLabel =
+    contentTypes.find((contentType) => contentType.value === form.contentType)?.label ??
+    form.contentType;
   const articleEvidenceAdded =
     !!form.sourceText.trim() || form.files.length > 0;
   const previewMarket = marketForPreview(form.markets[0]);
@@ -2502,7 +2505,7 @@ export default function NewRequest() {
         >
           <Box>
             <Typography variant="h4" component="h1">
-              New Article
+              {currentStep === 0 ? "New Article" : `New ${selectedContentTypeLabel}`}
             </Typography>
             {currentStep === 1 && (
               <Typography sx={{ mt: 0.75, fontSize: "0.8125rem", color: t.granite, lineHeight: 1.5, maxWidth: 620 }}>

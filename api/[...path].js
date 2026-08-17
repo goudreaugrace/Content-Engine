@@ -3,6 +3,7 @@ import path from "node:path";
 
 const DATA_DIR = path.join(process.cwd(), "server", "data");
 const DAY = 24 * 60 * 60 * 1000;
+const runtimeState = globalThis.__contentEngineRuntimeState ??= {};
 
 function readJson(file, fallback) {
   try {
@@ -26,11 +27,15 @@ function readDirJson(dir) {
 }
 
 function data() {
+  runtimeState.articles ??= readJson("articles.json", []).map(withArticleDefaults);
+  runtimeState.publishedArticles ??= readJson("published-articles.json", []);
+  runtimeState.jobs ??= readJson("jobs.json", []);
+  runtimeState.emails ??= readJson("emails.json", []);
   return {
-    articles: readJson("articles.json", []).map(withArticleDefaults),
-    publishedArticles: readJson("published-articles.json", []),
-    jobs: readJson("jobs.json", []),
-    emails: readJson("emails.json", []),
+    articles: runtimeState.articles,
+    publishedArticles: runtimeState.publishedArticles,
+    jobs: runtimeState.jobs,
+    emails: runtimeState.emails,
     countries: readJson("country-catalog.json", []),
     markets: readDirJson("market-profiles"),
     sectors: readDirJson("sector-profiles"),
@@ -150,6 +155,93 @@ function enrichedPublished(article) {
   return { ...article, staleness, recommendation: recommendation(article, staleness) };
 }
 
+function deterministicPublishedId(article) {
+  return article.publishedArticleId || `pub-${String(article.id || Date.now()).replace(/^ka-/, "").slice(0, 8)}`;
+}
+
+function defaultFeedback() {
+  return { helpful: 0, notHelpful: 0, shares: 0, comments: [] };
+}
+
+function publishedFromSource(article, reviewer = "Demo Reviewer") {
+  const now = new Date().toISOString();
+  return {
+    id: deterministicPublishedId(article),
+    sourceArticleId: article.id,
+    originalSubmittedBy: article.submittedBy,
+    originalSubmittedAt: article.submittedAt,
+    reviewer,
+    reviewedAt: article.reviewedAt || now,
+    rejections: article.rejections || [],
+    complianceIssues: article.complianceIssues || [],
+    title: article.title,
+    contentType: article.contentType,
+    knowledgeBase: article.knowledgeBase,
+    sector: article.sector,
+    market: article.market,
+    countries: Array.isArray(article.countries) ? article.countries : [],
+    lead: article.lead,
+    canonicalSlug: article.canonicalSlug,
+    aliases: article.aliases || [],
+    topics: article.topics || [],
+    references: article.references || [],
+    relatedArticleIds: article.relatedArticleIds || [],
+    visibility: article.visibility,
+    owner: article.owner || article.submittedBy?.name,
+    effectiveAt: article.effectiveAt,
+    nextReviewAt: article.nextReviewAt,
+    approvedBy: article.approvedBy || reviewer,
+    body: article.body,
+    seo: article.seo || { title: article.title, metaDescription: article.lead || "", keywords: [] },
+    globalJustification: article.globalJustification,
+    translations: article.translations || {},
+    publishedAt: article.publishedAt || article.reviewedAt || now,
+    publishedBy: reviewer,
+    version: article.version || 1,
+    lastReviewedAt: article.reviewedAt || now,
+    lastReviewer: reviewer,
+    revisionHistory: article.revisionHistory || [{
+      version: 1,
+      at: article.reviewedAt || now,
+      by: reviewer,
+      summary: "Initial publish",
+      title: article.title,
+      body: article.body,
+    }],
+    metrics: article.metrics || { views30d: 0, viewsAllTime: 0, trend: "up" },
+    feedback: article.feedback || defaultFeedback(),
+  };
+}
+
+function upsert(items, next) {
+  const idx = items.findIndex((item) => item.id === next.id);
+  if (idx >= 0) items[idx] = next;
+  else items.unshift(next);
+  return next;
+}
+
+function findPublishedById(db, id) {
+  const stored = db.publishedArticles.find((a) => a.id === id);
+  if (stored) return stored;
+  const source = db.articles.find((a) =>
+    a.publishedArticleId === id ||
+    deterministicPublishedId(a) === id ||
+    a.id === id
+  );
+  return source ? publishedFromSource(source, source.reviewer || "Demo Reviewer") : null;
+}
+
+function listPublished(db) {
+  const byId = new Map(db.publishedArticles.map((article) => [article.id, article]));
+  db.articles.forEach((article) => {
+    if (article.status === "published" || article.publishedArticleId) {
+      const published = publishedFromSource(article, article.reviewer || "Demo Reviewer");
+      if (!byId.has(published.id)) byId.set(published.id, published);
+    }
+  });
+  return Array.from(byId.values());
+}
+
 function sortDesc(items, key) {
   return [...items].sort((a, b) => +new Date(b[key] || 0) - +new Date(a[key] || 0));
 }
@@ -182,9 +274,35 @@ export default function handler(req, res) {
     const article = db.articles.find((a) => a.id === parts[1]);
     if (!article) return notFound(res);
     if (parts.length === 2 && method === "GET") return send(res, 200, article);
-    if (parts.length === 2 && method === "PATCH") return send(res, 200, { ...article, ...req.body });
+    if (parts.length === 2 && method === "PATCH") return send(res, 200, upsert(db.articles, { ...article, ...req.body }));
     if (parts[2] === "owner" && method === "PATCH") return send(res, 200, { ...article, submittedBy: req.body?.submittedBy || article.submittedBy });
-    if (parts[2] === "review" && method === "PATCH") return send(res, 200, { ...article, status: req.body?.status === "approved" ? "published" : req.body?.status || article.status, reviewedAt: new Date().toISOString(), reviewer: req.body?.reviewer || "Demo Reviewer" });
+    if (parts[2] === "review" && method === "PATCH") {
+      const reviewer = req.body?.reviewer || "Demo Reviewer";
+      const reviewedAt = new Date().toISOString();
+      if (req.body?.status === "approved") {
+        const source = {
+          ...article,
+          status: "published",
+          reviewedAt,
+          reviewer,
+          rejectionReason: undefined,
+          infoNeeded: undefined,
+        };
+        const published = publishedFromSource(source, reviewer);
+        const updated = { ...source, publishedArticleId: published.id };
+        upsert(db.publishedArticles, published);
+        upsert(db.articles, updated);
+        return send(res, 200, updated);
+      }
+      return send(res, 200, upsert(db.articles, {
+        ...article,
+        status: req.body?.status || article.status,
+        reviewedAt,
+        reviewer,
+        rejectionReason: req.body?.status === "rejected" ? (req.body?.rejectionReason || req.body?.note || "") : undefined,
+        infoNeeded: req.body?.status === "needs-info" ? req.body?.note : undefined,
+      }));
+    }
     if (["revise", "revise-section"].includes(parts[2]) && method === "POST") return send(res, 200, { revisedBody: article.body, revisedSection: article.body, explanation: "Demo deployment keeps revisions simulated." });
     if (parts[2] === "resubmit" && method === "POST") return send(res, 200, { ...article, status: "needs-review", submittedAt: new Date().toISOString() });
     if (parts[2] === "translate" && method === "POST") return send(res, 200, { language: req.body?.target || "es", body: article.body });
@@ -193,13 +311,13 @@ export default function handler(req, res) {
   }
 
   if (parts[0] === "published-articles") {
-    if (parts.length === 1 && method === "GET") return send(res, 200, sortDesc(db.publishedArticles.map(enrichedPublished), "publishedAt"));
-    const article = db.publishedArticles.find((a) => a.id === parts[1]);
+    if (parts.length === 1 && method === "GET") return send(res, 200, sortDesc(listPublished(db).map(enrichedPublished), "publishedAt"));
+    const article = findPublishedById(db, parts[1]);
     if (!article) return notFound(res);
     if (parts.length === 2 && method === "GET") return send(res, 200, { ...enrichedPublished(article), similar: [] });
-    if (parts.length === 2 && method === "PATCH") return send(res, 200, enrichedPublished({ ...article, ...req.body, version: (article.version || 1) + 1 }));
-    if (parts[2] === "archive" && method === "PATCH") return send(res, 200, enrichedPublished({ ...article, archivedAt: req.body?.archived === false ? undefined : new Date().toISOString(), archivedBy: req.body?.archivedBy || "Demo Admin" }));
-    if (parts[2] === "review" && method === "PATCH") return send(res, 200, enrichedPublished({ ...article, lastReviewedAt: new Date().toISOString(), lastReviewer: req.body?.reviewer || "Demo Admin" }));
+    if (parts.length === 2 && method === "PATCH") return send(res, 200, enrichedPublished(upsert(db.publishedArticles, { ...article, ...req.body, version: (article.version || 1) + 1 })));
+    if (parts[2] === "archive" && method === "PATCH") return send(res, 200, enrichedPublished(upsert(db.publishedArticles, { ...article, archivedAt: req.body?.archived === false ? undefined : new Date().toISOString(), archivedBy: req.body?.archivedBy || "Demo Admin" })));
+    if (parts[2] === "review" && method === "PATCH") return send(res, 200, enrichedPublished(upsert(db.publishedArticles, { ...article, lastReviewedAt: new Date().toISOString(), lastReviewer: req.body?.reviewer || "Demo Admin" })));
     if (parts[2] === "consolidation-preview" && method === "POST") return send(res, 200, { primary: enrichedPublished(article), sources: [enrichedPublished(article)], previewTitle: article.title, coverage: ["Core guidance", "Metadata", "Owner governance"], conflicts: [], evidence: [] });
     if (parts[2] === "consolidate" && method === "POST") return send(res, 200, { job: fakeJob(), article: db.articles.find((a) => a.id === article.sourceArticleId) || db.articles[0] });
     return methodNotAllowed(res);

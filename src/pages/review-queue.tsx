@@ -572,6 +572,7 @@ function DraftBody({
             lead={draft.lead}
             contentType={draft.contentType}
             canonicalSlug={draft.canonicalSlug}
+            updatedLabel={`Updated: ${formatDate(draft.submittedAt)}`}
             complianceIssues={draft.complianceIssues}
             editMode
             onUpdated={onBodyChanged}
@@ -682,9 +683,10 @@ function PublishedBody({ published }: { published: PublishedArticle }) {
             lead={published.lead}
             contentType={published.contentType}
             canonicalSlug={published.canonicalSlug}
+            updatedLabel={`Updated: ${formatDate(published.lastReviewedAt ?? published.publishedAt)}`}
+            viewCount={published.metrics.viewsAllTime}
             presentation="immersive"
             showMasthead={false}
-            showContents={false}
           />
         }
         details={[

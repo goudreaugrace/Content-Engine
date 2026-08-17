@@ -57,6 +57,11 @@ function marketIdFor(market: Market): string {
   }[market];
 }
 
+function translationBody(value: NonNullable<PublishedArticle["translations"]>[string] | undefined): string | undefined {
+  if (!value) return undefined;
+  return typeof value === "string" ? value : value.body;
+}
+
 export default function PublishedArticleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -68,6 +73,7 @@ export default function PublishedArticleDetail() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [selectedSimilarIds, setSelectedSimilarIds] = useState<string[]>([]);
+  const [viewLocale, setViewLocale] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -103,6 +109,14 @@ export default function PublishedArticleDetail() {
         <CircularProgress size={24} sx={{ color: t.slate }} />
       </Box>
     );
+
+  const primaryLocale = localeFor(article.market);
+  const availableLocales = [primaryLocale, ...Object.keys(article.translations ?? {})];
+  const selectedLocale = viewLocale ?? primaryLocale;
+  const displayedBody =
+    selectedLocale !== primaryLocale
+      ? (translationBody(article.translations?.[selectedLocale]) ?? article.body)
+      : article.body;
 
   /**
    * Archive / unarchive toggle. Replaces the prior 4-button lifecycle
@@ -474,11 +488,11 @@ export default function PublishedArticleDetail() {
       {/* ─── Article body ─── */}
       <Box sx={{ mb: 6 }}>
         <ArticleReadingFrame
-          body={article.body}
+          body={displayedBody}
           tags={[article.contentType, localeFor(article.market), ...(article.countries ?? [])]}
-          selectedLocale={localeFor(article.market)}
-          primaryLocale={localeFor(article.market)}
-          availableLocales={[localeFor(article.market), ...Object.keys(article.translations ?? {})]}
+          selectedLocale={selectedLocale}
+          primaryLocale={primaryLocale}
+          availableLocales={availableLocales}
           quickLinks={[
             ...(article.archivedAt
               ? []
@@ -490,15 +504,19 @@ export default function PublishedArticleDetail() {
           ]}
           article={
             <ArticleDocument
-              body={article.body}
+              body={displayedBody}
               market={article.market}
               title={article.title}
               lead={article.lead}
               contentType={article.contentType}
               canonicalSlug={article.canonicalSlug}
+              updatedLabel={`Updated: ${formatDate(article.lastReviewedAt ?? article.publishedAt)}`}
+              viewCount={article.metrics.viewsAllTime}
+              selectedLocale={selectedLocale}
+              availableLocales={availableLocales}
+              onLocaleSelect={setViewLocale}
               presentation="immersive"
               showMasthead={false}
-              showContents={false}
             />
           }
           details={[

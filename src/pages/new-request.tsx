@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -22,15 +22,12 @@ import {
   AccordionSummary,
   AccordionDetails,
   Menu,
-  Tabs,
-  Tab,
   useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesomeOutlined";
-import AutoFixHighOutlinedIcon from "@mui/icons-material/AutoFixHighOutlined";
 import PublicIcon from "@mui/icons-material/PublicOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -489,8 +486,6 @@ function marketForPreview(marketId: string | undefined): Market {
  * so authors can see at a glance what the agent will be asked to produce, and
  * Phase C's rules engine validates the resulting article against the same list.
  */
-type ArticleEntryMode = "new" | "import";
-
 const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
   FAQ: ["Question", "Answer", "Related"],
   Policy: ["Description", "Eligibility and scope", "Policy details", "Effective date"],
@@ -554,23 +549,9 @@ function detectDraftLanguage(text: string): string {
 // ────────────────────────────────────────────────────────────
 export default function NewRequest() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const theme = useTheme();
   const t = theme.palette.tokens;
   const [personaMode] = usePersonaMode();
-  const [entryMode, setEntryMode] = useState<ArticleEntryMode>(() =>
-    searchParams.get("mode") === "import" ? "import" : "new",
-  );
-
-  useEffect(() => {
-    setEntryMode(searchParams.get("mode") === "import" ? "import" : "new");
-  }, [searchParams]);
-
-  const handleEntryModeChange = (_: React.SyntheticEvent, mode: ArticleEntryMode) => {
-    setEntryMode(mode);
-    setError(null);
-    setSearchParams(mode === "import" ? { mode: "import" } : {});
-  };
   const me = currentUser();
   const manager =
     demoPeople.find((person) => person.email === me.email)?.manager ??
@@ -2534,243 +2515,7 @@ export default function NewRequest() {
   }
 
   return (
-    <Box sx={{ maxWidth: entryMode === "import" ? 720 : currentStep === 2 ? 1600 : 1280, mx: "auto" }}>
-      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-        <Tabs
-          value={entryMode}
-          onChange={handleEntryModeChange}
-          centered
-          sx={{
-            minHeight: 0,
-            p: 0.35,
-            border: `1px solid ${t.border}`,
-            borderRadius: 999,
-            bgcolor: t.surfaceContainerLow,
-            boxShadow: "0 1px 2px rgba(42,37,29,0.04)",
-            "& .MuiTabs-flexContainer": { gap: 0.5 },
-            "& .MuiTabs-indicator": { display: "none" },
-            "& .MuiTab-root": {
-              minHeight: 30,
-              minWidth: { xs: 104, sm: 124 },
-              px: 1.5,
-              borderRadius: 999,
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              textTransform: "none",
-              color: t.slate,
-              transition: "background-color 150ms ease, color 150ms ease, box-shadow 150ms ease",
-              "&:hover": { bgcolor: t.surface },
-            },
-            "& .Mui-selected": {
-              bgcolor: t.pepsiBlue,
-              color: "#FFFFFF !important",
-              boxShadow: "0 1px 3px rgba(0,75,147,0.20)",
-            },
-          }}
-        >
-          <Tab value="new" label="New Article" />
-          <Tab value="import" label="Import Article" />
-        </Tabs>
-      </Box>
-
-      {entryMode === "import" && (
-        <Stack spacing={3.5}>
-          <Stack direction="row" spacing={1.25} alignItems="center">
-            <AutoFixHighOutlinedIcon sx={{ color: t.pepsiBlue }} />
-            <Box>
-              <Typography sx={{ fontSize: "1.125rem", fontWeight: 600, color: t.ink }}>
-                Import and standardize article
-              </Typography>
-              <Typography sx={{ fontSize: "0.875rem", color: t.slate, mt: 0.25 }}>
-                Upload the migrated article as a PDF or document, or paste source text when upload is not available. Choose the country context, then the agent will condense it into the selected DEEx template and send it to review.
-              </Typography>
-            </Box>
-          </Stack>
-
-          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2.5 }}>
-            <Field label="Source title" hint="Use the imported article's current title, or leave blank and the agent will infer one.">
-              <TextField
-                fullWidth
-                placeholder="e.g. Well-being benefits overview"
-                value={migrationForm.sourceTitle}
-                onChange={(e) => updateMigration("sourceTitle", e.target.value)}
-              />
-            </Field>
-            <Field label="Target content type" required>
-              <TextField
-                select
-                fullWidth
-                value={migrationForm.contentType}
-                onChange={(e) => updateMigration("contentType", e.target.value as ContentType)}
-              >
-                {contentTypes.map((type) => (
-                  <MenuItem key={type.value} value={type.value}>
-                    {type.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Field>
-            <Field label="Target sector" required>
-              <TextField
-                select
-                fullWidth
-                value={migrationForm.sectorId}
-                onChange={(e) => {
-                  const sectorId = e.target.value;
-                  updateMigration("sectorId", sectorId);
-                  const firstMarket = marketProfiles.find((m) => m.sectorId === sectorId);
-                  if (firstMarket) {
-                    setMigrationForm((f) => ({
-                      ...f,
-                      sectorId,
-                      marketId: firstMarket.id,
-                      countries: firstMarket.defaultCountries?.length ? firstMarket.defaultCountries : f.countries,
-                    }));
-                  }
-                }}
-              >
-                {sectorProfiles.map((sector) => (
-                  <MenuItem key={sector.id} value={sector.id}>
-                    {sector.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Field>
-            <Field label="Country" required>
-              <TextField
-                select
-                fullWidth
-                value={migrationForm.marketId}
-                onChange={(e) => {
-                  const marketId = e.target.value;
-                  const market = marketProfiles.find((m) => m.id === marketId);
-                  setMigrationForm((f) => ({
-                    ...f,
-                    marketId,
-                    sectorId: market?.sectorId ?? f.sectorId,
-                    countries: market?.defaultCountries?.length ? market.defaultCountries : f.countries,
-                  }));
-                }}
-              >
-                {marketProfiles
-                  .filter((market) => market.sectorId === migrationForm.sectorId || migrationForm.sectorId === "global")
-                  .map((market) => (
-                    <MenuItem key={market.id} value={market.id}>
-                      {market.name}
-                    </MenuItem>
-                  ))}
-              </TextField>
-            </Field>
-          </Box>
-
-          <Field
-            label="Source document or pasted content"
-            required
-            hint="Upload the migrated article as a PDF, Word doc, or text file. Paste source text below when upload is not available."
-          >
-            <Box
-              sx={{
-                p: 2,
-                border: `1px dashed ${migrationUpload ? t.pepsiBlue : t.border}`,
-                borderRadius: 2,
-                bgcolor: migrationUpload ? t.pepsiBlueSubtle : t.surfaceContainerLow,
-              }}
-            >
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={1.5}
-                alignItems={{ xs: "stretch", sm: "center" }}
-                justifyContent="space-between"
-              >
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: t.ink }}>
-                    {migrationUpload ? migrationUpload.fileName : "Upload source document"}
-                  </Typography>
-                  <Typography sx={{ fontSize: "0.75rem", color: t.slate, mt: 0.25 }}>
-                    {migrationUpload
-                      ? `${migrationUpload.kind.toUpperCase()} attached as source evidence`
-                      : "PDF, DOC, DOCX, or TXT from SharePoint/exported source"}
-                  </Typography>
-                </Box>
-                <Button
-                  variant={migrationUpload ? "outlined" : "contained"}
-                  component="label"
-                  size="small"
-                  disabled={migrationUploading}
-                  startIcon={
-                    migrationUploading ? (
-                      <CircularProgress size={14} color="inherit" />
-                    ) : (
-                      <AttachFileIcon sx={{ fontSize: 14 }} />
-                    )
-                  }
-                  sx={{ alignSelf: { xs: "flex-start", sm: "center" }, whiteSpace: "nowrap" }}
-                >
-                  {migrationUploading ? "Uploading..." : migrationUpload ? "Replace file" : "Upload file"}
-                  <input
-                    type="file"
-                    hidden
-                    accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-                    onChange={(e) => handleMigrationFile(e.target.files?.[0])}
-                  />
-                </Button>
-              </Stack>
-            </Box>
-            <TextField
-              fullWidth
-              multiline
-              minRows={6}
-              placeholder="Or paste the source article, SharePoint export, or migration summary here..."
-              value={migrationForm.sourceContent}
-              onChange={(e) => updateMigration("sourceContent", e.target.value)}
-              sx={{ mt: 1.5 }}
-            />
-          </Field>
-
-
-          <Box sx={{ p: 1.75, borderRadius: 2, bgcolor: t.surfaceContainerLow }}>
-            <Typography variant="overline" sx={{ display: "block", mb: 1, color: t.slate }}>
-              DEEx template requirements
-            </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              {REQUIRED_SECTIONS[migrationForm.contentType].map((section) => (
-                <Stack key={section} direction="row" spacing={0.5} alignItems="center" sx={{ fontSize: "0.8125rem", color: t.slate }}>
-                  <CheckCircleOutlineIcon sx={{ fontSize: 14, color: t.pepsiBlue }} />
-                  <span>{section}</span>
-                </Stack>
-              ))}
-            </Stack>
-            <Typography sx={{ fontSize: "0.75rem", color: t.granite, mt: 1.25, lineHeight: 1.5 }}>
-              The generated draft will include metadata, owner, last-updated cadence, country, sector, SEO/GEO fields, and review status.
-            </Typography>
-          </Box>
-
-          <Divider />
-
-          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
-            <Button onClick={() => navigate("/")} disabled={migrationSubmitting}>
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={submitStandardization}
-              disabled={!canStandardize || migrationSubmitting}
-              startIcon={
-                migrationSubmitting ? (
-                  <CircularProgress size={16} color="inherit" />
-                ) : (
-                  <AutoFixHighOutlinedIcon sx={{ fontSize: 16 }} />
-                )
-              }
-            >
-              {migrationSubmitting ? "Standardizing..." : "Standardize for DEEx"}
-            </Button>
-          </Stack>
-        </Stack>
-      )}
-
-      {entryMode === "new" && (
-        <>
+    <Box sx={{ maxWidth: currentStep === 2 ? 1600 : 1280, mx: "auto" }}>
       <Box
         sx={{
           mb: currentStep === 1 ? 8 : 4,
@@ -4524,8 +4269,6 @@ export default function NewRequest() {
           </Button>
         </DialogActions>
       </Dialog>
-        </>
-      )}
     </Box>
   );
 }

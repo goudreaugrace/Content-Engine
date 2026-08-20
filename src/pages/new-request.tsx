@@ -888,8 +888,8 @@ export default function NewRequest() {
             },
           }}
         >
-          <Tab value="new" label="New article" />
-          <Tab value="import" label="Import article" />
+          <Tab value="new" label="New Article" />
+          <Tab value="import" label="Import Article" />
         </Tabs>
       </Box>
 

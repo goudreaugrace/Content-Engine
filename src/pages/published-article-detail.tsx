@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -73,6 +73,7 @@ function daysAgo(iso: string): string {
 export default function PublishedArticleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const theme = useTheme();
   const t = theme.palette.tokens;
 
@@ -209,15 +210,18 @@ export default function PublishedArticleDetail() {
   }[article.staleness.level];
 
   const otherArticles = library.filter((a) => a.id !== article.id);
+  const fromTeamArticles = searchParams.get("from") === "team-articles";
+  const returnPath = fromTeamArticles ? "/?tab=my-articles" : "/?tab=published";
+  const returnLabel = fromTeamArticles ? "Team Articles" : "Published Health";
 
   return (
     <Box sx={{ maxWidth: 1100, mx: "auto" }}>
       <Button
         startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
-        onClick={() => navigate("/?tab=published")}
+        onClick={() => navigate(returnPath)}
         sx={{ mb: 3, ml: -1 }}
       >
-        Published
+        {returnLabel}
       </Button>
 
       {/* ─── Header ─── */}
@@ -377,7 +381,7 @@ export default function PublishedArticleDetail() {
           recommendation={article.recommendation}
           busy={busy}
           onApply={applyRecommendation}
-          onOpenSimilar={(id) => navigate(`/library/${id}`)}
+          onOpenSimilar={(id) => navigate(`/library/${id}?from=${fromTeamArticles ? "team-articles" : "published-health"}`)}
         />
       )}
 
@@ -509,7 +513,7 @@ export default function PublishedArticleDetail() {
             )
           }
           onGenerate={generateConsolidation}
-          onOpen={(id) => navigate(`/library/${id}`)}
+          onOpen={(id) => navigate(`/library/${id}?from=${fromTeamArticles ? "team-articles" : "published-health"}`)}
           busy={busy}
         />
       )}

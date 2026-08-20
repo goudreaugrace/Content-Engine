@@ -602,7 +602,7 @@ function StepWelcome({
             "&:hover": { color: t.ink, bgcolor: t.mist },
           }}
         >
-          Skip to articles
+          Skip To Articles
         </Button>
       </Stack>
 
@@ -1913,7 +1913,7 @@ function StepReady({ onBack }: { onBack: () => void }) {
             "&:hover": { color: t.ink, bgcolor: "transparent" },
           }}
         >
-          Revisit the last step
+          Revisit The Last Step
         </Button>
       </Stack>
     </Box>

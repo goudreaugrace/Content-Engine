@@ -12,10 +12,29 @@ export const CONTENT_OWNER_SECTOR_ACCESS: Record<string, string[]> = {
   Test: ["pfna", "pbna"],
   Demo: ["pbna"],
   "Test Author": ["pfna"],
+  "New Owner": ["pfna"],
+};
+
+export const CONTENT_OWNER_KB_ACCESS: Record<string, string[]> = {
+  "Demo User": ["mypepsico", "pfp"],
+  Test: ["mypepsico"],
+  Demo: ["pfp"],
+  "Test Author": ["mypepsico", "pepkm"],
+  "New Owner": ["mypepsico"],
 };
 
 export function sectorsForContentOwner(owner: string): string[] {
-  return CONTENT_OWNER_SECTOR_ACCESS[owner] ?? [];
+  const member = getTeamPermissionsState().members.find(
+    (candidate) => candidate.contentOwnerKey === owner,
+  );
+  return member?.sectors ?? CONTENT_OWNER_SECTOR_ACCESS[owner] ?? [];
+}
+
+export function knowledgeBasesForContentOwner(owner: string): string[] {
+  const member = getTeamPermissionsState().members.find(
+    (candidate) => candidate.contentOwnerKey === owner,
+  );
+  return member?.knowledgeBases ?? CONTENT_OWNER_KB_ACCESS[owner] ?? [];
 }
 
 export function getViewingContentOwner(): string {
@@ -37,3 +56,4 @@ export function subscribeToViewingContentOwner(listener: () => void): () => void
     window.removeEventListener("storage", listener);
   };
 }
+import { getTeamPermissionsState } from "./team-permissions";

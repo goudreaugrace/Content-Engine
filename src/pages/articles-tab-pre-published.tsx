@@ -466,7 +466,7 @@ export default function PrePublishedTab({
                     </Typography>
                     {hasAnyFilter && (
                       <Button size="small" onClick={clearAll}>
-                        Clear filters
+                        Clear Filters
                       </Button>
                     )}
                   </Stack>

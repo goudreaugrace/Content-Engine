@@ -1651,9 +1651,6 @@ export default function NewRequest() {
   const stepValid = [step0Valid, step1Valid, step2Valid];
   const canAdvance = stepValid[currentStep];
   const canSubmit = step0Valid && step1Valid;
-  const canVisitStep = (target: number) =>
-    target <= currentStep || stepValid.slice(0, target).every(Boolean);
-
   const goNext = () => {
     if (currentStep < 2) setCurrentStep((s) => (s + 1) as StepIndex);
   };
@@ -1661,22 +1658,14 @@ export default function NewRequest() {
     if (currentStep > 0) setCurrentStep((s) => (s - 1) as StepIndex);
   };
   /**
-   * Stepper click handler. Lets the user jump back to any completed step or
-   * forward into a step whose prerequisites are valid. Forward jumps to a
-   * step whose earlier steps fail are blocked — keeps the wizard sequential
-   * without becoming a hard rail.
+   * Stepper click handler. Lets the user jump back to completed work, while
+   * keeping forward movement on the primary Next / Submit controls.
    */
   const goToStep = (target: number) => {
     if (target === currentStep) return;
     if (target < currentStep) {
       setCurrentStep(target as StepIndex);
-      return;
     }
-    // Forward: require every step BEFORE the target to be valid.
-    for (let i = 0; i < target; i++) {
-      if (!stepValid[i]) return;
-    }
-    setCurrentStep(target as StepIndex);
   };
 
   // ───────────── Sector change handler ─────────────

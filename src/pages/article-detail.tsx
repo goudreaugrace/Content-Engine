@@ -5,7 +5,6 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
-  Breadcrumbs,
   Typography,
   Stack,
   Chip,
@@ -123,50 +122,125 @@ function SubmissionProgress({ currentStage }: { currentStage: number }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
   const safeStage = Math.min(Math.max(currentStage, 0), SUBMISSION_STAGES.length - 1);
+  const progressPercent = safeStage === 0
+    ? 0
+    : (safeStage / (SUBMISSION_STAGES.length - 1)) * 100;
 
   return (
-    <Breadcrumbs
-      separator="›"
+    <Box
       aria-label="Article progress"
       sx={{
-        display: "flex",
-        justifyContent: "center",
         width: "100%",
-        minWidth: 0,
-        "& .MuiBreadcrumbs-ol": {
-          justifyContent: "center",
-          rowGap: 0.5,
-        },
-        "& .MuiBreadcrumbs-separator": {
-          mx: 0.75,
-          color: alpha(t.granite, 0.75),
-          fontSize: "0.95rem",
-          lineHeight: 1,
-          fontWeight: 600,
-        },
+        maxWidth: 760,
+        mx: "auto",
+        px: { xs: 0, md: 1 },
       }}
     >
-      {SUBMISSION_STAGES.map((stage, index) => {
-        const isComplete = index < safeStage;
-        const isCurrent = index === safeStage;
+      <Box
+        sx={{
+          position: "relative",
+          display: "grid",
+          gridTemplateColumns: `repeat(${SUBMISSION_STAGES.length}, minmax(0, 1fr))`,
+          alignItems: "start",
+          gap: 0,
+          pt: 0.25,
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 14,
+            left: `calc(${100 / (SUBMISSION_STAGES.length * 2)}%)`,
+            right: `calc(${100 / (SUBMISSION_STAGES.length * 2)}%)`,
+            height: 3,
+            borderRadius: 999,
+            bgcolor: t.articleDivider,
+          },
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            top: 14,
+            left: `calc(${100 / (SUBMISSION_STAGES.length * 2)}%)`,
+            width: `calc((100% - ${100 / SUBMISSION_STAGES.length}%) * ${progressPercent / 100})`,
+            height: 3,
+            borderRadius: 999,
+            bgcolor: t.pepsiBlueStrong,
+            transition: "width 220ms ease",
+          },
+        }}
+      >
+        {SUBMISSION_STAGES.map((stage, index) => {
+          const isComplete = index < safeStage;
+          const isCurrent = index === safeStage;
 
-        return (
-          <Typography
-            key={stage}
-            component="span"
-            sx={{
-              fontSize: "0.75rem",
-              lineHeight: 1.35,
-              color: isCurrent ? t.pepsiBlueStrong : isComplete ? t.pepsiBlue : t.granite,
-              fontWeight: isCurrent ? 700 : 600,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {stage}
-          </Typography>
-        );
-      })}
-    </Breadcrumbs>
+          return (
+            <Stack
+              key={stage}
+              spacing={0.55}
+              alignItems="center"
+              sx={{
+                position: "relative",
+                zIndex: 1,
+                minWidth: 0,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: isCurrent || isComplete ? t.pepsiBlueStrong : "#FFFFFF",
+                  border: `2px solid ${
+                    isCurrent || isComplete ? t.pepsiBlueStrong : t.articleDivider
+                  }`,
+                  color: isCurrent || isComplete ? "#FFFFFF" : t.granite,
+                  boxShadow: isCurrent
+                    ? `0 0 0 4px ${alpha(t.pepsiBlueStrong, 0.12)}`
+                    : "none",
+                  transition: "background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease",
+                }}
+              >
+                {isComplete ? (
+                  <CheckOutlinedIcon sx={{ fontSize: 16, strokeWidth: 2.2 }} />
+                ) : (
+                  <Typography
+                    component="span"
+                    sx={{
+                      color: "inherit",
+                      fontSize: "0.75rem",
+                      lineHeight: 1,
+                      fontWeight: 800,
+                      fontFamily: theme.palette.fonts.articleBody,
+                    }}
+                  >
+                    {index + 1}
+                  </Typography>
+                )}
+              </Box>
+              <Typography
+                component="span"
+                sx={{
+                  color: isCurrent
+                    ? t.pepsiBlueStrong
+                    : isComplete
+                      ? t.pepsiBlue
+                      : t.granite,
+                  fontSize: "0.72rem",
+                  lineHeight: 1.25,
+                  fontWeight: isCurrent ? 800 : 600,
+                  textAlign: "center",
+                  maxWidth: 122,
+                  whiteSpace: { xs: "normal", md: "nowrap" },
+                }}
+              >
+                {stage}
+              </Typography>
+            </Stack>
+          );
+        })}
+      </Box>
+    </Box>
   );
 }
 
@@ -237,9 +311,18 @@ export default function ArticleDetail() {
         prev ?? (marketId ? null /* set after profile loads */ : null),
       );
     } catch (e: any) {
+      if (id) {
+        try {
+          const published = await api.getPublishedArticle(id);
+          navigate(`/library/${published.id}${window.location.search}`, { replace: true });
+          return;
+        } catch {
+          // Keep the original source-article error below.
+        }
+      }
       setError(e?.message ?? String(e));
     }
-  }, [id]);
+  }, [id, navigate]);
 
   useEffect(() => {
     load();

@@ -52,6 +52,98 @@ export type PublishedSimilarMatch = {
   views30d: number;
 };
 
+function deterministicPublishedId(article: Article): string {
+  return (
+    article.publishedArticleId ||
+    `pub-${String(article.id || Date.now()).replace(/^ka-/, "").slice(0, 8)}`
+  );
+}
+
+function publishedFromSource(article: Article, reviewer = "Demo Reviewer"): PublishedArticle {
+  const nowIso = now();
+  const reviewedAt = article.reviewedAt || nowIso;
+  const metrics = (article as Article & { metrics?: PublishedArticle["metrics"] }).metrics;
+  const feedback = (article as Article & { feedback?: PublishedArticle["feedback"] }).feedback;
+  return normalizeArticleStandard({
+    id: deterministicPublishedId(article),
+    sourceArticleId: article.id,
+    originalSubmittedBy: article.submittedBy,
+    originalSubmittedAt: article.submittedAt,
+    reviewer: article.reviewer || reviewer,
+    reviewedAt,
+    rejections: article.rejections,
+    complianceIssues: article.complianceIssues,
+    title: article.title,
+    contentType: article.contentType,
+    knowledgeBase: article.knowledgeBase,
+    sector: article.sector,
+    market: article.market,
+    countries: article.countries,
+    lead: article.lead,
+    canonicalSlug: article.canonicalSlug,
+    aliases: article.aliases,
+    topics: article.topics,
+    references: article.references,
+    relatedArticleIds: article.relatedArticleIds,
+    visibility: article.visibility,
+    owner: article.owner || article.submittedBy.name,
+    effectiveAt: article.effectiveAt,
+    nextReviewAt: article.nextReviewAt,
+    approvedBy: article.approvedBy || article.reviewer || reviewer,
+    body: article.body,
+    seo: article.seo,
+    globalJustification: article.globalJustification,
+    translations: article.translations,
+    publishedAt: article.reviewedAt || article.submittedAt || nowIso,
+    publishedBy: article.reviewer || reviewer,
+    version: article.version || 1,
+    lastReviewedAt: article.reviewedAt || nowIso,
+    lastReviewer: article.reviewer || reviewer,
+    revisionHistory: [{
+      version: article.version || 1,
+      at: reviewedAt,
+      by: article.reviewer || reviewer,
+      summary: "Initial publish",
+      title: article.title,
+      body: article.body,
+    }],
+    metrics: metrics ?? { views30d: 0, viewsAllTime: 0, trend: "up" },
+    feedback: feedback ?? defaultFeedback(),
+  });
+}
+
+async function listPublishedArticles(): Promise<PublishedArticle[]> {
+  const [published, sourceArticles] = await Promise.all([
+    loadAll<PublishedArticle>("publishedArticles"),
+    loadAll<Article>("articles"),
+  ]);
+  const byId = new Map(
+    published.map((article) => [article.id, normalizeArticleStandard(article)]),
+  );
+
+  for (const source of sourceArticles) {
+    if (source.status !== "published" && !source.publishedArticleId) continue;
+    const synthesized = publishedFromSource(source, source.reviewer || "Demo Reviewer");
+    if (!byId.has(synthesized.id)) byId.set(synthesized.id, synthesized);
+  }
+
+  return Array.from(byId.values());
+}
+
+async function findPublishedArticle(id: string): Promise<PublishedArticle | null> {
+  const stored = await loadById<PublishedArticle>("publishedArticles", id);
+  if (stored) return normalizeArticleStandard(stored);
+
+  const sources = await loadAll<Article>("articles");
+  const source = sources.find(
+    (article) =>
+      article.id === id ||
+      article.publishedArticleId === id ||
+      deterministicPublishedId(article) === id,
+  );
+  return source ? publishedFromSource(source, source.reviewer || "Demo Reviewer") : null;
+}
+
 async function withStaleness(
   article: PublishedArticle,
 ): Promise<PublishedArticleEnriched> {
@@ -74,7 +166,7 @@ async function withSimilarAndRecommendation(
   similar: PublishedSimilarMatch[];
   recommendation: Recommendation;
 }> {
-  const corpus = await loadAll<PublishedArticle>("publishedArticles");
+  const corpus = await listPublishedArticles();
   const others = corpus.filter((a) => a.id !== article.id).map((a) => normalizeArticleStandard(a));
   const matches = findSimilar(
     {
@@ -114,7 +206,7 @@ async function withSimilarAndRecommendation(
 }
 
 publishedArticlesRouter.get("/", async (_req, res) => {
-  const all = await loadAll<PublishedArticle>("publishedArticles");
+  const all = await listPublishedArticles();
   const enriched = await Promise.all(
     all.map(async (article) => {
       const base = await withStaleness(article);
@@ -134,16 +226,13 @@ publishedArticlesRouter.get("/", async (_req, res) => {
  * health feed, whose existing counts and recommendations must remain stable.
  */
 publishedArticlesRouter.get("/:id/performance", async (req, res) => {
-  const article = await loadById<PublishedArticle>("publishedArticles", req.params.id);
+  const article = await findPublishedArticle(req.params.id);
   if (!article) return res.status(404).json({ error: "not found" });
   res.json(demoFindabilityMetrics(article));
 });
 
 publishedArticlesRouter.get("/:id", async (req, res) => {
-  const article = await loadById<PublishedArticle>(
-    "publishedArticles",
-    req.params.id,
-  );
+  const article = await findPublishedArticle(req.params.id);
   if (!article) return res.status(404).json({ error: "not found" });
   const base = await withStaleness(article);
   const extras = await withSimilarAndRecommendation(article, base.staleness);
@@ -170,13 +259,13 @@ function trace(agent: TraceEntry["agent"], label: string, output: unknown): Trac
 async function sourceSet(primaryId: string, ids: string[]): Promise<PublishedArticle[]> {
   const uniqueIds = Array.from(new Set([primaryId, ...ids]));
   const sources = await Promise.all(
-    uniqueIds.map((id) => loadById<PublishedArticle>("publishedArticles", id)),
+    uniqueIds.map((id) => findPublishedArticle(id)),
   );
   return sources.filter((a): a is PublishedArticle => !!a);
 }
 
 publishedArticlesRouter.post("/:id/consolidation-preview", async (req, res) => {
-  const primary = await loadById<PublishedArticle>("publishedArticles", req.params.id);
+  const primary = await findPublishedArticle(req.params.id);
   if (!primary) return res.status(404).json({ error: "not found" });
   const base = await withStaleness(primary);
   const extras = await withSimilarAndRecommendation(primary, base.staleness);
@@ -200,7 +289,7 @@ publishedArticlesRouter.post("/:id/consolidation-preview", async (req, res) => {
 
 publishedArticlesRouter.post("/:id/consolidate", async (req, res) => {
   try {
-    const primary = await loadById<PublishedArticle>("publishedArticles", req.params.id);
+    const primary = await findPublishedArticle(req.params.id);
     if (!primary) return res.status(404).json({ error: "not found" });
     const ids = (req.body?.articleIds as string[] | undefined) ?? [];
     const sources = await sourceSet(primary.id, ids);

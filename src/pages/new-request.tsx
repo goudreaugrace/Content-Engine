@@ -3474,44 +3474,82 @@ export default function NewRequest() {
       return (
         <Stack spacing={1.25} sx={{ my: 1.5 }}>
           {visibleItems.map((item, index) => (
-            <Box
+            <Accordion
               key={item.id}
-              component="details"
-              open={index === 0}
+              defaultExpanded={index === 0}
+              disableGutters
+              elevation={0}
               sx={{
                 borderRadius: "8px",
                 overflow: "hidden",
                 bgcolor: t.pepsiBlue,
                 p: 0.75,
+                boxShadow: "none",
+                border: 0,
+                "&::before": { display: "none" },
+                "&.Mui-expanded": {
+                  my: 0,
+                },
               }}
             >
-              <Box
-                component="summary"
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
                 sx={{
-                  cursor: "pointer",
-                  listStyle: "none",
+                  minHeight: "auto",
                   bgcolor: t.pepsiBlue,
                   color: "#FFFFFF",
-                  fontWeight: 500,
-                  fontSize: { xs: "1rem", md: "1.125rem" },
-                  lineHeight: 1.25,
                   px: 0.75,
                   py: 0.6,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  "&::-webkit-details-marker": { display: "none" },
-                  "&::after": {
-                    content: "\"⌄\"",
-                    marginLeft: "auto",
-                    fontSize: "1.25rem",
-                    lineHeight: 1,
+                  borderRadius: "6px",
+                  transition: "background-color 160ms ease",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.10)",
+                  },
+                  "&.Mui-focusVisible": {
+                    bgcolor: "rgba(255,255,255,0.14)",
+                  },
+                  "& .MuiAccordionSummary-content": {
+                    my: 0,
+                    minWidth: 0,
+                    alignItems: "center",
+                  },
+                  "& .MuiAccordionSummary-content.Mui-expanded": {
+                    my: 0,
+                  },
+                  "& .MuiAccordionSummary-expandIconWrapper": {
+                    color: "#FFFFFF",
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "transform 180ms ease, background-color 160ms ease",
+                    "& svg": {
+                      fontSize: 22,
+                    },
+                  },
+                  "&:hover .MuiAccordionSummary-expandIconWrapper": {
+                    bgcolor: "rgba(255,255,255,0.14)",
+                  },
+                  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+                    transform: "rotate(180deg)",
                   },
                 }}
               >
-                {item.question.trim() || "Question"}
-              </Box>
-              <Box
+                <Typography
+                  component="span"
+                  sx={{
+                    color: "inherit",
+                    fontWeight: 500,
+                    fontSize: { xs: "1rem", md: "1.125rem" },
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {item.question.trim() || "Question"}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails
                 sx={{
                   bgcolor: "#FFFFFF",
                   color: t.ink,
@@ -3519,6 +3557,8 @@ export default function NewRequest() {
                   mt: 0.75,
                   px: { xs: 1.5, md: 2 },
                   py: { xs: 1.25, md: 1.6 },
+                  "& > :first-of-type": { mt: 0 },
+                  "& > :last-child": { mb: 0 },
                 }}
               >
                 {item.answer.trim() ? (
@@ -3530,8 +3570,8 @@ export default function NewRequest() {
                     Add an answer for this question.
                   </Typography>
                 )}
-              </Box>
-            </Box>
+              </AccordionDetails>
+            </Accordion>
           ))}
         </Stack>
       );

@@ -1049,7 +1049,7 @@ function DoneScreen({
           </Button>
         ) : null}
         <Button variant="contained" onClick={onBack}>
-          Back to attention
+          Back To Attention
         </Button>
       </Stack>
     </Box>

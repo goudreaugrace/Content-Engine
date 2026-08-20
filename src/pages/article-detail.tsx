@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Accordion,
   AccordionDetails,
@@ -173,6 +173,7 @@ function SubmissionProgress({ currentStage }: { currentStage: number }) {
 export default function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const theme = useTheme();
   const t = theme.palette.tokens;
   const [personaMode] = usePersonaMode();
@@ -261,6 +262,7 @@ export default function ArticleDetail() {
 
   const meta = statusMeta[article.status];
   const isContentOwner = personaMode === "non-admin";
+  const fromTeamArticles = searchParams.get("from") === "team-articles";
   const isOwnerReviewLocked = isContentOwner && article.status === "needs-review";
   const reviewContext = (article.approvalResults ?? [])
     .filter((result) => result.severity !== "ok")
@@ -509,10 +511,10 @@ export default function ArticleDetail() {
     <Box sx={{ maxWidth: 1520, mx: "auto" }}>
       <Button
         startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
-        onClick={() => navigate("/")}
+        onClick={() => navigate(fromTeamArticles ? "/?tab=my-articles" : "/")}
         sx={{ mb: 3, ml: -1 }}
       >
-        {isContentOwner ? "My Articles" : "All Articles"}
+        {fromTeamArticles ? "Team Articles" : isContentOwner ? "My Articles" : "All Articles"}
       </Button>
 
       <Box sx={{ mb: 4.5 }}>
@@ -1414,7 +1416,7 @@ function EditDock({
             "&:hover": { bgcolor: t.mist },
           }}
         >
-          Save edits
+          Save Edits
         </Button>
       </Stack>
 

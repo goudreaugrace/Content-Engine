@@ -15,6 +15,7 @@ import PublishedLibrary from "./pages/published-library";
 import PublishedArticleDetail from "./pages/published-article-detail";
 import OwnerArticlePerformance from "./pages/owner-article-performance";
 import Messages from "./pages/messages";
+import TeamPermissions from "./pages/team-permissions";
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/admin/audiences" element={<AdminAudiences />} />
         <Route path="/admin/audiences/:id" element={<AdminAudienceEditor />} />
         <Route path="/admin/emails" element={<AdminEmails />} />
+        <Route path="/admin/team-permissions" element={<TeamPermissions />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/library" element={<PublishedLibrary />} />
         <Route path="/library/:id" element={<PublishedArticleDetail />} />

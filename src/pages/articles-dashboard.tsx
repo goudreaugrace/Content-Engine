@@ -510,7 +510,7 @@ export function NeedsReviewTab({
                     </Typography>
                     {hasAnyFilter && (
                       <Button size="small" onClick={clearAll}>
-                        Clear filters
+                        Clear Filters
                       </Button>
                     )}
                   </Stack>
@@ -662,7 +662,7 @@ function RecentActivityStrip({
             "&:hover": { color: t.ink, bgcolor: t.mist },
           }}
         >
-          Mark all as seen
+          Mark All As Seen
         </Button>
       </Stack>
       <Stack spacing={0.5}>
@@ -1070,7 +1070,7 @@ function ReviewCycleBoardView({
         </Typography>
         {hasAnyFilter && (
           <Button size="small" onClick={onClearFilters}>
-            Clear filters
+            Clear Filters
           </Button>
         )}
       </Box>

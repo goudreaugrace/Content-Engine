@@ -157,7 +157,7 @@ export default function AdminEmails() {
         />
         {hasFilters && (
           <Button size="small" onClick={clearFilters} sx={{ ml: "auto" }}>
-            Clear filters
+            Clear Filters
           </Button>
         )}
         <Typography

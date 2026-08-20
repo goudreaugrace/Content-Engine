@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Alert, Box, Button, Chip, CircularProgress, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { api, type PublishedArticle } from "../lib/api";
@@ -22,6 +22,7 @@ function translationBody(value: NonNullable<PublishedArticle["translations"]>[st
 export default function OwnerArticlePerformance() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const theme = useTheme();
   const t = theme.palette.tokens;
   const [article, setArticle] = useState<PublishedArticle | null>(null);
@@ -64,7 +65,7 @@ export default function OwnerArticlePerformance() {
   return (
     <Box sx={{ maxWidth: 1100, mx: "auto" }}>
       <Button startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />} onClick={() => navigate("/?tab=my-articles")} sx={{ mb: 3, ml: -1 }}>
-        My articles
+        {searchParams.get("from") === "team-articles" ? "Team Articles" : "My Articles"}
       </Button>
       <Stack direction="row" alignItems="center" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 1.25 }}>
         <Chip label="Published" size="small" sx={{ bgcolor: t.successBg, color: t.successInk, fontWeight: 600 }} />

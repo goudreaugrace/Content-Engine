@@ -14,6 +14,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TableSortLabel,
   Button,
   IconButton,
   CircularProgress,
@@ -59,6 +60,13 @@ import FilterSelect from "../components/filter-select";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
+import {
+  CURRENT_TEAM_ADMIN_ID,
+  getTeamPermissionsState,
+  ownershipHandoffForArticle,
+  ownershipHandoffUrgency,
+  subscribeToTeamPermissions,
+} from "../lib/team-permissions";
 
 type StalenessFilter = "all" | "fresh" | "aging" | "stale" | "archived";
 type ActionFilter = "all" | "consolidate" | "standardize" | "archive" | "mark-reviewed" | "noop";
@@ -67,6 +75,9 @@ type AdminAlertAction = "review" | "update" | "archive" | "consolidate";
 
 type NonAdminWorkflowStatus = ArticleStatus | "stale";
 type NonAdminStatusFilter = "all" | NonAdminWorkflowStatus;
+type TeamArticleSortKey = "status" | "owner" | "sector" | "updated";
+type TeamArticleSortDirection = "up" | "down";
+type TeamArticleSort = { key: TeamArticleSortKey; direction: TeamArticleSortDirection } | null;
 
 const NON_ADMIN_USER = "Demo User";
 const NON_ADMIN_REPORTS = new Set(["Test", "Demo", "Test Author"]);
@@ -76,17 +87,30 @@ const NON_ADMIN_OWNER_LABELS: Record<string, string> = {
   Test: "Jordan Lee",
   Demo: "Avery Patel",
   "Test Author": "Sofia Ramirez",
+  "New Owner": "Nia Williams",
 };
 const NON_ADMIN_TRANSFER_OWNERS = [
   { name: "Demo User", email: "content-owner@pepsico.com" },
   { name: "Test", email: "jordan.lee@pepsico.com" },
   { name: "Demo", email: "avery.patel@pepsico.com" },
   { name: "Test Author", email: "sofia.ramirez@pepsico.com" },
+  { name: "New Owner", email: "nia.williams@pepsico.com" },
 ];
 const TEAM_ARTICLES_PER_PAGE = 15;
 
 function nonAdminOwnerLabel(owner: string): string {
   return NON_ADMIN_OWNER_LABELS[owner] ?? owner;
+}
+
+function teamOwnerIdentity(owner: { name: string; email: string }) {
+  const ownerKey = owner.name === "T" ? "Test" : owner.name;
+  const member = getTeamPermissionsState().members.find(
+    (candidate) => candidate.contentOwnerKey === ownerKey,
+  );
+  return {
+    name: member ? `${member.firstName} ${member.lastName}` : nonAdminOwnerLabel(ownerKey),
+    email: member?.email ?? owner.email,
+  };
 }
 
 function nonAdminStatusLabel(status: NonAdminWorkflowStatus): string {
@@ -109,6 +133,17 @@ function nonAdminWorkflowStatus(
     (article.publishedArticleId ? publishedById.get(article.publishedArticleId) : undefined) ??
     publishedBySourceId.get(article.id);
   return published?.staleness.level === "stale" ? "stale" : "published";
+}
+
+function teamArticleStatusRank(article: Article, status: NonAdminWorkflowStatus): number {
+  const owner = article.submittedBy?.name ?? "";
+  if (status === "needs-review") return NON_ADMIN_REPORTS.has(owner) ? 0 : 1;
+  return {
+    "needs-info": 2,
+    stale: 3,
+    rejected: 4,
+    published: 5,
+  }[status];
 }
 
 const NON_ADMIN_STATUS_ORDER: NonAdminWorkflowStatus[] = [
@@ -295,7 +330,7 @@ export default function PublishedLibrary() {
             onClick={() => navigate("/admin/emails")}
             sx={{ whiteSpace: "nowrap" }}
           >
-            Email log
+            Email Log
           </Button>
         </Stack>
       </Stack>
@@ -310,10 +345,14 @@ export default function PublishedLibrary() {
             "& .MuiTabs-indicator": { bgcolor: t.ink, height: 2 },
           }}
         >
-          <Tab value="published" label={<Stack direction="row" spacing={1} alignItems="baseline"><span>Published health</span>{pubCount !== null && <Box component="span" sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.6875rem", color: t.granite }}>{pubCount}</Box>}</Stack>} />
-          <Tab value="my-articles" label={<Stack direction="row" spacing={1} alignItems="baseline"><span>Team articles</span>{myCount !== null && <Box component="span" sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.6875rem", color: t.granite, fontWeight: 600 }}>{myCount}</Box>}</Stack>} />
+          <Tab value="published" label={<Stack direction="row" spacing={1} alignItems="baseline"><span>Published Health</span>{pubCount !== null && <Box component="span" sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.6875rem", color: t.granite }}>{pubCount}</Box>}</Stack>} />
+          <Tab value="my-articles" label={<Stack direction="row" spacing={1} alignItems="baseline"><span>Team Articles</span>{myCount !== null && <Box component="span" sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.6875rem", color: t.granite, fontWeight: 600 }}>{myCount}</Box>}</Stack>} />
         </Tabs>
-        {activeTab === "my-articles" ? <NonAdminArticlesPage embedded onLoaded={setMyCount} /> : <PublishedTab onLoaded={setPubCount} />}
+        {activeTab === "my-articles" ? (
+          <NonAdminArticlesPage embedded onLoaded={setMyCount} />
+        ) : (
+          <PublishedTab onLoaded={setPubCount} teamScoped={!isSuperAdmin} />
+        )}
       </Box>
     </Box>
   );
@@ -341,7 +380,11 @@ function NonAdminArticlesPage({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<NonAdminStatusFilter>("all");
   const [ownerFilter, setOwnerFilter] = useState("all");
+  const [tableSort, setTableSort] = useState<TeamArticleSort>(null);
   const [viewingOwner, setViewingOwner] = useState(getViewingContentOwner);
+  const [permissionMembers, setPermissionMembers] = useState(
+    () => getTeamPermissionsState().members,
+  );
   const [page, setPage] = useState(0);
   const [transferArticle, setTransferArticle] = useState<Article | null>(null);
   const [transferOwner, setTransferOwner] = useState(NON_ADMIN_USER);
@@ -367,6 +410,31 @@ function NonAdminArticlesPage({
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(
+    () =>
+      subscribeToTeamPermissions(() =>
+        setPermissionMembers(getTeamPermissionsState().members),
+      ),
+    [],
+  );
+
+  const contentOwnerOptions = useMemo(() => {
+    const options = permissionMembers
+      .filter(
+        (member) =>
+          member.teamAdminId === CURRENT_TEAM_ADMIN_ID &&
+          member.role === "content-owner" &&
+          member.status !== "inactive" &&
+          !(
+            member.status === "scheduled-removal" &&
+            member.accessEndsAt &&
+            new Date(member.accessEndsAt).getTime() <= Date.now()
+          ),
+      )
+      .map((member) => ({ name: member.contentOwnerKey, email: member.email }));
+    return options.length > 0 ? options : NON_ADMIN_TRANSFER_OWNERS;
+  }, [permissionMembers]);
 
   const publishedById = useMemo(() => {
     return new Map(publishedArticles.map((article) => [article.id, article]));
@@ -458,20 +526,55 @@ function NonAdminArticlesPage({
     });
   }, [scoped, search, statusFilter, ownerFilter, publishedById, publishedBySourceId]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / TEAM_ARTICLES_PER_PAGE));
+  const sorted = useMemo(() => {
+    if (!tableSort) return filtered;
+    const direction = tableSort.direction === "up" ? 1 : -1;
+    return [...filtered].sort((a, b) => {
+      const statusA = nonAdminWorkflowStatus(a, publishedById, publishedBySourceId);
+      const statusB = nonAdminWorkflowStatus(b, publishedById, publishedBySourceId);
+      if (tableSort.key === "status") {
+        return (teamArticleStatusRank(a, statusA) - teamArticleStatusRank(b, statusB)) * direction;
+      }
+      if (tableSort.key === "owner") {
+        return nonAdminOwnerLabel(a.submittedBy?.name ?? "Unknown").localeCompare(
+          nonAdminOwnerLabel(b.submittedBy?.name ?? "Unknown"),
+          undefined,
+          { sensitivity: "base" },
+        ) * direction;
+      }
+      if (tableSort.key === "sector") {
+        return sectorShortLabel(a.sector).localeCompare(sectorShortLabel(b.sector), undefined, {
+          sensitivity: "base",
+        }) * direction;
+      }
+      const updatedA = new Date(a.reviewedAt ?? a.submittedAt).getTime();
+      const updatedB = new Date(b.reviewedAt ?? b.submittedAt).getTime();
+      return (updatedB - updatedA) * direction;
+    });
+  }, [filtered, tableSort, publishedById, publishedBySourceId]);
+
+  const cycleTableSort = (key: TeamArticleSortKey) => {
+    setTableSort((current) => {
+      if (!current || current.key !== key) return { key, direction: "up" };
+      if (current.direction === "up") return { key, direction: "down" };
+      return null;
+    });
+  };
+
+  const pageCount = Math.max(1, Math.ceil(sorted.length / TEAM_ARTICLES_PER_PAGE));
   const currentPage = Math.min(page, pageCount - 1);
   const pagedArticles = useMemo(
     () =>
-      filtered.slice(
+      sorted.slice(
         currentPage * TEAM_ARTICLES_PER_PAGE,
         (currentPage + 1) * TEAM_ARTICLES_PER_PAGE,
       ),
-    [currentPage, filtered],
+    [currentPage, sorted],
   );
 
   useEffect(() => {
     setPage(0);
-  }, [search, statusFilter, ownerFilter, viewingOwner]);
+  }, [search, statusFilter, ownerFilter, viewingOwner, tableSort]);
 
   const clearFilters = () => {
     setSearch("");
@@ -485,7 +588,7 @@ function NonAdminArticlesPage({
   const openTransfer = (article: Article) => {
     const currentOwner = article.submittedBy?.name ?? "";
     const nextOwner =
-      NON_ADMIN_TRANSFER_OWNERS.find((owner) => owner.name !== currentOwner)?.name ??
+      contentOwnerOptions.find((owner) => owner.name !== currentOwner)?.name ??
       NON_ADMIN_USER;
     setTransferArticle(article);
     setTransferOwner(nextOwner);
@@ -498,7 +601,7 @@ function NonAdminArticlesPage({
 
   const confirmTransfer = async () => {
     if (!transferArticle) return;
-    const target = NON_ADMIN_TRANSFER_OWNERS.find((owner) => owner.name === transferOwner);
+    const target = contentOwnerOptions.find((owner) => owner.name === transferOwner);
     if (!target) return;
     setTransferSaving(true);
     try {
@@ -514,10 +617,10 @@ function NonAdminArticlesPage({
   };
 
   const transferTargets = transferArticle
-    ? NON_ADMIN_TRANSFER_OWNERS.filter(
+    ? contentOwnerOptions.filter(
         (owner) => owner.name !== (transferArticle.submittedBy?.name ?? ""),
       )
-    : NON_ADMIN_TRANSFER_OWNERS;
+    : contentOwnerOptions;
 
   return (
     <Box sx={{ maxWidth: embedded ? "none" : 1440, mx: embedded ? 0 : "auto" }}>
@@ -545,9 +648,12 @@ function NonAdminArticlesPage({
                 sx={{ minWidth: 240 }}
                 SelectProps={{ MenuProps: { PaperProps: { sx: { mt: 0.5 } } } }}
               >
-                {NON_ADMIN_TRANSFER_OWNERS.map((owner) => (
+                {contentOwnerOptions.map((owner) => (
                   <MenuItem key={owner.name} value={owner.name}>
-                    {nonAdminOwnerLabel(owner.name)}
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ width: "100%" }}>
+                      <Box sx={{ flex: 1 }}>{nonAdminOwnerLabel(owner.name)}</Box>
+                      {owner.name === "New Owner" && <Chip size="small" label="New" color="primary" />}
+                    </Stack>
                   </MenuItem>
                 ))}
               </TextField>
@@ -670,10 +776,46 @@ function NonAdminArticlesPage({
           <TableHead>
             <TableRow>
               <TableCell sx={{ width: W.article }}>Article</TableCell>
-              <TableCell sx={{ width: W.status }}>Status</TableCell>
-              <TableCell sx={{ width: W.submittedBy }}>Owner</TableCell>
-              <TableCell sx={{ width: W.market }}>Sector</TableCell>
-              <TableCell sx={{ width: W.when }}>Updated</TableCell>
+              <TableCell sx={{ width: W.status }}>
+                <TableSortLabel
+                  active={tableSort?.key === "status"}
+                  direction={tableSort?.key === "status" && tableSort.direction === "down" ? "desc" : "asc"}
+                  hideSortIcon
+                  onClick={() => cycleTableSort("status")}
+                >
+                  Status
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ width: W.submittedBy }}>
+                <TableSortLabel
+                  active={tableSort?.key === "owner"}
+                  direction={tableSort?.key === "owner" && tableSort.direction === "down" ? "desc" : "asc"}
+                  hideSortIcon
+                  onClick={() => cycleTableSort("owner")}
+                >
+                  Owner
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ width: W.market }}>
+                <TableSortLabel
+                  active={tableSort?.key === "sector"}
+                  direction={tableSort?.key === "sector" && tableSort.direction === "down" ? "desc" : "asc"}
+                  hideSortIcon
+                  onClick={() => cycleTableSort("sector")}
+                >
+                  Sector
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ width: W.when }}>
+                <TableSortLabel
+                  active={tableSort?.key === "updated"}
+                  direction={tableSort?.key === "updated" && tableSort.direction === "down" ? "desc" : "asc"}
+                  hideSortIcon
+                  onClick={() => cycleTableSort("updated")}
+                >
+                  Updated
+                </TableSortLabel>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -686,9 +828,21 @@ function NonAdminArticlesPage({
             ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
-                  <Typography color="text.secondary" variant="body2">
-                    No articles match your filters.
-                  </Typography>
+                  {!isTeamView && scoped.length === 0 ? (
+                    <Stack spacing={1.5} alignItems="center">
+                      <Typography sx={{ fontWeight: 600 }}>No articles yet</Typography>
+                      <Typography color="text.secondary" variant="body2" sx={{ maxWidth: 440 }}>
+                        When you create or are assigned an article, it will appear here with its review and publication status.
+                      </Typography>
+                      <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/new")}>
+                        Create first article
+                      </Button>
+                    </Stack>
+                  ) : (
+                    <Typography color="text.secondary" variant="body2">
+                      No articles match your filters.
+                    </Typography>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
@@ -706,8 +860,8 @@ function NonAdminArticlesPage({
                     onTransfer={() => openTransfer(article)}
                     onOpen={() =>
                       published
-                        ? navigate(`/my-articles/${published.id}`)
-                        : navigate(`/articles/${article.id}`)
+                        ? navigate(`/my-articles/${published.id}?from=team-articles`)
+                        : navigate(`/articles/${article.id}?from=team-articles`)
                     }
                   />
                 );
@@ -794,9 +948,13 @@ function NonAdminArticleRow({
   const t = theme.palette.tokens;
   const owner = article.submittedBy?.name ?? "Unknown";
   const displayOwner = nonAdminOwnerLabel(owner);
+  const ownershipHandoff = ownershipHandoffForArticle(article.id);
+  const needsOwner = canTransfer && ownershipHandoff && !ownershipHandoff.successorMemberId;
+  const ownerUrgency = ownershipHandoff ? ownershipHandoffUrgency(ownershipHandoff) : null;
   const needsApproval =
     status === "needs-review" && NON_ADMIN_REPORTS.has(owner);
   const needsStaleReview = status === "stale";
+  const updatedAt = article.reviewedAt ?? article.submittedAt;
 
   return (
     <TableRow hover sx={{ cursor: "pointer" }} onClick={onOpen}>
@@ -820,23 +978,33 @@ function NonAdminArticleRow({
         <ArticleStatusChip status={status} urgent={needsApproval || needsStaleReview} />
       </TableCell>
       <TableCell>
-        <Stack direction="row" spacing={0.5} alignItems="center">
-          <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
-            {displayOwner}
-          </Typography>
-          {canTransfer && owner !== NON_ADMIN_USER && (
-            <Tooltip title="Transfer ownership">
-              <IconButton
-                size="small"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onTransfer();
-                }}
-                sx={{ p: 0.25, color: t.slate }}
-              >
-                <SwapHorizRoundedIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Tooltip>
+        <Stack spacing={0.5} alignItems="flex-start">
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
+              {displayOwner}
+            </Typography>
+            {canTransfer && owner !== NON_ADMIN_USER && (
+              <Tooltip title="Transfer ownership">
+                <IconButton
+                  size="small"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onTransfer();
+                  }}
+                  sx={{ p: 0.25, color: t.slate }}
+                >
+                  <SwapHorizRoundedIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Stack>
+          {needsOwner && (
+            <Chip
+              size="small"
+              label="Owner Needed"
+              color={ownerUrgency === "urgent" ? "error" : "warning"}
+              sx={{ height: 24 }}
+            />
           )}
         </Stack>
       </TableCell>
@@ -854,10 +1022,10 @@ function NonAdminArticleRow({
       </TableCell>
       <TableCell>
         <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
-          {daysAgo(article.submittedAt)}
+          {daysAgo(updatedAt)}
         </Typography>
         <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
-          {formatDate(article.submittedAt)}
+          {formatDate(updatedAt)}
         </Typography>
       </TableCell>
     </TableRow>
@@ -920,8 +1088,10 @@ function statusLabel(status: ArticleStatus): string {
 // ────────────────────────────────────────────────────────────
 function PublishedTab({
   onLoaded,
+  teamScoped = false,
 }: {
   onLoaded?: (count: number) => void;
+  teamScoped?: boolean;
 }) {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -971,7 +1141,33 @@ function PublishedTab({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.listPublishedArticles();
+      const [publishedData, sourceArticles] = await Promise.all([
+        api.listPublishedArticles(),
+        teamScoped ? api.listArticles() : Promise.resolve([] as Article[]),
+      ]);
+      const data = teamScoped
+        ? (() => {
+            const teamArticlesById = new Map(
+              sourceArticles
+                .filter((article) => NON_ADMIN_AUTHORS.has(article.submittedBy?.name ?? ""))
+                .map((article) => [article.id, article]),
+            );
+            return publishedData
+              .filter((article) => teamArticlesById.has(article.sourceArticleId))
+              .map((article) => {
+                const source = teamArticlesById.get(article.sourceArticleId)!;
+                return {
+                  ...article,
+                  title: source.title,
+                  contentType: source.contentType,
+                  sector: source.sector,
+                  market: source.market,
+                  countries: source.countries,
+                  originalSubmittedBy: source.submittedBy,
+                };
+              });
+          })()
+        : publishedData;
       setArticles(data);
       onLoaded?.(data.length);
       setError(null);
@@ -980,7 +1176,7 @@ function PublishedTab({
     } finally {
       setLoading(false);
     }
-  }, [onLoaded]);
+  }, [onLoaded, teamScoped]);
 
   useEffect(() => {
     load();
@@ -1079,11 +1275,12 @@ function PublishedTab({
     if (!alertArticle) return;
     setAlertSaving(true);
     try {
+      const owner = teamOwnerIdentity(alertArticle.originalSubmittedBy);
       await api.sendOwnerAlert({
         articleId: alertArticle.sourceArticleId,
         articleTitle: alertArticle.title,
-        ownerName: alertArticle.originalSubmittedBy.name,
-        to: [alertArticle.originalSubmittedBy.email],
+        ownerName: owner.name,
+        to: [owner.email],
         action: alertAction,
         reason: alertReason,
       });
@@ -1343,7 +1540,7 @@ function PublishedTab({
                     </Typography>
                     {hasAnyFilter && (
                       <Button size="small" onClick={clearFilters}>
-                        Clear filters
+                        Clear Filters
                       </Button>
                     )}
                   </Stack>
@@ -1364,7 +1561,7 @@ function PublishedTab({
         <PublishedBoardView
           articles={filtered}
           loading={loading}
-          onCardClick={(a) => navigate(`/library/${a.id}`)}
+          onCardClick={(a) => navigate(`/library/${a.id}?from=published-health`)}
         />
       )}
 
@@ -1374,7 +1571,7 @@ function PublishedTab({
           {alertArticle && (
             <Stack spacing={2} sx={{ mt: 0.5 }}>
               <Typography variant="body2" color="text.secondary">
-                Send a focused follow-up to {alertArticle.originalSubmittedBy.name} for {alertArticle.title}.
+                Send a focused follow-up to {teamOwnerIdentity(alertArticle.originalSubmittedBy).name} for {alertArticle.title}.
               </Typography>
               <TextField
                 select
@@ -1404,7 +1601,7 @@ function PublishedTab({
         <DialogActions>
           <Button onClick={closeOwnerAlert} disabled={alertSaving}>Cancel</Button>
           <Button variant="contained" onClick={sendOwnerAlert} disabled={alertSaving || !alertReason.trim()}>
-            Send alert
+            Send Alert
           </Button>
         </DialogActions>
       </Dialog>
@@ -1415,12 +1612,13 @@ function PublishedTab({
     const theme = useTheme();
     const t = theme.palette.tokens;
     const signals = adminHealthSignals(article);
+    const owner = teamOwnerIdentity(article.originalSubmittedBy);
     const canAlert = adminNeedsWatch(article) && article.staleness.level !== "archived";
     return (
       <TableRow
         hover
         sx={{ cursor: "pointer" }}
-        onClick={() => navigate(`/library/${article.id}`)}
+        onClick={() => navigate(`/library/${article.id}?from=published-health`)}
       >
         {/* 1 · Article — title + id/version/contentType secondary line. */}
         <TableCell sx={{ maxWidth: ARTICLE_CELL_MAX_WIDTH }}>
@@ -1435,7 +1633,7 @@ function PublishedTab({
               mt: 0.25,
             }}
           >
-            {article.id} · v{article.version} · {article.contentType}
+            {article.sourceArticleId} · v{article.version} · {article.contentType}
             {article.sector ? ` · ${sectorShortLabel(article.sector)}` : ""}
           </Typography>
           {article.recommendation && article.recommendation.kind !== "noop" && (
@@ -1448,10 +1646,10 @@ function PublishedTab({
         </TableCell>
         <TableCell>
           <Typography sx={{ fontSize: "0.875rem", color: t.ink, lineHeight: 1.3 }}>
-            {article.originalSubmittedBy.name}
+            {owner.name}
           </Typography>
           <Typography sx={{ fontSize: "0.6875rem", color: t.granite, mt: 0.25 }}>
-            {article.originalSubmittedBy.email}
+            {owner.email}
           </Typography>
         </TableCell>
         <TableCell>
@@ -1868,6 +2066,7 @@ function PublishedBoardCard({
 }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const owner = teamOwnerIdentity(article.originalSubmittedBy);
 
   return (
     <Box
@@ -1937,7 +2136,7 @@ function PublishedBoardCard({
             flex: 1,
           }}
         >
-          {article.id}
+          {article.sourceArticleId}
         </Box>
       </Stack>
 
@@ -2023,7 +2222,7 @@ function PublishedBoardCard({
             flex: 1,
           }}
         >
-          {article.originalSubmittedBy?.name ?? "—"}
+          {owner.name}
         </Typography>
         {article.lastReviewedAt ? (
           <Tooltip

@@ -356,7 +356,7 @@ function ChatEditor({
         </Typography>
         {canUndo && (
           <Button size="small" onClick={onUndo}>
-            Undo last AI change
+            Undo Last AI Change
           </Button>
         )}
       </Stack>

@@ -81,6 +81,8 @@ export type Job = {
 export type JobInput = {
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected by the requester. */
+  knowledgeBase?: string;
   summary: string;
   audience: string;
   /**
@@ -100,7 +102,10 @@ export type JobInput = {
    */
   sectors?: string[];
   sourceText: string;
+  /** Final employee-facing article body reviewed by the requester before submission. */
+  finalArticleBody?: string;
   submittedBy: { name: string; email: string };
+  approver?: { name: string; email: string; role?: string };
   /** ISO country codes the article applies to. Required (≥1). */
   countries: string[];
   /** SEO metadata. Title 30–60 chars and metaDescription required by the server. */
@@ -126,6 +131,61 @@ export type ArticleSEO = {
   keyQuestions?: string[];
   /** Named entities the article authoritatively covers. */
   entities?: string[];
+};
+
+export type ArticleReference = {
+  id: string;
+  title: string;
+  kind: "url" | "doc" | "policy" | "profile" | "note";
+  url?: string;
+  filePath?: string;
+  excerpt?: string;
+  source?: "submission" | "sector" | "market" | "audience" | "profile" | "reviewer" | "migration";
+  addedAt: string;
+  addedBy: string;
+};
+
+export type ArticleVisibility = {
+  audiences: string[];
+  markets: string[];
+  countries: string[];
+  security: "all-employees" | "restricted";
+  notes?: string;
+};
+
+export type ArticleRevision = {
+  version: number;
+  at: string;
+  by: string;
+  summary: string;
+  title: string;
+  body?: string;
+};
+
+export type ArticleTranslation = {
+  body: string;
+  status: "current" | "stale" | "needs-review";
+  sourceVersion: number;
+  translatedAt: string;
+  translatedBy: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+};
+
+export type ArticleTranslations = Record<string, string | ArticleTranslation>;
+
+export type ArticleFeedbackComment = {
+  id: string;
+  by: string;
+  body: string;
+  at: string;
+};
+
+export type ArticleFeedback = {
+  helpful: number;
+  notHelpful: number;
+  shares: number;
+  comments: ArticleFeedbackComment[];
 };
 
 export type Country = {
@@ -278,14 +338,27 @@ export type PublishedArticle = {
   // Live content
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected at creation time. */
+  knowledgeBase?: string;
   /** Sector id — inherited from the source Article at publish time. */
   sector?: string;
   market: Market;
   countries: string[];
+  lead?: string;
+  canonicalSlug?: string;
+  aliases?: string[];
+  topics?: string[];
+  references?: ArticleReference[];
+  relatedArticleIds?: string[];
+  visibility?: ArticleVisibility;
+  owner?: string;
+  effectiveAt?: string;
+  nextReviewAt?: string;
+  approvedBy?: string;
   body: string;
   seo: ArticleSEO;
   globalJustification?: string;
-  translations?: Record<string, string>;
+  translations?: ArticleTranslations;
 
   // Publish event
   publishedAt: string;
@@ -293,9 +366,11 @@ export type PublishedArticle = {
   version: number;
   lastReviewedAt?: string;
   lastReviewer?: string;
+  revisionHistory?: ArticleRevision[];
 
   // Lifecycle layer
   metrics: PublishedMetrics;
+  feedback?: ArticleFeedback;
   /** Set when an admin archives the article. Presence promotes the staleness
    *  level to "archived" regardless of metrics. */
   archivedAt?: string;
@@ -329,11 +404,11 @@ export type Article = {
   jobId?: string;
   title: string;
   contentType: ContentType;
+  /** Destination knowledge base / collection selected at creation time. */
+  knowledgeBase?: string;
   /** Sector id — the tier above Market (Global, PFNA, PBNA, LatAm, etc.).
    *  Optional in the type only for older seed rows; new articles always set it. */
   sector?: string;
-  /** Approved publishing destination selected by the owner or Team Admin. */
-  knowledgeBase?: "myPepsiCo KB" | "PFP KB" | "PepKM KB";
   market: Market;
   /** Phase A — ISO country codes. Older articles backfill to []. */
   countries: string[];
@@ -343,6 +418,17 @@ export type Article = {
   replacesArticleId?: string;
   /** Published articles intentionally consolidated into this draft. */
   replacesArticleIds?: string[];
+  lead?: string;
+  canonicalSlug?: string;
+  aliases?: string[];
+  topics?: string[];
+  references?: ArticleReference[];
+  relatedArticleIds?: string[];
+  visibility?: ArticleVisibility;
+  owner?: string;
+  effectiveAt?: string;
+  nextReviewAt?: string;
+  approvedBy?: string;
   body: string;
   submittedBy: { name: string; email: string };
   submittedAt: string;
@@ -352,7 +438,7 @@ export type Article = {
   reviewer?: string;
   rejectionReason?: string;
   infoNeeded?: string;
-  translations?: Record<string, string>;
+  translations?: ArticleTranslations;
   /** Current version. Bumps on resubmit. */
   version?: number;
   /** Append-only log of prior rejections, oldest first. */
@@ -580,10 +666,34 @@ export const api = {
     request<PublishedMetrics>(`/api/published-articles/${id}/performance`),
   updatePublishedArticle: (
     id: string,
-    body: { body?: string; title?: string; seo?: ArticleSEO },
+    body: {
+      body?: string;
+      title?: string;
+      seo?: ArticleSEO;
+      lead?: string;
+      references?: ArticleReference[];
+      relatedArticleIds?: string[];
+      aliases?: string[];
+      topics?: string[];
+      visibility?: ArticleVisibility;
+      owner?: string;
+      effectiveAt?: string;
+      nextReviewAt?: string;
+      approvedBy?: string;
+      editor?: string;
+      summary?: string;
+    },
   ) =>
     request<PublishedArticle>(`/api/published-articles/${id}`, {
       method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  recordPublishedFeedback: (
+    id: string,
+    body: { kind: "helpful" | "notHelpful" | "share" | "comment"; comment?: string; by?: string },
+  ) =>
+    request<PublishedArticle>(`/api/published-articles/${id}/feedback`, {
+      method: "POST",
       body: JSON.stringify(body),
     }),
   /**

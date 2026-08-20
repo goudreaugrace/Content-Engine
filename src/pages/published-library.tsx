@@ -286,7 +286,7 @@ export default function PublishedLibrary() {
   }
 
   return (
-    <Box sx={{ maxWidth: 1280, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1520, mx: "auto" }}>
       {/* ─── Shared page header ─── */}
       {/* Stacks until md (~900px) so the title has room to breathe on
           narrower panes; the actions drop below rather than squeezing
@@ -316,10 +316,7 @@ export default function PublishedLibrary() {
               : "This team-approval workspace is ready to be refined around the articles and people an admin supports."}
           </Typography>
         </Box>
-        {/* Persistent action row — always visible regardless of active tab.
-            "Start review cycle" opens the guided review workflow (walks the
-            reviewer through the highest-priority attention items one at a
-            time). "New article" opens the create wizard. */}
+        {/* Persistent admin action row — article creation belongs to Content Owners. */}
         <Stack
           direction="row"
           spacing={1}
@@ -334,15 +331,6 @@ export default function PublishedLibrary() {
             sx={{ whiteSpace: "nowrap" }}
           >
             Email Log
-          </Button>
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
-            onClick={() => navigate("/new")}
-            sx={{ whiteSpace: "nowrap" }}
-          >
-            New Article
           </Button>
         </Stack>
       </Stack>
@@ -635,7 +623,7 @@ function NonAdminArticlesPage({
     : contentOwnerOptions;
 
   return (
-    <Box sx={{ maxWidth: embedded ? "none" : 1120, mx: embedded ? 0 : "auto" }}>
+    <Box sx={{ maxWidth: embedded ? "none" : 1440, mx: embedded ? 0 : "auto" }}>
       {!embedded && (
         <Stack
           direction={{ xs: "column", md: "row" }}

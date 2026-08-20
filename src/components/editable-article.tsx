@@ -14,14 +14,17 @@ import {
   keyframes,
 } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import SendIcon from "@mui/icons-material/Send";
 import CheckIcon from "@mui/icons-material/Check";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { api, type Market, type ComplianceIssue } from "../lib/api";
+import { api, type Market, type ComplianceIssue, type ContentType } from "../lib/api";
 import { localeFor } from "../lib/market";
+import { articleAnchorId } from "./article-document";
+import ArticleReaderActions from "./article-reader-actions";
 
 // ────────────────────────────────────────────────────────────
 // Section splitting — split body on `## ` H2 boundaries.
@@ -83,6 +86,16 @@ type Props = {
   articleId: string;
   body: string;
   market: Market;
+  title?: string;
+  lead?: string;
+  contentType?: ContentType;
+  canonicalSlug?: string;
+  updatedLabel?: string;
+  viewCount?: number;
+  showReaderActions?: boolean;
+  availableLocales?: string[];
+  selectedLocale?: string;
+  onLocaleSelect?: (locale: string) => void;
   /** Called after the body is updated and persisted. Parent should refresh. */
   onUpdated?: (newBody: string) => void;
   /** Phase C — compliance issues with optional `section` anchors. Used to
@@ -107,6 +120,15 @@ type Props = {
 function sectionHeading(markdown: string): string | null {
   const m = markdown.match(/^##\s+(.+?)\s*$/m);
   return m?.[1]?.trim() ?? null;
+}
+
+function textFromChildren(children: React.ReactNode): string {
+  if (typeof children === "string" || typeof children === "number") return String(children);
+  if (Array.isArray(children)) return children.map(textFromChildren).join("");
+  if (React.isValidElement<{ children?: React.ReactNode }>(children)) {
+    return textFromChildren(children.props.children);
+  }
+  return "";
 }
 
 /**
@@ -151,6 +173,14 @@ export default function EditableArticle({
   articleId,
   body,
   market,
+  title,
+  lead,
+  updatedLabel = "Updated: recently",
+  viewCount,
+  showReaderActions = true,
+  availableLocales,
+  selectedLocale,
+  onLocaleSelect,
   onUpdated,
   complianceIssues,
   editMode = false,
@@ -203,104 +233,154 @@ export default function EditableArticle({
   };
 
   const locale = localeFor(market);
+  const parsedTitle = body.match(/^#\s+(.+?)\s*$/m)?.[1]?.trim();
+  const displayTitle = title?.trim() || parsedTitle || "Knowledge article";
+  const cleanPreamble = split.preamble.replace(/^#\s+.+\n*/, "").trim();
+  const sections = split.sections.map((s) => sectionHeading(s)).filter((s): s is string => !!s);
 
   return (
     <Box
       sx={{
-        bgcolor: "#FFFFFF",
-        border: `1px solid ${t.border}`,
-        borderRadius: 1,
+        bgcolor: t.articleRailBg,
+        border: 0,
+        borderRadius: "8px",
         overflow: "hidden",
-        maxWidth: 820,
-        boxShadow: "0 1px 2px rgba(42,37,29,0.04), 0 8px 24px rgba(42,37,29,0.06)",
+        maxWidth: "none",
       }}
     >
-      {/* PepsiCo branding band — matches ArticleDocument */}
-      <Box
-        sx={{
-          bgcolor: t.pepsiBlue,
-          color: "#FFFFFF",
-          px: { xs: 3, md: 5 },
-          py: 1.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 2,
-        }}
-      >
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <PepsiMark />
-          <Typography
-            sx={{
-              fontFamily: theme.palette.fonts.sans,
-              fontWeight: 700,
-              fontSize: "0.875rem",
-              letterSpacing: "0.04em",
-              color: "#FFFFFF",
-            }}
-          >
-            PEPSICO
+      <Box sx={{ px: { xs: 2.5, md: 3 }, pt: { xs: 2.5, md: 3 }, pb: 2 }}>
+        {showReaderActions && (
+          <ArticleReaderActions
+            selectedLocale={selectedLocale ?? locale}
+            availableLocales={availableLocales ?? [selectedLocale ?? locale]}
+            onLocaleSelect={onLocaleSelect}
+          />
+        )}
+        <Typography
+          component="h1"
+          sx={{
+            fontFamily: theme.palette.fonts.articleTitle,
+            fontSize: { xs: "2.25rem", md: "2.85rem" },
+            fontWeight: 800,
+            letterSpacing: 0,
+            lineHeight: 0.95,
+            color: t.pepsiNavy,
+            mb: 1.25,
+          }}
+        >
+          {displayTitle}
+        </Typography>
+        <Stack
+          direction="row"
+          spacing={2}
+          useFlexGap
+          flexWrap="wrap"
+          alignItems="center"
+          sx={{
+            mb: 1.5,
+            fontFamily: theme.palette.fonts.articleBody,
+            color: t.ink,
+            fontSize: "0.875rem",
+          }}
+        >
+          <Typography sx={{ fontSize: "inherit", fontWeight: 500, color: t.ink }}>
+            {updatedLabel}
           </Typography>
-          <Box sx={{ width: 1, height: 14, bgcolor: "rgba(255,255,255,0.35)" }} />
-          <Typography
-            sx={{
-              fontFamily: theme.palette.fonts.sans,
-              fontWeight: 500,
-              fontSize: "0.8125rem",
-              color: "rgba(255,255,255,0.92)",
-            }}
-            noWrap
-          >
-            MyPepsiCo · Knowledge Article
-          </Typography>
+          {viewCount !== undefined && (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <VisibilityOutlinedIcon sx={{ fontSize: 18, color: t.ink }} />
+              <Typography sx={{ fontSize: "inherit", fontWeight: 500, color: t.ink }}>
+                {viewCount} Views
+              </Typography>
+            </Stack>
+          )}
+          {editMode && (
+            <>
+              <Typography sx={{ color: t.granite }}>•</Typography>
+              <Tooltip title="Hover a section to edit it.">
+                <Stack direction="row" alignItems="center" spacing={0.5} sx={{ color: t.slate }}>
+                  <EditOutlinedIcon sx={{ fontSize: 13 }} />
+                  <Typography sx={{ fontSize: "inherit" }}>Editable</Typography>
+                </Stack>
+              </Tooltip>
+            </>
+          )}
         </Stack>
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Typography
-            sx={{
-              fontFamily: theme.palette.fonts.sans,
-              fontWeight: 500,
-              fontSize: "0.6875rem",
-              letterSpacing: "0.04em",
-              color: "rgba(255,255,255,0.85)",
-            }}
-          >
-            {locale.toUpperCase()}
+        {lead && (
+          <Typography sx={{ color: t.inkSoft, fontFamily: theme.palette.fonts.articleBody, fontSize: "0.875rem", fontWeight: 500, lineHeight: 1.55, mb: 1.75 }}>
+            {lead}
           </Typography>
-          <Tooltip title="Point and edit: hover any section to revise it.">
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0.5,
-                px: 0.875,
-                py: 0.375,
-                borderRadius: 4,
-                bgcolor: "rgba(255,255,255,0.15)",
-                color: "rgba(255,255,255,0.95)",
-                fontSize: "0.6875rem",
-                fontWeight: 500,
-                letterSpacing: "0.02em",
-              }}
-            >
-              <EditOutlinedIcon sx={{ fontSize: 12 }} />
-              Editable
-            </Box>
-          </Tooltip>
-        </Stack>
+        )}
       </Box>
 
-      {/* Document body */}
+      {sections.length > 1 && (
+        <Box
+          sx={{
+            mx: { xs: 2.5, md: 4 },
+            mb: 2.5,
+            pb: 2,
+            borderBottom: `1px solid ${t.articleDivider}`,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: theme.palette.fonts.articleBody,
+              fontSize: "1.125rem",
+              fontWeight: 600,
+              color: t.pepsiBlue,
+              letterSpacing: 0,
+              mb: 0.75,
+            }}
+          >
+            Table Of Contents
+          </Typography>
+          <Box
+            component="ul"
+            sx={{
+              m: 0,
+              pl: 2,
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              columnGap: 3,
+              rowGap: 0.35,
+              color: t.pepsiBlue,
+              fontFamily: theme.palette.fonts.articleBody,
+              fontSize: "0.8125rem",
+              lineHeight: 1.55,
+              "& li::marker": { color: t.pepsiBlue },
+              "& a": {
+                color: t.pepsiBlue,
+                fontWeight: 600,
+                textDecoration: "none",
+                "&:hover": {
+                  color: t.pepsiBlueStrong,
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
+                },
+              },
+            }}
+          >
+            {sections.map((section) => (
+              <li key={section}>
+                <a href={`#${articleAnchorId(section)}`}>{section}</a>
+              </li>
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      {/* Article body */}
       <Box
         sx={{
-          px: { xs: 3, md: 6 },
-          py: { xs: 4, md: 5 },
-          fontFamily: theme.palette.fonts.sans,
+          px: { xs: 2.5, md: 3 },
+          py: { xs: 2.5, md: 3 },
+          fontFamily: theme.palette.fonts.articleBody,
           color: t.ink,
         }}
       >
-        {/* Preamble (typically H1 + intro). Not section-editable. */}
-        {split.preamble && (
-          <SectionRender markdown={split.preamble} editable={false} />
+        {/* Preamble after the H1. Not section-editable. */}
+        {cleanPreamble && (
+          <SectionRender markdown={cleanPreamble} editable={false} />
         )}
 
         {/* Sections — each one editable */}
@@ -330,9 +410,6 @@ export default function EditableArticle({
           ),
         )}
       </Box>
-
-      {/* Footer accent — matches ArticleDocument */}
-      <Box sx={{ height: 4, bgcolor: t.pepsiBlue }} />
 
       <Snackbar
         open={!!snackbar}
@@ -418,7 +495,7 @@ function HoverableSection({
         mx: -2,
         px: 2,
         py: 0.5,
-        borderRadius: 1,
+            borderRadius: "8px",
         // Subtle inset border on the left when the section has issues —
         // gives the reviewer a peripheral "this section needs attention" cue
         // without obscuring the content.
@@ -983,67 +1060,74 @@ function SectionRender({
     return walk;
   }, [excerptRegex, highlightStyle]);
 
-  // Markdown components override: every block element that carries prose gets
-  // its children walked for excerpts. Headings stay untouched (excerpts are
-  // body text). Lean override set — anything not listed renders as default.
+  // Markdown components override: headings get stable jump anchors, and prose
+  // blocks can also highlight compliance excerpts when needed.
   const components = useMemo(
-    () =>
-      excerptRegex
-        ? {
-            // Prose elements — every block that commonly carries body text.
-            p: ({ children }: any) => <p>{highlight(children)}</p>,
-            li: ({ children }: any) => <li>{highlight(children)}</li>,
-            td: ({ children }: any) => <td>{highlight(children)}</td>,
-            blockquote: ({ children }: any) => (
-              <blockquote>{highlight(children)}</blockquote>
-            ),
-            // Headings — included because compliance issues (e.g. non-inclusive
-            // language) can absolutely land in a title and the badge above the
-            // section won't help if the offending word IS the H1/H2.
-            h1: ({ children }: any) => <h1>{highlight(children)}</h1>,
-            h2: ({ children }: any) => <h2>{highlight(children)}</h2>,
-            h3: ({ children }: any) => <h3>{highlight(children)}</h3>,
-          }
-        : undefined,
-    [excerptRegex, highlight],
+    () => ({
+      p: ({ children }: any) => <p>{highlight(children)}</p>,
+      li: ({ children }: any) => <li>{highlight(children)}</li>,
+      td: ({ children }: any) => <td>{highlight(children)}</td>,
+      blockquote: ({ children }: any) => (
+        <blockquote>{highlight(children)}</blockquote>
+      ),
+      h1: ({ children }: any) => <h1>{highlight(children)}</h1>,
+      h2: ({ children }: any) => {
+        const text = textFromChildren(children);
+        return <h2 id={articleAnchorId(text)}>{highlight(children)}</h2>;
+      },
+      h3: ({ children }: any) => {
+        const text = textFromChildren(children);
+        return <h3 id={articleAnchorId(text)}>{highlight(children)}</h3>;
+      },
+    }),
+    [highlight],
   );
 
   return (
     <Box
       sx={{
         color: t.ink,
-        fontSize: "0.9375rem",
-        lineHeight: 1.7,
+        fontFamily: theme.palette.fonts.articleBody,
+        fontSize: "0.875rem",
+        fontWeight: 500,
+        lineHeight: 1.55,
         // Mirror the ArticleDocument typography rules so the output reads
         // identically to a non-editable article.
         "& h1": {
-          fontSize: "1.875rem",
-          fontWeight: 700,
-          letterSpacing: "-0.02em",
-          lineHeight: 1.2,
-          color: t.ink,
+          fontFamily: theme.palette.fonts.articleTitle,
+          fontSize: "2rem",
+          fontWeight: 800,
+          letterSpacing: 0,
+          lineHeight: 1.12,
+          color: t.pepsiNavy,
           mt: editable ? 5 : 0,
           mb: 2,
         },
         "& h2": {
-          fontSize: "1.375rem",
-          fontWeight: 700,
-          letterSpacing: "-0.015em",
-          lineHeight: 1.3,
+          fontFamily: theme.palette.fonts.articleBody,
+          fontSize: "1.25rem",
+          fontWeight: 600,
+          letterSpacing: 0,
+          lineHeight: 1.05,
           color: t.pepsiBlue,
-          mt: 4.5,
-          mb: 1.5,
+          mt: 4,
+          mb: 1.25,
+          pb: 0,
+          borderBottom: 0,
+          scrollMarginTop: 24,
         },
         "& h3": {
-          fontSize: "1.0625rem",
+          fontFamily: theme.palette.fonts.articleBody,
+          fontSize: "0.9375rem",
           fontWeight: 600,
-          color: t.ink,
-          mt: 3.5,
-          mb: 1,
+          color: t.slate,
+          mt: 2.25,
+          mb: 0.75,
+          scrollMarginTop: 24,
         },
-        "& p": { my: 1.5, color: t.ink },
-        "& ul, & ol": { my: 1.5, pl: 3 },
-        "& li": { mb: 0.5, "&::marker": { color: t.pepsiBlue, fontWeight: 600 } },
+        "& p": { my: 1.1, color: t.ink },
+        "& ul, & ol": { my: 1.1, pl: 2.75 },
+        "& li": { mb: 0.35, "&::marker": { color: t.pepsiBlue, fontWeight: 600 } },
         "& strong": { fontWeight: 600 },
         "& a": {
           color: t.pepsiBlue,
@@ -1053,7 +1137,7 @@ function SectionRender({
           fontWeight: 500,
         },
         "& code": {
-          fontFamily: theme.palette.fonts.sans,
+          fontFamily: theme.palette.fonts.articleBody,
           fontSize: "0.85em",
           fontWeight: 500,
           bgcolor: t.pepsiBlueSubtle,
@@ -1065,36 +1149,63 @@ function SectionRender({
         "& blockquote": {
           borderLeft: `3px solid ${t.pepsiBlue}`,
           pl: 2,
-          py: 0.5,
-          my: 2,
+          py: 0.7,
+          my: 2.5,
           color: t.slate,
+          bgcolor: t.pepsiBlueSubtle,
+            borderRadius: "8px",
         },
         "& table": {
           borderCollapse: "collapse",
           width: "100%",
-          my: 2,
-          fontSize: "0.875rem",
+          my: 2.25,
+          fontSize: "0.8125rem",
+          border: `1px solid ${t.articleDivider}`,
         },
         "& th": {
           textAlign: "left",
           fontWeight: 600,
-          color: t.pepsiBlue,
-          fontSize: "0.6875rem",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
+          color: "#FFFFFF",
+          fontSize: "0.8125rem",
+          textTransform: "none",
+          letterSpacing: 0,
           py: 1,
           px: 1.5,
-          borderBottom: `2px solid ${t.pepsiBlue}`,
-          bgcolor: t.pepsiBlueSubtle,
+          borderBottom: 0,
+          bgcolor: t.pepsiBlueDeep,
         },
         "& td": {
-          py: 1.25,
+          py: 1.05,
           px: 1.5,
-          borderBottom: `1px solid ${t.border}`,
+          borderBottom: `1px solid ${t.articleDivider}`,
           verticalAlign: "top",
         },
+        "& tbody tr:nth-of-type(even)": { bgcolor: "#F8FAFC" },
         "& tr:last-of-type td": { borderBottom: 0 },
-        "& hr": { border: 0, borderTop: `1px solid ${t.border}`, my: 4 },
+        "& hr": { border: 0, borderTop: `1px solid ${t.articleDivider}`, my: 4 },
+        "& details": {
+          my: 1,
+        borderRadius: "8px",
+          overflow: "hidden",
+        },
+        "& summary": {
+          cursor: "pointer",
+          listStyle: "none",
+          bgcolor: t.pepsiBlue,
+          color: "#FFFFFF",
+          fontWeight: 600,
+          fontSize: "0.8125rem",
+          px: 1.5,
+          py: 1,
+          "&::-webkit-details-marker": { display: "none" },
+        },
+        "& details[open]": {
+          border: `1px solid ${t.articleDivider}`,
+          bgcolor: "#FFFFFF",
+        },
+        "& details[open] summary": {
+          mb: 1,
+        },
       }}
     >
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>

@@ -19,10 +19,11 @@ import type {
 import { runIntakeAgent } from "./intake-agent";
 import { runClarifierAgent } from "./clarifier-agent";
 import { runRouterAgent } from "./router-agent";
-import { runMarketAgent, runMarketRevisionAgent } from "./market-agent";
+import { runMarketAgent, runMarketRevisionAgent, type MarketDraft } from "./market-agent";
 import { runComplianceAgent } from "./compliance-agent";
 import { runGeoAgent } from "./geo-agent";
 import { evaluate as evaluateApprovalRules } from "../lib/approval-rules";
+import { normalizeArticleStandard } from "../lib/article-standard";
 
 function now() {
   return new Date().toISOString();
@@ -131,11 +132,12 @@ export async function orchestrate(jobId: string): Promise<void> {
           ? "Global"
           : (MARKET_MAP[selectedMarkets[0]] ?? "Global");
 
-      const infoArticle: Article = {
+      const infoArticle: Article = normalizeArticleStandard({
         id: `ka-${randomUUID().slice(0, 8)}`,
         jobId,
         title: job.input.title || "Untitled request",
         contentType: job.input.contentType,
+        knowledgeBase: job.input.knowledgeBase,
         market,
         // Phase A: carry submission tags forward so the needs-info card
         // already shows where this is meant to land if the author fills the gaps.
@@ -145,11 +147,13 @@ export async function orchestrate(jobId: string): Promise<void> {
         replacesArticleId: job.input.replacesArticleId,
         body: `# ${job.input.title || "Untitled request"}\n\n## More information needed\n\nBefore this article can be drafted, the content agent needs the following from the requester:\n\n${missing}\n\nA clarification email has been sent to **${job.input.submittedBy.email}**. Once the missing details are provided, resubmit the request to generate the draft.`,
         submittedBy: job.input.submittedBy,
+        owner: job.input.approver?.name,
+        approvedBy: job.input.approver?.name,
         submittedAt: now(),
         status: "needs-info",
         complianceIssues: [],
         infoNeeded: `Missing: ${intake.missingFields.join(", ") || "additional detail"}`,
-      };
+      }, { input: job.input, actor: job.input.submittedBy.name });
       await upsert("articles", infoArticle);
 
       const email: StubbedEmail = {
@@ -195,9 +199,21 @@ export async function orchestrate(jobId: string): Promise<void> {
         ? await loadSectorProfile(profile.sectorId)
         : null;
 
+      const reviewedArticleBody = job.input.finalArticleBody?.trim();
       const [draft, compliance] = await Promise.all([
-        runStep(jobId, "market", `Drafting (${marketId.toUpperCase()})`, () =>
-          runMarketAgent({ parsed: intake.parsedRequest, profile, sector }),
+        runStep(
+          jobId,
+          "market",
+          reviewedArticleBody
+            ? `Using reviewed article (${marketId.toUpperCase()})`
+            : `Drafting (${marketId.toUpperCase()})`,
+          () =>
+          reviewedArticleBody
+            ? Promise.resolve<MarketDraft>({
+                title: job.input.title,
+                body: reviewedArticleBody,
+              })
+            : runMarketAgent({ parsed: intake.parsedRequest, profile, sector }),
         ),
         runStep(jobId, "compliance", `Compliance check (${marketId.toUpperCase()})`, () =>
           runComplianceAgent({ parsed: intake.parsedRequest, rules }),
@@ -207,7 +223,7 @@ export async function orchestrate(jobId: string): Promise<void> {
       // ---- Step 5: Revise if compliance flagged ERROR-level issues ----
       let finalDraft = draft;
       const hasErrors = compliance.issues.some((i) => i.severity === "error");
-      if (hasErrors) {
+      if (hasErrors && !reviewedArticleBody) {
         await patchJob(jobId, { status: "revising" });
         finalDraft = await runStep(
           jobId,
@@ -266,11 +282,12 @@ export async function orchestrate(jobId: string): Promise<void> {
       // ---- Step 6b: Create article record ----
       // Build the article first so the rules engine has the full final state
       // (including compliance issues from this run) to evaluate against.
-      const baseArticle: Article = {
+      const baseArticle: Article = normalizeArticleStandard({
         id: `ka-${randomUUID().slice(0, 8)}`,
         jobId,
         title: finalDraft.title,
         contentType: job.input.contentType,
+        knowledgeBase: job.input.knowledgeBase,
         market: (
           { us: "US", mx: "MX", br: "BR", uk: "UK", in: "IN" } as const
         )[marketId] ?? "Global",
@@ -281,10 +298,17 @@ export async function orchestrate(jobId: string): Promise<void> {
         replacesArticleId: job.input.replacesArticleId,
         body: finalDraft.body,
         submittedBy: job.input.submittedBy,
+        owner: job.input.approver?.name,
+        approvedBy: job.input.approver?.name,
         submittedAt: now(),
         status: "needs-review",
         complianceIssues: compliance.issues,
-      };
+      }, {
+        input: job.input,
+        marketSources: profile.sources,
+        sectorSources: sector?.sources,
+        actor: job.input.submittedBy.name,
+      });
 
       // ---- Step 7: Phase C — approval rules engine ----
       // Cheap, deterministic post-check that adjusts status + attaches the
@@ -312,9 +336,13 @@ export async function orchestrate(jobId: string): Promise<void> {
       // Stakeholder notification email (stubbed)
       const notification: StubbedEmail = {
         id: `email-${randomUUID().slice(0, 8)}`,
-        to: ["portal-gov@pepsico.com", "search-seo@pepsico.com", "deex-design@pepsico.com"],
+        to: [
+          job.input.approver?.email ?? "portal-gov@pepsico.com",
+          "search-seo@pepsico.com",
+          "deex-design@pepsico.com",
+        ],
         subject: `New article ready for review: ${article.title}`,
-        body: `A new ${article.contentType} for the ${article.market} country has been drafted and is pending review.\n\nTitle: ${article.title}\nAuthor: ${job.input.submittedBy.name}\nID: ${article.id}\n\nReview at: /articles/${article.id}`,
+        body: `A new ${article.contentType} for the ${article.market} country has been drafted and is pending review.\n\nTitle: ${article.title}\nAuthor: ${job.input.submittedBy.name}\nApprover: ${job.input.approver?.name ?? "Portal governance"}\nID: ${article.id}\n\nReview at: /articles/${article.id}`,
         sentAt: now(),
         kind: "stakeholder-notification",
         jobId,

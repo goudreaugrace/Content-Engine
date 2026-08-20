@@ -1,160 +1,543 @@
-import { Box, Tooltip, Typography, useTheme } from "@mui/material";
+import { Box, Button, Chip, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import { isValidElement, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { Market } from "../lib/api";
+import type { ContentType, Market } from "../lib/api";
 import { localeFor } from "../lib/market";
+import ArticleReaderActions from "./article-reader-actions";
 
 type Props = {
   body: string;
   market?: Market;
+  title?: string;
+  lead?: string;
+  contentType?: ContentType;
+  canonicalSlug?: string;
+  localeLabel?: string;
+  updatedLabel?: string;
+  viewCount?: number;
+  showReaderActions?: boolean;
+  availableLocales?: string[];
+  selectedLocale?: string;
+  onLocaleSelect?: (locale: string) => void;
+  showContents?: boolean;
+  showMastheadMeta?: boolean;
+  presentation?: "standard" | "immersive";
+  showMasthead?: boolean;
+  editableSections?: EditableArticleSection[];
+  editingKey?: string | null;
+  onEdit?: (key: string) => void;
+  onDoneEditing?: () => void;
+  onTitleChange?: (value: string) => void;
+  onLeadChange?: (value: string) => void;
+  titleRecommendations?: string[];
+  leadRecommendations?: string[];
   /** Optional owner-view marker, displayed outside the article content. */
   readDepthPercent?: number;
 };
 
+export type EditableArticleSection = {
+  key: string;
+  title: string;
+  body: string;
+  recommendations?: string[];
+  onTitleChange?: (value: string) => void;
+  onBodyChange: (value: string) => void;
+};
+
+export function articleAnchorId(value: string) {
+  return `section-${value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+}
+
+export function articleSectionsFromMarkdown(body: string): string[] {
+  const readerBody = body.replace(/^#\s+.+\n+/, "").trim();
+  return Array.from(readerBody.matchAll(/^##\s+(.+?)\s*$/gm)).map((m) =>
+    m[1].trim(),
+  );
+}
+
+function textFromChildren(children: ReactNode): string {
+  if (typeof children === "string" || typeof children === "number") return String(children);
+  if (Array.isArray(children)) return children.map(textFromChildren).join("");
+  if (isValidElement<{ children?: ReactNode }>(children)) return textFromChildren(children.props.children);
+  return "";
+}
+
 /**
- * Renders an article body as a "real document" — a white-paper container with
- * a PepsiCo-blue branding band at the top, headings/links in PepsiCo blue,
- * Gilroy throughout. This is one of two documented exceptions to the
- * Flat-By-Default rule in DESIGN.md (the other is the sticky save bar).
+ * Renders the employee-facing article itself: a PepsiCo-flavored wiki page,
+ * not an admin card or PDF export. Governance metadata lives outside this
+ * component; this surface should read like what an employee came here to read.
  */
-export default function ArticleDocument({ body, market, readDepthPercent }: Props) {
+export default function ArticleDocument({
+  body,
+  market,
+  title: titleProp,
+  lead,
+  contentType,
+  canonicalSlug,
+  updatedLabel = "Updated: recently",
+  viewCount,
+  showReaderActions = true,
+  availableLocales,
+  selectedLocale,
+  onLocaleSelect,
+  showContents = true,
+  showMastheadMeta = true,
+  presentation = "standard",
+  showMasthead = true,
+  editableSections,
+  editingKey,
+  onEdit,
+  onDoneEditing,
+  onTitleChange,
+  onLeadChange,
+  titleRecommendations = [],
+  leadRecommendations = [],
+  readDepthPercent,
+}: Props) {
   const theme = useTheme();
   const t = theme.palette.tokens;
 
   const locale = market ? localeFor(market) : "en-US";
+  const parsedTitle = body.match(/^#\s+(.+?)\s*$/m)?.[1]?.trim();
+  const title = titleProp?.trim() || parsedTitle || "Knowledge article";
+  const readerBody = body.replace(/^#\s+.+\n+/, "").trim();
+  const sections =
+    editableSections?.map((section) => section.title).filter(Boolean) ??
+    articleSectionsFromMarkdown(body);
+  const isImmersive = presentation === "immersive";
+  const isEditable = !!onEdit;
+  const editableTitle = titleProp ?? title;
+  const editableLead = lead ?? "";
+
+  const editButton = (key: string) =>
+    isEditable ? (
+      <Button
+        size="small"
+        variant="outlined"
+        className="article-edit-action"
+        onClick={() => onEdit?.(key)}
+        sx={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          minHeight: 30,
+          px: 1.25,
+          borderRadius: 999,
+          bgcolor: "#FFFFFF",
+          borderColor: t.border,
+          color: t.pepsiBlueStrong,
+          fontSize: "0.75rem",
+          fontWeight: 700,
+          opacity: { xs: 1, md: 0 },
+          transition: "opacity 140ms, border-color 140ms, background-color 140ms",
+          "&:hover": {
+            bgcolor: t.pepsiBlueSubtle,
+            borderColor: t.pepsiBlue,
+          },
+        }}
+      >
+        Edit
+      </Button>
+    ) : null;
+
+  const editableBlockSx = {
+    position: "relative",
+    pr: { xs: 0, md: isEditable ? 8 : 0 },
+    py: isEditable ? 0.5 : 0,
+    borderRadius: 1.5,
+    "&:hover .article-edit-action": {
+      opacity: 1,
+    },
+  } as const;
+
+  const recommendationCallouts = (items?: string[]) => {
+    if (!items?.length) return null;
+    return (
+      <Stack spacing={0.75} sx={{ mt: 1.25, mb: 1.5 }}>
+        {items.map((item) => (
+          <Stack
+            key={item}
+            direction="row"
+            spacing={0.75}
+            alignItems="flex-start"
+            sx={{
+              maxWidth: isImmersive ? 1040 : 760,
+              px: 1.25,
+              py: 1,
+              borderRadius: 1.25,
+              bgcolor: "#FFF8E6",
+              border: "1px solid rgba(197, 123, 0, 0.28)",
+              color: t.ink,
+            }}
+          >
+            <ErrorOutlineIcon sx={{ mt: 0.1, fontSize: 16, color: t.ember, flexShrink: 0 }} />
+            <Box>
+              <Typography sx={{ fontSize: "0.6875rem", fontWeight: 800, color: t.ember, textTransform: "uppercase", letterSpacing: 0 }}>
+                Recommended improvement
+              </Typography>
+              <Typography sx={{ fontSize: "0.8125rem", color: t.slate, lineHeight: 1.45 }}>
+                {item}
+              </Typography>
+            </Box>
+          </Stack>
+        ))}
+      </Stack>
+    );
+  };
 
   return (
     <Box
       sx={{
-        // White paper container against the off-white page
-        bgcolor: "#FFFFFF",
-        border: `1px solid ${t.border}`,
-        borderRadius: 1,
+        bgcolor: t.articleRailBg,
+        border: 0,
+        borderRadius: isImmersive ? "8px" : 0,
         overflow: "hidden",
-        maxWidth: 820,
-        // Subtle ambient shadow = the document is "laid on" the desk.
-        // Documented exception to flat-by-default in DESIGN.md.
-        boxShadow: "0 1px 2px rgba(42,37,29,0.04), 0 8px 24px rgba(42,37,29,0.06)",
+        maxWidth: isImmersive ? "none" : 960,
+        boxShadow: "none",
       }}
     >
-      {/* ───── PepsiCo branding band ───── */}
-      <Box
-        sx={{
-          bgcolor: t.pepsiBlue,
-          color: "#FFFFFF",
-          px: { xs: 3, md: 5 },
-          py: 1.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 2,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
-          <PepsiMark />
-          <Typography
-            sx={{
-              fontFamily: theme.palette.fonts.sans,
-              fontWeight: 700,
-              fontSize: "0.875rem",
-              letterSpacing: "0.04em",
-              color: "#FFFFFF",
-            }}
-          >
-            PEPSICO
-          </Typography>
-          <Box
-            sx={{
-              width: 1,
-              height: 14,
-              bgcolor: "rgba(255,255,255,0.35)",
-              mx: 0.5,
-            }}
-          />
-          <Typography
-            sx={{
-              fontFamily: theme.palette.fonts.sans,
-              fontWeight: 500,
-              fontSize: "0.8125rem",
-              color: "rgba(255,255,255,0.92)",
-            }}
-            noWrap
-          >
-            MyPepsiCo · Knowledge Article
-          </Typography>
-        </Box>
-        <Typography
+      {isImmersive && showMasthead && <Box sx={{ height: 6, bgcolor: t.pepsiBlueDeep }} />}
+      {/* Reader masthead */}
+      {showMasthead && (
+        <Box
           sx={{
-            fontFamily: theme.palette.fonts.sans,
-            fontWeight: 500,
-            fontSize: "0.6875rem",
-            letterSpacing: "0.04em",
-            color: "rgba(255,255,255,0.85)",
+            px: { xs: 2.5, md: 4 },
+            py: 1.25,
+            borderBottom: `1px solid ${t.articleDivider}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 2,
+            bgcolor: isImmersive ? t.articleRailBg : t.paper,
           }}
         >
-          {locale.toUpperCase()}
-        </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+            <PepsiMark />
+            <Typography
+              sx={{
+                fontFamily: theme.palette.fonts.sans,
+                fontWeight: 800,
+                fontSize: "0.8125rem",
+                letterSpacing: 0,
+                color: t.pepsiNavy,
+              }}
+            >
+              pepsico
+            </Typography>
+            <Box
+              sx={{
+                width: 1,
+                height: 14,
+                  bgcolor: t.articleDivider,
+                mx: 0.5,
+              }}
+            />
+            <Typography
+              sx={{
+                fontFamily: theme.palette.fonts.sans,
+                fontWeight: 500,
+                fontSize: "0.8125rem",
+                color: t.slate,
+              }}
+              noWrap
+            >
+              myPortal Knowledge
+            </Typography>
+            {isImmersive && (
+              <Typography
+                sx={{
+                  display: { xs: "none", md: "block" },
+                  fontSize: "0.75rem",
+                  color: t.granite,
+                  ml: 0.5,
+                }}
+                noWrap
+              >
+                Food. Drinks. Smiles.
+              </Typography>
+            )}
+          </Box>
+          {showMastheadMeta && (
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              {contentType && <Chip size="small" label={contentType} sx={{ height: 22 }} />}
+              <Typography
+                sx={{
+                  fontFamily: theme.palette.fonts.mono,
+                  fontWeight: 500,
+                  fontSize: "0.6875rem",
+                  letterSpacing: 0,
+                  color: t.granite,
+                }}
+              >
+                {locale.toUpperCase()}
+              </Typography>
+            </Stack>
+          )}
+        </Box>
+      )}
+
+      {/* Article header */}
+      <Box
+        sx={{
+          px: { xs: 2.5, md: 3 },
+          pt: { xs: 2.5, md: 3 },
+          pb: 1.5,
+        }}
+      >
+        {showReaderActions && (
+          <ArticleReaderActions
+            selectedLocale={selectedLocale ?? locale}
+            availableLocales={availableLocales ?? [selectedLocale ?? locale]}
+            onLocaleSelect={onLocaleSelect}
+          />
+        )}
+        <Box sx={editableBlockSx}>
+          {editingKey === "title" && onTitleChange ? (
+            <Stack spacing={1}>
+              <TextField
+                autoFocus
+                fullWidth
+                variant="standard"
+                value={editableTitle}
+                onChange={(event) => onTitleChange(event.target.value)}
+                InputProps={{
+                  disableUnderline: true,
+                sx: {
+                    fontFamily: theme.palette.fonts.articleTitle,
+                    fontSize: { xs: "2.25rem", md: isImmersive ? "2.85rem" : "2.5rem" },
+                    fontWeight: 800,
+                    lineHeight: 0.95,
+                    color: t.pepsiNavy,
+                  },
+                }}
+              />
+              <Box>
+                <Button size="small" variant="contained" onClick={onDoneEditing}>
+                  Done
+                </Button>
+              </Box>
+              {recommendationCallouts(titleRecommendations)}
+            </Stack>
+          ) : (
+            <>
+              <Typography
+                component="h1"
+                sx={{
+                  fontFamily: theme.palette.fonts.articleTitle,
+                  fontSize: { xs: "2.25rem", md: isImmersive ? "2.85rem" : "2.5rem" },
+                  fontWeight: 800,
+                  letterSpacing: 0,
+                  lineHeight: 0.95,
+                  color: t.pepsiNavy,
+                  mb: 1.25,
+                }}
+              >
+                {title}
+              </Typography>
+              {editButton("title")}
+              {recommendationCallouts(titleRecommendations)}
+            </>
+          )}
+        </Box>
+        {showMastheadMeta && (
+          <Stack
+            direction="row"
+            spacing={2}
+            useFlexGap
+            flexWrap="wrap"
+            alignItems="center"
+            sx={{
+              mb: 1.5,
+              fontFamily: theme.palette.fonts.articleBody,
+              color: t.ink,
+              fontSize: "0.875rem",
+            }}
+          >
+            <Typography sx={{ fontSize: "inherit", fontWeight: 500, color: t.ink }}>
+              {updatedLabel}
+            </Typography>
+            {viewCount !== undefined && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <VisibilityOutlinedIcon sx={{ fontSize: 18, color: t.ink }} />
+                <Typography sx={{ fontSize: "inherit", fontWeight: 500, color: t.ink }}>
+                  {viewCount} Views
+                </Typography>
+              </Stack>
+            )}
+          </Stack>
+        )}
+        {(lead || editingKey === "lead" || leadRecommendations.length > 0) && (
+          <Box sx={editableBlockSx}>
+            {editingKey === "lead" && onLeadChange ? (
+              <Stack spacing={1}>
+                <TextField
+                  autoFocus
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  variant="filled"
+                  label="Summary"
+                  value={editableLead}
+                  onChange={(event) => onLeadChange(event.target.value)}
+                  InputProps={{ disableUnderline: true }}
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      bgcolor: t.surfaceContainerLow,
+                      borderRadius: 1.5,
+                      fontSize: isImmersive ? "1.125rem" : "1.0625rem",
+                      lineHeight: 1.65,
+                    },
+                  }}
+                />
+                <Box>
+                  <Button size="small" variant="contained" onClick={onDoneEditing}>
+                    Done
+                  </Button>
+                </Box>
+                {recommendationCallouts(leadRecommendations)}
+              </Stack>
+            ) : (
+              <>
+          <Typography
+            sx={{
+              maxWidth: isImmersive ? 1040 : 760,
+              color: t.inkSoft,
+              fontSize: "0.875rem",
+              lineHeight: 1.6,
+              mb: 1.75,
+            }}
+          >
+            {lead}
+          </Typography>
+                {editButton("lead")}
+                {recommendationCallouts(leadRecommendations)}
+              </>
+            )}
+          </Box>
+        )}
+        {!isImmersive && canonicalSlug && (
+          <Typography sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.75rem", color: t.granite }}>
+            Article ID: {canonicalSlug}
+          </Typography>
+        )}
       </Box>
 
-      {/* ───── Document body ───── */}
+      {showContents && sections.length > 1 && (
+        <Box
+          sx={{
+            mx: { xs: 2.5, md: isImmersive ? 5 : 4 },
+            mb: 2.5,
+            pb: 2,
+            borderBottom: `1px solid ${t.articleDivider}`,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: theme.palette.fonts.articleBody,
+              fontSize: "1.125rem",
+              fontWeight: 600,
+              color: t.pepsiBlue,
+              textTransform: "none",
+              letterSpacing: 0,
+              mb: 0.75,
+            }}
+          >
+            Table Of Contents
+          </Typography>
+          <Box
+            component="ul"
+            sx={{
+              m: 0,
+              pl: 2,
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              columnGap: 3,
+              rowGap: 0.35,
+              color: t.pepsiBlue,
+              fontFamily: theme.palette.fonts.articleBody,
+              fontSize: "0.8125rem",
+              lineHeight: 1.55,
+              "& li::marker": { color: t.pepsiBlue },
+              "& a": {
+                color: t.pepsiBlue,
+                fontWeight: 600,
+                textDecoration: "none",
+                "&:hover": {
+                  color: t.pepsiBlueStrong,
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
+                },
+              },
+            }}
+          >
+            {sections.map((section) => (
+              <li key={section}>
+                <a href={`#${articleAnchorId(section)}`}>{section}</a>
+              </li>
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      {/* Article body */}
       <Box
         sx={{
           position: "relative",
-          px: { xs: 3, md: 6 },
-          py: { xs: 4, md: 6 },
-          fontFamily: theme.palette.fonts.sans,
+          px: { xs: 2.5, md: 3 },
+          py: { xs: 2.5, md: 3 },
+          fontFamily: theme.palette.fonts.articleBody,
           color: t.ink,
-          fontSize: "0.9375rem",
-          lineHeight: 1.7,
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          lineHeight: 1.55,
 
           "& > *:first-of-type": { mt: 0 },
           "& > *:last-child": { mb: 0 },
 
-          // Headings — H2 in PepsiCo blue
           "& h1": {
-            fontFamily: theme.palette.fonts.sans,
-            fontSize: "1.875rem",
-            fontWeight: 700,
-            letterSpacing: "-0.02em",
-            lineHeight: 1.2,
-            color: t.ink,
-            mt: 0,
-            mb: 3,
+            display: "none",
           },
           "& h2": {
-            fontFamily: theme.palette.fonts.sans,
-            fontSize: "1.375rem",
-            fontWeight: 700,
-            letterSpacing: "-0.015em",
-            lineHeight: 1.3,
+            fontFamily: theme.palette.fonts.articleBody,
+            fontSize: "1.25rem",
+            fontWeight: 600,
+            letterSpacing: 0,
+            lineHeight: 1.05,
             color: t.pepsiBlue,
-            mt: 5,
-            mb: 1.5,
+            mt: 4,
+            mb: 1.25,
+            pb: 0,
+            borderBottom: 0,
+            scrollMarginTop: 24,
           },
           "& h3": {
-            fontFamily: theme.palette.fonts.sans,
-            fontSize: "1.0625rem",
-            fontWeight: 600,
-            letterSpacing: "-0.005em",
-            lineHeight: 1.35,
-            color: t.ink,
-            mt: 3.5,
-            mb: 1,
-          },
-          "& h4": {
+            fontFamily: theme.palette.fonts.articleBody,
             fontSize: "0.9375rem",
             fontWeight: 600,
-            color: t.ink,
-            mt: 3,
+            letterSpacing: 0,
+            lineHeight: 1.35,
+            color: t.slate,
+            mt: 2.25,
             mb: 0.75,
+            scrollMarginTop: 24,
+          },
+          "& h4": {
+            fontFamily: theme.palette.fonts.articleBody,
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            color: t.slate,
+            mt: 2.25,
+            mb: 0.5,
           },
 
-          "& p": { my: 1.75, color: t.ink },
+          "& p": { my: 1.15, color: t.ink, maxWidth: "none" },
 
-          // Lists
-          "& ul, & ol": { my: 1.75, pl: 3 },
+          "& ul, & ol": { my: 1.1, pl: 3, maxWidth: "none" },
           "& li": {
-            mb: 0.5,
+            mb: 0.35,
             "&::marker": { color: t.pepsiBlue, fontWeight: 600 },
           },
           "& li > p": { my: 0.25 },
@@ -163,7 +546,6 @@ export default function ArticleDocument({ body, market, readDepthPercent }: Prop
           "& strong": { fontWeight: 600, color: t.ink },
           "& em": { fontStyle: "italic" },
 
-          // Links — PepsiCo blue
           "& a": {
             color: t.pepsiBlue,
             textDecoration: "underline",
@@ -177,9 +559,8 @@ export default function ArticleDocument({ body, market, readDepthPercent }: Prop
             },
           },
 
-          // Inline code
           "& code": {
-            fontFamily: theme.palette.fonts.sans,
+            fontFamily: theme.palette.fonts.articleBody,
             fontSize: "0.85em",
             fontWeight: 500,
             bgcolor: t.pepsiBlueSubtle,
@@ -189,11 +570,10 @@ export default function ArticleDocument({ body, market, readDepthPercent }: Prop
             color: t.pepsiBlueStrong,
           },
 
-          // Code blocks
           "& pre": {
             bgcolor: t.mist,
             p: 2,
-            borderRadius: 1,
+            borderRadius: "8px",
             overflow: "auto",
             my: 2,
             "& code": {
@@ -205,47 +585,78 @@ export default function ArticleDocument({ body, market, readDepthPercent }: Prop
             },
           },
 
-          // Blockquote
           "& blockquote": {
             borderLeft: `3px solid ${t.pepsiBlue}`,
             pl: 2,
-            py: 0.75,
+            py: 0.7,
             my: 2.5,
             color: t.slate,
+            bgcolor: t.pepsiBlueSubtle,
+            borderRadius: "8px",
             "& p": { my: 0.5 },
           },
 
-          // Tables — PepsiCo blue header underline
           "& table": {
             borderCollapse: "collapse",
             width: "100%",
-            my: 2.5,
-            fontSize: "0.875rem",
+            my: 2.25,
+            fontSize: "0.8125rem",
+            border: `1px solid ${t.articleDivider}`,
           },
           "& th": {
             textAlign: "left",
             fontWeight: 600,
-            color: t.pepsiBlue,
-            fontSize: "0.6875rem",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
+            color: "#FFFFFF",
+            fontSize: "0.8125rem",
+            fontFamily: theme.palette.fonts.articleBody,
+            textTransform: "none",
+            letterSpacing: 0,
             py: 1,
             px: 1.5,
-            borderBottom: `2px solid ${t.pepsiBlue}`,
-            bgcolor: t.pepsiBlueSubtle,
+            borderBottom: 0,
+            bgcolor: t.pepsiBlueDeep,
           },
           "& td": {
-            py: 1.25,
+            py: 1.05,
             px: 1.5,
-            borderBottom: `1px solid ${t.border}`,
+            borderBottom: `1px solid ${t.articleDivider}`,
             verticalAlign: "top",
           },
+          "& tbody tr:nth-of-type(even)": { bgcolor: "#F8FAFC" },
           "& tr:last-of-type td": { borderBottom: 0 },
 
-          // Horizontal rule
+          "& details": {
+            my: 1,
+            maxWidth: "none",
+            borderRadius: "8px",
+            overflow: "hidden",
+          },
+          "& summary": {
+            cursor: "pointer",
+            listStyle: "none",
+            bgcolor: t.pepsiBlue,
+            color: "#FFFFFF",
+            fontWeight: 600,
+            fontSize: "0.8125rem",
+            px: 1.5,
+            py: 1,
+            "&::-webkit-details-marker": { display: "none" },
+            "&:focus-visible": {
+              outline: `2px solid ${t.pepsiBlueStrong}`,
+              outlineOffset: 2,
+            },
+          },
+          "& details[open]": {
+            border: `1px solid ${t.articleDivider}`,
+            bgcolor: "#FFFFFF",
+          },
+          "& details[open] summary": {
+            mb: 1,
+          },
+
           "& hr": {
             border: 0,
-            borderTop: `1px solid ${t.border}`,
+            borderTop: `1px solid ${t.articleDivider}`,
             my: 5,
           },
         }}
@@ -271,16 +682,96 @@ export default function ArticleDocument({ body, market, readDepthPercent }: Prop
             />
           </Tooltip>
         )}
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+        {editableSections ? (
+          <Stack spacing={1.5}>
+            {editableSections.map((section) => {
+              const isEditing = editingKey === section.key;
+              return (
+                <Box key={section.key} sx={editableBlockSx}>
+                  {isEditing ? (
+                    <Stack spacing={1.25}>
+                      {section.onTitleChange && (
+                        <TextField
+                          autoFocus
+                          fullWidth
+                          variant="filled"
+                          label="Section heading"
+                          value={section.title}
+                          onChange={(event) => section.onTitleChange?.(event.target.value)}
+                          InputProps={{ disableUnderline: true }}
+                          sx={{
+                            "& .MuiInputBase-root": {
+                              bgcolor: t.surfaceContainerLow,
+                              borderRadius: 1.5,
+                              fontWeight: 650,
+                            },
+                          }}
+                        />
+                      )}
+                      <TextField
+                        autoFocus={!section.onTitleChange}
+                        fullWidth
+                        multiline
+                        minRows={6}
+                        variant="filled"
+                        label="Article content"
+                        value={section.body}
+                        onChange={(event) => section.onBodyChange(event.target.value)}
+                        InputProps={{ disableUnderline: true }}
+                        sx={{
+                          "& .MuiInputBase-root": {
+                            bgcolor: t.surfaceContainerLow,
+                            borderRadius: 1.5,
+                            fontSize: isImmersive ? "1rem" : "0.9375rem",
+                            lineHeight: 1.65,
+                          },
+                        }}
+                      />
+                      {recommendationCallouts(section.recommendations)}
+                      <Box>
+                        <Button size="small" variant="contained" onClick={onDoneEditing}>
+                          Done
+                        </Button>
+                      </Box>
+                    </Stack>
+                  ) : (
+                    <>
+                      <h2 id={articleAnchorId(section.title)}>{section.title}</h2>
+                      {section.body.trim() ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {section.body}
+                        </ReactMarkdown>
+                      ) : (
+                        <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
+                          Add content for this section.
+                        </Typography>
+                      )}
+                      {editButton(section.key)}
+                      {recommendationCallouts(section.recommendations)}
+                    </>
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+        ) : (
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              h2: ({ children }) => {
+                const text = textFromChildren(children);
+                return <h2 id={articleAnchorId(text)}>{children}</h2>;
+              },
+              h3: ({ children }) => {
+                const text = textFromChildren(children);
+                return <h3 id={articleAnchorId(text)}>{children}</h3>;
+              },
+            }}
+          >
+            {readerBody}
+          </ReactMarkdown>
+        )}
       </Box>
-
-      {/* ───── Footer accent ───── */}
-      <Box
-        sx={{
-          height: 4,
-          bgcolor: t.pepsiBlue,
-        }}
-      />
     </Box>
   );
 }
@@ -292,7 +783,7 @@ function PepsiMark() {
     <Box
       component="svg"
       viewBox="0 0 28 28"
-      sx={{ width: 22, height: 22, color: "#FFFFFF", flexShrink: 0 }}
+      sx={{ width: 22, height: 22, color: "#004B93", flexShrink: 0 }}
       aria-hidden
     >
       <circle cx="14" cy="14" r="13" fill="currentColor" opacity="0.18" />

@@ -335,7 +335,7 @@ export default function Messages() {
   );
 
   return (
-    <Box sx={{ maxWidth: 1040, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1280, mx: "auto" }}>
       <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={2}>
         <Box>
           <Typography variant="h4" component="h1">Messages</Typography>

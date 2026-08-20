@@ -109,7 +109,7 @@ export default function AdminSectorEditor() {
   if (!form) return null;
 
   return (
-    <Box sx={{ maxWidth: 880, mx: "auto", pb: 16 }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto", pb: 16 }}>
       <Button
         startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
         onClick={() => navigate("/admin/sectors")}

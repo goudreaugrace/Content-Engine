@@ -14,9 +14,6 @@ import {
   useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import RemoveIcon from "@mui/icons-material/Remove";
 import HistoryIcon from "@mui/icons-material/History";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
@@ -39,6 +36,7 @@ import {
 import { localeFor } from "../lib/market";
 import { sectorShortLabel, sectorFullLabel } from "../lib/sector";
 import ArticleDocument from "../components/article-document";
+import ArticleReadingFrame from "../components/article-reading-frame";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -59,15 +57,9 @@ function marketIdFor(market: Market): string {
   }[market];
 }
 
-function daysAgo(iso: string): string {
-  const diff = Math.floor(
-    (Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24),
-  );
-  if (diff === 0) return "today";
-  if (diff === 1) return "1d ago";
-  if (diff < 30) return `${diff}d ago`;
-  if (diff < 365) return `${Math.round(diff / 30)}mo ago`;
-  return `${Math.round(diff / 365)}y ago`;
+function translationBody(value: NonNullable<PublishedArticle["translations"]>[string] | undefined): string | undefined {
+  if (!value) return undefined;
+  return typeof value === "string" ? value : value.body;
 }
 
 export default function PublishedArticleDetail() {
@@ -82,6 +74,7 @@ export default function PublishedArticleDetail() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [selectedSimilarIds, setSelectedSimilarIds] = useState<string[]>([]);
+  const [viewLocale, setViewLocale] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -117,6 +110,14 @@ export default function PublishedArticleDetail() {
         <CircularProgress size={24} sx={{ color: t.slate }} />
       </Box>
     );
+
+  const primaryLocale = localeFor(article.market);
+  const availableLocales = [primaryLocale, ...Object.keys(article.translations ?? {})];
+  const selectedLocale = viewLocale ?? primaryLocale;
+  const displayedBody =
+    selectedLocale !== primaryLocale
+      ? (translationBody(article.translations?.[selectedLocale]) ?? article.body)
+      : article.body;
 
   /**
    * Archive / unarchive toggle. Replaces the prior 4-button lifecycle
@@ -282,47 +283,18 @@ export default function PublishedArticleDetail() {
         {article.title}
       </Typography>
 
-      {/* ─── Metrics + staleness card ─── */}
+      <ArticlePerformance article={article} />
+
+      {/* ─── Staleness card ─── */}
       <Box
         sx={{
           mb: 4,
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-          gap: 2,
+          border: `1px solid ${stalenessConfig.color}`,
+          borderRadius: 2,
+          p: 2.5,
+          bgcolor: stalenessConfig.bg,
         }}
       >
-        {/* Engagement panel — neutral, lives on a tinted surface. */}
-        <Box
-          sx={{
-            borderRadius: 2,
-            p: 2.5,
-            bgcolor: t.surfaceContainerLow,
-          }}
-        >
-          <Typography variant="overline" sx={{ color: t.slate, mb: 1.5, display: "block" }}>
-            Engagement
-          </Typography>
-          <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
-            <Stat label="Views (30d)" value={article.metrics.views30d.toLocaleString()}>
-              <TrendIcon trend={article.metrics.trend} />
-            </Stat>
-            <Stat label="All-time views" value={article.metrics.viewsAllTime.toLocaleString()} />
-            {article.metrics.lastViewedAt && (
-              <Stat label="Last viewed" value={daysAgo(article.metrics.lastViewedAt)} />
-            )}
-          </Stack>
-        </Box>
-        {/* Staleness panel — keeps its colored stroke. The border carries
-            semantic meaning (severity of the staleness state), so the M3
-            outlined-error/warning container pattern applies. */}
-        <Box
-          sx={{
-            border: `1px solid ${stalenessConfig.color}`,
-            borderRadius: 2,
-            p: 2.5,
-            bgcolor: stalenessConfig.bg,
-          }}
-        >
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
             <Typography
               variant="overline"
@@ -364,11 +336,10 @@ export default function PublishedArticleDetail() {
                   "&:hover": { bgcolor: stalenessConfig.color, opacity: 0.9 },
                 }}
               >
-                Mark still accurate
-              </Button>
-            </Box>
-          )}
-        </Box>
+              Mark still accurate
+            </Button>
+          </Box>
+        )}
       </Box>
 
       {/* ─── Recommendation card ─── */}
@@ -520,7 +491,50 @@ export default function PublishedArticleDetail() {
 
       {/* ─── Article body ─── */}
       <Box sx={{ mb: 6 }}>
-        <ArticleDocument body={article.body} market={article.market} />
+        <ArticleReadingFrame
+          body={displayedBody}
+          tags={[article.contentType, localeFor(article.market), ...(article.countries ?? [])]}
+          selectedLocale={selectedLocale}
+          primaryLocale={primaryLocale}
+          availableLocales={availableLocales}
+          quickLinks={[
+            ...(article.archivedAt
+              ? []
+              : [{
+                  label: "Mark as reviewed",
+                  onClick: markReviewed,
+                  disabled: busy,
+                }]),
+          ]}
+          article={
+            <ArticleDocument
+              body={displayedBody}
+              market={article.market}
+              title={article.title}
+              lead={article.lead}
+              contentType={article.contentType}
+              canonicalSlug={article.canonicalSlug}
+              updatedLabel={`Updated: ${formatDate(article.lastReviewedAt ?? article.publishedAt)}`}
+              viewCount={article.metrics.viewsAllTime}
+              selectedLocale={selectedLocale}
+              availableLocales={availableLocales}
+              onLocaleSelect={setViewLocale}
+              presentation="immersive"
+              showMasthead={false}
+            />
+          }
+          details={[
+            {
+              title: "Publishing details",
+              rows: [
+                { label: "Status", value: article.archivedAt ? "Archived" : "Published" },
+                { label: "Owner", value: article.owner ?? article.originalSubmittedBy.name },
+                { label: "Version", value: `Version ${article.version}` },
+                { label: "Published", value: formatDate(article.publishedAt) },
+              ],
+            },
+          ]}
+        />
       </Box>
 
       {/* Convert / Delete-and-redirect dialogs removed — both were part of
@@ -778,45 +792,8 @@ function ReadershipMap({ locations, expectedCodes }: { locations: NonNullable<Pu
   );
 }
 
-function Stat({
-  label,
-  value,
-  children,
-}: {
-  label: string;
-  value: string;
-  children?: React.ReactNode;
-}) {
-  const theme = useTheme();
-  const t = theme.palette.tokens;
-  return (
-    <Box>
-      <Typography variant="overline" sx={{ display: "block", lineHeight: 1, mb: 0.5 }}>
-        {label}
-      </Typography>
-      <Stack direction="row" spacing={0.75} alignItems="center">
-        {children}
-        <Typography
-          sx={{ fontSize: "1.125rem", fontWeight: 600, color: t.ink, lineHeight: 1.2 }}
-        >
-          {value}
-        </Typography>
-      </Stack>
-    </Box>
-  );
-}
-
 // LifecycleButton removed — it powered the 4-tile decision matrix that is
 // no longer rendered. Archive/Unarchive use plain MUI Buttons inline.
-
-function TrendIcon({ trend }: { trend: "up" | "flat" | "down" }) {
-  const theme = useTheme();
-  const t = theme.palette.tokens;
-  const Icon =
-    trend === "up" ? ArrowUpwardIcon : trend === "down" ? ArrowDownwardIcon : RemoveIcon;
-  const color = trend === "up" ? t.successInk : trend === "down" ? t.errorInk : t.granite;
-  return <Icon sx={{ fontSize: 16, color }} />;
-}
 
 // ════════════════════════════════════════════════════════════
 // RecommendationCard — the AI-style suggestion at the top of the page

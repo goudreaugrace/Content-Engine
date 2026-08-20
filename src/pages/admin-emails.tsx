@@ -119,7 +119,7 @@ export default function AdminEmails() {
     });
 
   return (
-    <Box sx={{ maxWidth: 820, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto" }}>
       <Typography variant="h4" component="h1">
         Email Log
       </Typography>

@@ -96,13 +96,16 @@ ${profile.seoNotes ? `${profile.seoNotes}\n` : ""}${
 
 ## Output requirements
 
-Return a complete article in Markdown with these sections (translated into ${profile.language}):
+Return a complete article in Markdown using this internal knowledge article anatomy (translated into ${profile.language}):
 1. H1 title
-2. ## Summary — one paragraph
-3. ## Who this applies to — identify the audience
-4. ## Body — the actual content, organized with H3 sub-sections where useful
-5. ## Last updated — today's date in ${profile.dateFormat} format
-6. ## Owner — placeholder "[Article Owner — to be confirmed]"
+2. One short lead paragraph immediately after the H1 that stands alone and explains what the article covers, who it helps, and when to use it.
+3. Content-type sections:
+   - Knowledge Article: ## Before you start, ## Steps, ## Common situations, ## Need help?
+   - Policy: ## Who this applies to, ## Policy details, ## Exceptions, ## Compliance, ## Effective date
+   - FAQ: one H2 per question, then ## Need help?
+   - Topic Page: ## Overview, ## Key resources, ## Related articles, ## Need help?
+4. Use source material as the factual basis. Do not invent policy details, owners, dates, or exceptions.
+5. Do not put owner, last updated, next review, effective date, or approved-by footer lines in the Markdown body; those live in structured metadata.
 
 Do not include code fences or any preamble. Begin directly with the H1.`;
 };

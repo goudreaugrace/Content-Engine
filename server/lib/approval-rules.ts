@@ -38,10 +38,10 @@ export type ApprovalDecision = {
  * front-end's REQUIRED_SECTIONS map — both surfaces show the same list.
  */
 const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
-  FAQ: ["Question", "Answer", "Related"],
-  Policy: ["Overview", "Policy", "Effective date", "Contact"],
-  "Knowledge Article": ["Overview", "Steps", "Troubleshooting"],
-  "Topic Page": ["Overview", "Details", "Resources"],
+  FAQ: ["Question", "Need help"],
+  Policy: ["Who this applies to", "Policy", "Exceptions", "Compliance"],
+  "Knowledge Article": ["Before you start", "Steps", "Common", "Need help"],
+  "Topic Page": ["Overview", "Key resources", "Need help"],
 };
 
 /** Extract H2 headings from a markdown body. Case-insensitive lookup downstream. */
@@ -57,6 +57,101 @@ function extractH2s(body: string): string[] {
 
 export function evaluate(article: Article): ApprovalDecision {
   const reasons: RuleResult[] = [];
+
+  const title = article.title.trim();
+  const lead = (article.lead ?? article.seo?.summary ?? "").trim();
+
+  // ── Wikipedia-inspired canonical object checks ──
+  if (title.length >= 8 && title.length <= 90 && article.canonicalSlug?.trim()) {
+    reasons.push({
+      id: "canonical-title",
+      label: "Canonical title and slug present",
+      severity: "ok",
+    });
+  } else {
+    reasons.push({
+      id: "canonical-title",
+      label: "Title or canonical slug needs work",
+      severity: "error",
+      reason: "Use a concise, recognizable title and generate a stable canonical slug.",
+    });
+  }
+
+  if (lead.length >= 60 && lead.length <= 500) {
+    reasons.push({
+      id: "lead",
+      label: "Lead stands alone",
+      severity: "ok",
+    });
+  } else {
+    reasons.push({
+      id: "lead",
+      label: "Lead is missing or too thin",
+      severity: "error",
+      reason: "Add a short opening summary that explains what the article covers, who it helps, and when to use it.",
+    });
+  }
+
+  const refCount = article.references?.length ?? 0;
+  if (refCount > 0) {
+    reasons.push({
+      id: "references",
+      label: `${refCount} source ${refCount === 1 ? "reference" : "references"} attached`,
+      severity: "ok",
+    });
+  } else {
+    reasons.push({
+      id: "references",
+      label: "No source references attached",
+      severity: article.contentType === "Policy" ? "error" : "warning",
+      reason: "Ground the article in submitted, profile, policy, or reviewer-approved source material.",
+    });
+  }
+
+  if ((article.topics?.length ?? 0) >= 1 && (article.topics?.length ?? 0) <= 12) {
+    reasons.push({
+      id: "topic-scope",
+      label: "Topic scope is tagged",
+      severity: "ok",
+    });
+  } else {
+    reasons.push({
+      id: "topic-scope",
+      label: "Topic scope is unclear",
+      severity: "warning",
+      reason: "Add one primary topic and a small set of supporting topic tags.",
+    });
+  }
+
+  if (article.owner?.trim()) {
+    reasons.push({
+      id: "owner",
+      label: "Article owner present",
+      severity: "ok",
+    });
+  } else {
+    reasons.push({
+      id: "owner",
+      label: "Article owner missing",
+      severity: "error",
+      reason: "Every canonical article needs an accountable owner.",
+    });
+  }
+
+  if (article.visibility?.audiences?.length && article.visibility.countries?.length) {
+    reasons.push({
+      id: "visibility",
+      label: "Audience and country visibility set",
+      severity: "ok",
+    });
+  } else {
+    reasons.push({
+      id: "visibility",
+      label: "Visibility scope incomplete",
+      severity: "error",
+      reason: "Set who can see the article and where it applies.",
+    });
+  }
 
   // ── Required H2 sections present ──
   const requiredSections =

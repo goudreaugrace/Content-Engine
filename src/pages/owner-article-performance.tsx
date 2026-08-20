@@ -5,6 +5,13 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { api, type PublishedArticle } from "../lib/api";
 import { ArticlePerformance } from "./published-article-detail";
 import ArticleDocument from "../components/article-document";
+import ArticleReadingFrame from "../components/article-reading-frame";
+import { localeFor } from "../lib/market";
+
+function translationBody(value: NonNullable<PublishedArticle["translations"]>[string] | undefined): string | undefined {
+  if (!value) return undefined;
+  return typeof value === "string" ? value : value.body;
+}
 
 /**
  * Content-owner view of a published article. It deliberately contains no
@@ -20,6 +27,7 @@ export default function OwnerArticlePerformance() {
   const t = theme.palette.tokens;
   const [article, setArticle] = useState<PublishedArticle | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewLocale, setViewLocale] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -46,6 +54,13 @@ export default function OwnerArticlePerformance() {
     stale: { label: "Stale", score: 100 - article.staleness.score, color: t.errorInk, bg: t.errorBg },
     archived: { label: "Archived", score: 0, color: t.slate, bg: t.surfaceContainer },
   }[article.staleness.level];
+  const primaryLocale = localeFor(article.market);
+  const availableLocales = [primaryLocale, ...Object.keys(article.translations ?? {})];
+  const selectedLocale = viewLocale ?? primaryLocale;
+  const displayedBody =
+    selectedLocale !== primaryLocale
+      ? (translationBody(article.translations?.[selectedLocale]) ?? article.body)
+      : article.body;
 
   return (
     <Box sx={{ maxWidth: 1100, mx: "auto" }}>
@@ -71,8 +86,47 @@ export default function OwnerArticlePerformance() {
       </Typography>
       <ArticlePerformance article={article} />
       <Box sx={{ mt: 5, mb: 6 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Article</Typography>
-        <ArticleDocument body={article.body} market={article.market} readDepthPercent={article.metrics.scrollDepthPercent} />
+        <ArticleReadingFrame
+          body={displayedBody}
+          tags={[article.contentType, localeFor(article.market), ...(article.countries ?? [])]}
+          selectedLocale={selectedLocale}
+          primaryLocale={primaryLocale}
+          availableLocales={availableLocales}
+          quickLinks={[
+            {
+              label: "Back to my articles",
+              onClick: () => navigate("/?tab=my-articles"),
+            },
+          ]}
+          article={
+            <ArticleDocument
+              body={displayedBody}
+              market={article.market}
+              title={article.title}
+              lead={article.lead}
+              contentType={article.contentType}
+              canonicalSlug={article.canonicalSlug}
+              updatedLabel={`Updated: ${new Date(article.lastReviewedAt ?? article.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
+              viewCount={article.metrics.viewsAllTime}
+              selectedLocale={selectedLocale}
+              availableLocales={availableLocales}
+              onLocaleSelect={setViewLocale}
+              presentation="immersive"
+              showMasthead={false}
+              readDepthPercent={article.metrics.scrollDepthPercent}
+            />
+          }
+          details={[
+            {
+              title: "Publishing details",
+              rows: [
+                { label: "Status", value: article.archivedAt ? "Archived" : "Published" },
+                { label: "Owner", value: article.owner ?? article.originalSubmittedBy.name },
+                { label: "Version", value: `Version ${article.version}` },
+              ],
+            },
+          ]}
+        />
       </Box>
     </Box>
   );

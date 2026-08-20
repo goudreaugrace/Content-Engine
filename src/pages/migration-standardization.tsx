@@ -72,7 +72,7 @@ export default function MigrationStandardization() {
   const canSubmit = form.sourceContent.trim().length >= 40 && form.countries.length > 0;
 
   return (
-    <Box sx={{ maxWidth: 860, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1280, mx: "auto" }}>
       <Button
         startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
         onClick={() => navigate("/")}

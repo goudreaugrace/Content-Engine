@@ -20,6 +20,7 @@ import RouteOutlinedIcon from "@mui/icons-material/RouteOutlined";
 import HubOutlinedIcon from "@mui/icons-material/HubOutlined";
 import InsightsOutlinedIcon from "@mui/icons-material/InsightsOutlined";
 import { api } from "../lib/api";
+import { usePersonaMode } from "../lib/persona";
 
 const STEPS = [
   { key: "welcome", title: "Welcome", label: "Welcome" },
@@ -209,7 +210,7 @@ export default function HowItWorks() {
   const nextLabel = isLast ? "Done" : stepIndex === totalSteps - 2 ? "Finish" : "Next";
 
   return (
-    <Box sx={{ maxWidth: 1120, mx: "auto", position: "relative" }}>
+    <Box sx={{ maxWidth: 1280, mx: "auto", position: "relative" }}>
       {/* ─────────── Top chrome: progress + step counter + skip ─────────── */}
       <Box
         sx={{
@@ -1123,7 +1124,7 @@ function StepSequence() {
         sx={{
           mt: 3,
           mx: "auto",
-          maxWidth: 960,
+          maxWidth: 1120,
           // Allow horizontal scroll on narrow viewports without squishing the SVG.
           overflowX: "auto",
         }}
@@ -1132,7 +1133,7 @@ function StepSequence() {
       </Box>
 
       {/* Supporting notes — secondary, sitting under the diagram. */}
-      <Box sx={{ maxWidth: 960, mx: "auto", mt: { xs: 4, md: 6 } }}>
+      <Box sx={{ maxWidth: 1120, mx: "auto", mt: { xs: 4, md: 6 } }}>
         <Typography
           variant="overline"
           sx={{ display: "block", mb: 2, color: t.slate, letterSpacing: "0.1em" }}
@@ -1216,7 +1217,7 @@ function SequenceLaneDiagram() {
       sx={{
         width: "100%",
         minWidth: 720,
-        maxWidth: 960,
+        maxWidth: 1120,
         height: "auto",
         display: "block",
         mx: "auto",
@@ -1666,19 +1667,31 @@ function StepReady({ onBack }: { onBack: () => void }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
   const navigate = useNavigate();
+  const [personaMode] = usePersonaMode();
+  const canCreateArticle = personaMode === "non-admin";
 
   // Author first — that's the most common path into this product, and
   // ordering matters: it sets the "primary" suggestion in the eye scan.
   const ctas = [
-    {
-      icon: <ArticleOutlinedIcon />,
-      role: "If you're an author",
-      label: "Start a new article",
-      sub: "Open the request form and let the agents draft it.",
-      to: "/new",
-      cta: "New article",
-      primary: true,
-    },
+    canCreateArticle
+      ? {
+          icon: <ArticleOutlinedIcon />,
+          role: "If you're an author",
+          label: "Start a new article",
+          sub: "Open the request form and let the agents draft it.",
+          to: "/new",
+          cta: "New article",
+          primary: true,
+        }
+      : {
+          icon: <ArticleOutlinedIcon />,
+          role: personaMode === "super-admin" ? "If you're a super admin" : "If you're a team admin",
+          label: personaMode === "super-admin" ? "Open all articles" : "Open your review workspace",
+          sub: "Manage review, governance, and published content without creating articles directly.",
+          to: "/",
+          cta: "Open articles",
+          primary: true,
+        },
     {
       icon: <RateReviewOutlinedIcon />,
       role: "If you're a reviewer",
@@ -1698,7 +1711,7 @@ function StepReady({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <Box sx={{ textAlign: "center", maxWidth: 920, mx: "auto" }}>
+    <Box sx={{ textAlign: "center", maxWidth: 1120, mx: "auto" }}>
       {/* Subtle confirmation — small check on a quiet success wash. The
           design system reserves big emphasis for primary actions, so the
           graduation tick stays small on purpose. */}
@@ -1765,7 +1778,7 @@ function StepReady({ onBack }: { onBack: () => void }) {
           display: "grid",
           gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
           gap: 2,
-          maxWidth: 880,
+          maxWidth: 1040,
           mx: "auto",
           mb: 5,
           textAlign: "left",

@@ -5,6 +5,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  Breadcrumbs,
   Typography,
   Stack,
   Chip,
@@ -16,8 +17,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Tooltip,
   MenuItem,
   useTheme,
@@ -36,9 +35,10 @@ import HistoryIcon from "@mui/icons-material/History";
 import ReplayIcon from "@mui/icons-material/Replay";
 import { api, type Article, type ArticleSEO, type MarketProfile } from "../lib/api";
 import { localeFor } from "../lib/market";
-import { sectorShortLabel, sectorFullLabel } from "../lib/sector";
+import { sectorFullLabel } from "../lib/sector";
 import ArticleDocument from "../components/article-document";
 import EditableArticle from "../components/editable-article";
+import ArticleReadingFrame from "../components/article-reading-frame";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 // ArticleEditor was the old whole-article markdown/AI chat editor. Option A
 // consolidated all editing under the page-level Edit toggle + per-section
@@ -72,6 +72,11 @@ function slugify(s: string): string {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { dateStyle: "long" });
+}
+
+function translationBody(value: NonNullable<Article["translations"]>[string] | undefined): string | undefined {
+  if (!value) return undefined;
+  return typeof value === "string" ? value : value.body;
 }
 
 // Source articles do not yet persist a KB destination. Until the KB-access
@@ -117,61 +122,51 @@ const SUBMISSION_STAGES = [
 function SubmissionProgress({ currentStage }: { currentStage: number }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const safeStage = Math.min(Math.max(currentStage, 0), SUBMISSION_STAGES.length - 1);
 
   return (
-    <Box sx={{ overflowX: "auto", pb: 0.5 }}>
-      <Stack direction="row" alignItems="flex-start" sx={{ minWidth: 520 }}>
-        {SUBMISSION_STAGES.map((stage, index) => {
-          const isComplete = index < currentStage;
-          const isCurrent = index === currentStage;
-          const dotColor = isComplete ? t.successInk : isCurrent ? t.pepsiBlue : t.borderStrong;
-          return (
-            <Stack key={stage} direction="row" alignItems="flex-start" sx={{ flex: index === SUBMISSION_STAGES.length - 1 ? 0 : 1 }}>
-              <Stack alignItems="center" spacing={0.75} sx={{ width: 86, flexShrink: 0 }}>
-                <Box
-                  sx={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: "50%",
-                    bgcolor: dotColor,
-                    color: t.paper,
-                    display: "grid",
-                    placeItems: "center",
-                    fontSize: "0.6875rem",
-                    fontWeight: 700,
-                    boxShadow: isCurrent ? `0 0 0 4px ${alpha(t.pepsiBlue, 0.16)}` : "none",
-                  }}
-                >
-                  {isComplete ? "✓" : ""}
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "0.6875rem",
-                    lineHeight: 1.2,
-                    color: isCurrent ? t.ink : t.slate,
-                    fontWeight: isCurrent ? 700 : 500,
-                    textAlign: "center",
-                  }}
-                >
-                  {stage}
-                </Typography>
-              </Stack>
-              {index < SUBMISSION_STAGES.length - 1 && (
-                <Box
-                  sx={{
-                    height: 2,
-                    flex: 1,
-                    minWidth: 20,
-                    mt: 1,
-                    bgcolor: index < currentStage ? t.successInk : t.borderStrong,
-                  }}
-                />
-              )}
-            </Stack>
-          );
-        })}
-      </Stack>
-    </Box>
+    <Breadcrumbs
+      separator="›"
+      aria-label="Article progress"
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        width: "100%",
+        minWidth: 0,
+        "& .MuiBreadcrumbs-ol": {
+          justifyContent: "center",
+          rowGap: 0.5,
+        },
+        "& .MuiBreadcrumbs-separator": {
+          mx: 0.75,
+          color: alpha(t.granite, 0.75),
+          fontSize: "0.95rem",
+          lineHeight: 1,
+          fontWeight: 600,
+        },
+      }}
+    >
+      {SUBMISSION_STAGES.map((stage, index) => {
+        const isComplete = index < safeStage;
+        const isCurrent = index === safeStage;
+
+        return (
+          <Typography
+            key={stage}
+            component="span"
+            sx={{
+              fontSize: "0.75rem",
+              lineHeight: 1.35,
+              color: isCurrent ? t.pepsiBlueStrong : isComplete ? t.pepsiBlue : t.granite,
+              fontWeight: isCurrent ? 700 : 600,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {stage}
+          </Typography>
+        );
+      })}
+    </Breadcrumbs>
   );
 }
 
@@ -458,7 +453,9 @@ export default function ArticleDetail() {
 
     // Server may already have it cached on the article (pre-baked or prior fetch)
     const base = next.split("-")[0];
-    const onArticle = article.translations?.[next] ?? article.translations?.[base];
+    const onArticle =
+      translationBody(article.translations?.[next]) ??
+      translationBody(article.translations?.[base]);
     if (onArticle) {
       setTranslations((m) => ({ ...m, [next]: onArticle }));
       return;
@@ -480,6 +477,8 @@ export default function ArticleDetail() {
     viewLocale && viewLocale !== primaryLocale
       ? (translations[viewLocale] ?? article.body)
       : article.body;
+  const selectedLocale = viewLocale ?? primaryLocale ?? localeFor(article.market);
+  const countries = article.countries?.length ? article.countries : [article.market];
 
   const downloadPdf = async () => {
     if (!documentRef.current) return;
@@ -509,7 +508,7 @@ export default function ArticleDetail() {
   };
 
   return (
-    <Box sx={{ maxWidth: 820, mx: "auto" }}>
+    <Box sx={{ maxWidth: 1520, mx: "auto" }}>
       <Button
         startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
         onClick={() => navigate(fromTeamArticles ? "/?tab=my-articles" : "/")}
@@ -518,120 +517,103 @@ export default function ArticleDetail() {
         {fromTeamArticles ? "Team Articles" : isContentOwner ? "My Articles" : "All Articles"}
       </Button>
 
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
-        <Chip
-          icon={meta.icon as React.ReactElement}
-          label={meta.label}
-          color={meta.color}
-          size="small"
-        />
-        <Box
-          component="span"
-          sx={{
-            fontFamily: theme.palette.fonts.mono,
-            fontSize: "0.6875rem",
-            color: t.granite,
-          }}
+      <Box sx={{ mb: 4.5 }}>
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          alignItems={{ xs: "flex-start", md: "flex-start" }}
+          justifyContent="space-between"
+          spacing={2.5}
+          sx={{ mb: 2.5 }}
         >
-          {article.id}
-        </Box>
-        <Box
-          component="span"
-          sx={{
-            fontFamily: theme.palette.fonts.mono,
-            fontSize: "0.6875rem",
-            color: t.slate,
-          }}
+          <Box sx={{ minWidth: 0 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1}
+              useFlexGap
+              flexWrap="wrap"
+              sx={{ mb: 1.5 }}
+            >
+              <Chip
+                icon={meta.icon as React.ReactElement}
+                label={meta.label}
+                color={meta.color}
+                size="small"
+                sx={{ height: 24, fontWeight: 700 }}
+              />
+              <Chip
+                label={article.contentType}
+                size="small"
+                variant="outlined"
+                sx={{ height: 24, fontSize: "0.75rem", fontWeight: 600 }}
+              />
+              <Typography
+                component="span"
+                sx={{
+                  fontFamily: theme.palette.fonts.mono,
+                  fontSize: "0.6875rem",
+                  color: t.granite,
+                }}
+              >
+                {article.id} · v{article.version ?? 1} · {localeFor(article.market)}
+              </Typography>
+            </Stack>
+            <Typography
+              variant="h3"
+              component="h1"
+              sx={{
+                maxWidth: 980,
+                color: t.ink,
+                fontWeight: 700,
+                lineHeight: 1.08,
+                letterSpacing: 0,
+              }}
+            >
+              {article.title}
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Stack
+          direction="row"
+          spacing={4}
+          rowGap={2}
+          flexWrap="wrap"
+          sx={{ mt: 2.75 }}
         >
-          {localeFor(article.market)}
-        </Box>
-        {article.sector && (
-          <Box
-            component="span"
-            title={sectorFullLabel(article.sector)}
-            sx={{
-              fontFamily: theme.palette.fonts.mono,
-              fontSize: "0.6875rem",
-              color: t.slate,
-            }}
-          >
-            {sectorShortLabel(article.sector)}
+          <Meta label="Owner" value={article.owner ?? article.submittedBy.name} />
+          <Meta label="Knowledge base" value={knowledgeBaseLabel(article)} />
+          {article.sector && <Meta label="Sector" value={sectorFullLabel(article.sector)} />}
+          {article.countries && article.countries.length > 0 && (
+            <Meta
+              label="Countries"
+              value={
+                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                  {article.countries.map((code) => (
+                    <Chip
+                      key={code}
+                      label={code}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 22, fontSize: "0.6875rem" }}
+                    />
+                  ))}
+                </Stack>
+              }
+            />
+          )}
+          <Meta label="Submitted" value={formatDate(article.submittedAt)} />
+          {article.reviewedAt && (
+            <Meta label="Reviewed" value={`${formatDate(article.reviewedAt)} · ${article.reviewer}`} />
+          )}
+        </Stack>
+
+        {isContentOwner && article.status !== "needs-info" && (
+          <Box sx={{ mt: 3 }}>
+            <SubmissionProgress currentStage={ownerProgress.stage} />
           </Box>
         )}
-        <Typography variant="body2" sx={{ color: t.slate }}>
-          {article.contentType}
-        </Typography>
-      </Stack>
-
-      {/* ─────────── Title (alone on its own line) ─────────── */}
-      <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
-        {article.title}
-      </Typography>
-
-      {/* ─────────── Meta strip ───────────
-          Submitted-by / submitted / reviewed / countries. The bottom border
-          previously closed out the header block; now it visually separates
-          the meta from the action row that follows, so the actions read as
-          a distinct decision row rather than spillover from the meta. */}
-      <Stack
-        direction="row"
-        spacing={4}
-        rowGap={2}
-        flexWrap="wrap"
-        sx={{ mb: 3, pb: 3, borderBottom: `1px solid ${t.border}` }}
-      >
-        {article.sector && (
-          <Meta label="Sector" value={sectorFullLabel(article.sector)} />
-        )}
-        <Meta label="Content owner & author" value={article.submittedBy.name} />
-        <Meta label="Knowledge base" value={knowledgeBaseLabel(article)} />
-        <Meta label="Submitted" value={formatDate(article.submittedAt)} />
-        {article.reviewedAt && (
-          <Meta
-            label="Reviewed"
-            value={`${formatDate(article.reviewedAt)} · ${article.reviewer}`}
-          />
-        )}
-        {article.countries && article.countries.length > 0 && (
-          <Meta
-            label="Countries"
-            value={
-              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                {article.countries.map((code) => (
-                  <Chip
-                    key={code}
-                    label={code}
-                    size="small"
-                    variant="outlined"
-                    sx={{ height: 22, fontSize: "0.6875rem" }}
-                  />
-                ))}
-              </Stack>
-            }
-          />
-        )}
-      </Stack>
-
-      {isContentOwner && article.status !== "needs-info" && (
-        <Box sx={{ mb: 4 }}>
-          <Typography
-            sx={{
-              display: "block",
-              color: t.ink,
-              fontSize: "0.9375rem",
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              mb: 1.5,
-            }}
-          >
-            Article progress
-          </Typography>
-          <SubmissionProgress currentStage={ownerProgress.stage} />
-          <Typography sx={{ mt: 1.5, fontSize: "0.875rem", color: t.slate, lineHeight: 1.5 }}>
-            {ownerProgress.message}
-          </Typography>
-        </Box>
-      )}
+      </Box>
 
       {isOwnerReviewLocked && reviewContext.length > 0 && (
         <Box
@@ -991,98 +973,103 @@ export default function ArticleDetail() {
           exposes its affordance and a sticky save bar at the bottom of the
           viewport shows undo + done-editing controls. */}
       <>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          spacing={2}
-          flexWrap="wrap"
-          sx={{ maxWidth: 820, mb: 1.5 }}
-        >
-          {availableLocales.length > 1 ? (
-            <ToggleButtonGroup
-              value={viewLocale ?? primaryLocale ?? ""}
-              exclusive
-              size="small"
-              onChange={(_, v) => v && handleSwitchLocale(v)}
-            >
-              {availableLocales.map((code) => {
-                const isPrimary = code === primaryLocale;
-                const isLoading = translating === code;
-                const pill = (
-                  <ToggleButton
-                    key={code}
-                    value={code}
-                    sx={{ px: 1.5, fontSize: "0.75rem" }}
-                  >
-                    {isLoading ? (
-                      <Stack direction="row" spacing={0.75} alignItems="center">
-                        <CircularProgress
-                          size={11}
-                          thickness={6}
-                          color="inherit"
-                        />
-                        <span>{code}</span>
-                      </Stack>
-                    ) : (
-                      code
-                    )}
-                  </ToggleButton>
-                );
-                return isPrimary ? (
-                  pill
-                ) : (
-                  <Tooltip
-                    key={code}
-                    title="Translation provided for review. The primary language remains the source of truth."
-                  >
-                    {pill}
-                  </Tooltip>
-                );
-              })}
-            </ToggleButtonGroup>
-          ) : (
-            <Box />
-          )}
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            {/* Edit moved to the page-level action row under the title +
-                meta strip. Download PDF stays here because it's contextually
-                an "export this view" action tied to the current language. */}
-            <Button size="small" onClick={downloadPdf} disabled={downloading}>
-              {downloading ? "Generating…" : "Download PDF"}
-            </Button>
-          </Stack>
-        </Stack>
+        {translateError && (
+          <Alert severity="warning" sx={{ maxWidth: 1040, mb: 1.5 }}>
+            {translateError}
+          </Alert>
+        )}
 
-          {translateError && (
-            <Alert severity="warning" sx={{ maxWidth: 820, mb: 1.5 }}>
-              {translateError}
-            </Alert>
-          )}
+        <Typography
+          sx={{
+            mb: 1.25,
+            fontSize: "0.75rem",
+            fontWeight: 800,
+            color: t.granite,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+          }}
+        >
+          Article preview
+        </Typography>
 
         <Box ref={documentRef}>
-          {article.status !== "published" &&
-          (!viewLocale || viewLocale === primaryLocale) ? (
-            // EditableArticle owns the per-section UI. It honors `editMode`
-            // — when off it reads as a clean document with no edit chrome;
-            // when on, every section surfaces its Edit affordance. Compliance
-            // badges + AI fix cards still show regardless (they're guided
-            // actions, not edits the reviewer initiated themselves).
-            <EditableArticle
-              articleId={article.id}
-              body={article.body}
-              market={article.market}
-              complianceIssues={article.complianceIssues}
-              editMode={editMode}
-              onUpdated={(newBody) => {
-                const before = article;
-                setArticle((a) => (a ? { ...a, body: newBody } : a));
-                recordSave(before);
-              }}
-            />
-          ) : (
-            <ArticleDocument body={displayedBody} market={article.market} />
-          )}
+          <ArticleReadingFrame
+            body={displayedBody}
+            tags={[article.contentType, knowledgeBaseLabel(article), ...countries]}
+            quickLinks={[
+              {
+                label: downloading ? "Generating..." : "Download PDF",
+                onClick: downloadPdf,
+                disabled: downloading,
+              },
+              ...(article.status === "published" && article.publishedArticleId
+                ? [{
+                    label: "Open live article",
+                    onClick: () => navigate(`/library/${article.publishedArticleId}`),
+                  }]
+                : []),
+            ]}
+            selectedLocale={selectedLocale}
+            primaryLocale={primaryLocale}
+            availableLocales={availableLocales}
+            article={
+              article.status !== "published" &&
+              (!viewLocale || viewLocale === primaryLocale) ? (
+                // EditableArticle owns the per-section UI. It honors `editMode`
+                // — when off it reads as a clean document with no edit chrome;
+                // when on, every section surfaces its Edit affordance. Compliance
+                // badges + AI fix cards still show regardless (they're guided
+                // actions, not edits the reviewer initiated themselves).
+                <EditableArticle
+                  articleId={article.id}
+                  body={article.body}
+                  market={article.market}
+                  title={article.title}
+                  lead={article.lead}
+                  contentType={article.contentType}
+                  canonicalSlug={article.canonicalSlug}
+                  updatedLabel={`Updated: ${formatDate(article.reviewedAt ?? article.submittedAt)}`}
+                  selectedLocale={selectedLocale}
+                  availableLocales={availableLocales}
+                  onLocaleSelect={handleSwitchLocale}
+                  complianceIssues={article.complianceIssues}
+                  editMode={editMode}
+                  onUpdated={(newBody) => {
+                    const before = article;
+                    setArticle((a) => (a ? { ...a, body: newBody } : a));
+                    recordSave(before);
+                  }}
+                />
+              ) : (
+                <ArticleDocument
+                  body={displayedBody}
+                  market={article.market}
+                  title={article.title}
+                  lead={article.lead}
+                  contentType={article.contentType}
+                  canonicalSlug={article.canonicalSlug}
+                  localeLabel={selectedLocale}
+                  updatedLabel={`Updated: ${formatDate(article.reviewedAt ?? article.submittedAt)}`}
+                  selectedLocale={selectedLocale}
+                  availableLocales={availableLocales}
+                  onLocaleSelect={handleSwitchLocale}
+                  presentation="immersive"
+                  showMasthead={false}
+                />
+              )
+            }
+            details={[
+              {
+                title: "Publishing details",
+                rows: [
+                  { label: "Status", value: statusMeta[article.status].label },
+                  { label: "Knowledge base", value: knowledgeBaseLabel(article) },
+                  { label: "Owner", value: article.owner ?? article.submittedBy.name },
+                  { label: "Version", value: `Version ${article.version ?? 1}` },
+                ],
+              },
+            ]}
+          />
         </Box>
       </>
 

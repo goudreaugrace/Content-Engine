@@ -65,14 +65,13 @@ type NavItem = {
   badgeCount?: number;
   adminOnly?: boolean;
   teamAdminOnly?: boolean;
+  authorOnly?: boolean;
 };
 
-// "New article" is the writer's primary action — surfaced as the top nav item
-// AND as a contextual page-header button on the Articles tab. Multiple entry
-// points, one action. (We tried a FAB-only model earlier; it hurt
-// discoverability for part-time writers who needed to find the action cold.)
+// "New article" is the Content Owner's primary action. Team Admin and Super
+// Admin manage governance/review and should not create articles directly.
 const navItems: NavItem[] = [
-  { label: "New Article", path: "/new", icon: <AddCircleOutlineIcon sx={{ fontSize: 20 }} /> },
+  { label: "New Article", path: "/new", icon: <AddCircleOutlineIcon sx={{ fontSize: 20 }} />, authorOnly: true },
   // Review Cycle used to be its own top-level page. It now lives as the
   // default "Needs review" tab on the All Articles page, so the sidebar
   // carries a single entry that lands on the merged surface.
@@ -124,6 +123,7 @@ export default function AppLayout() {
   const visibleNavItems = navItems.filter((it) => {
     if (personaMode === "non-admin" && (it.adminOnly || it.teamAdminOnly)) return false;
     if (personaMode === "super-admin" && it.teamAdminOnly) return false;
+    if (it.authorOnly && personaMode !== "non-admin") return false;
     return true;
   });
   const navItemsWithBadges: NavItem[] = visibleNavItems.map((it) =>

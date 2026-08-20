@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Box,
   Typography,
@@ -165,13 +167,39 @@ type TemplateField = {
 type ArticleSectionField = TemplateField & {
   faqItemId?: string;
   customId?: string;
+  sectionType?: CustomSectionType;
   required?: boolean;
+};
+
+type CustomSectionType = "text" | "faq" | "table" | "resources";
+
+type CustomFaqItem = {
+  id: string;
+  question: string;
+  answer: string;
+};
+
+type CustomTableColumn = {
+  id: string;
+  header: string;
+};
+
+type CustomTableRow = {
+  id: string;
+  label: string;
+  value: string;
+  cells: Record<string, string>;
 };
 
 type CustomSection = {
   id: string;
+  type: CustomSectionType;
   title: string;
   body: string;
+  faqItems: CustomFaqItem[];
+  tableColumns: CustomTableColumn[];
+  tableRows: CustomTableRow[];
+  resourceLinks: TopicResource[];
 };
 
 type TopicResource = {
@@ -180,6 +208,33 @@ type TopicResource = {
   url: string;
   description: string;
 };
+
+const SECTION_BLOCK_OPTIONS: Array<{
+  type: CustomSectionType;
+  label: string;
+  description: string;
+}> = [
+  {
+    type: "text",
+    label: "Text section",
+    description: "A standard heading with article copy.",
+  },
+  {
+    type: "faq",
+    label: "FAQ section",
+    description: "A group of employee questions and answers.",
+  },
+  {
+    type: "table",
+    label: "Table section",
+    description: "Rows of structured reference information.",
+  },
+  {
+    type: "resources",
+    label: "Resource links",
+    description: "Links, forms, toolkits, or documents.",
+  },
+];
 
 type AssistantAction = "fill" | "polish" | "employee";
 
@@ -544,6 +599,135 @@ function detectDraftLanguage(text: string): string {
   return "en-US";
 }
 
+function EditableSectionTitle({
+  value,
+  placeholder,
+  onChange,
+}: {
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+}) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const titleRef = useRef<HTMLDivElement | null>(null);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    const title = titleRef.current;
+    if (!title || document.activeElement === title) return;
+    title.textContent = value;
+  }, [value]);
+
+  const commitText = () => {
+    const next = titleRef.current?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    onChange(next);
+  };
+
+  const focusTitle = () => {
+    const title = titleRef.current;
+    if (!title) return;
+    title.focus();
+    const range = document.createRange();
+    range.selectNodeContents(title);
+    range.collapse(false);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  };
+
+  return (
+    <Stack
+      direction="row"
+      spacing={0.5}
+      alignItems="center"
+      sx={{
+        minWidth: 0,
+        flex: 1,
+        maxWidth: "100%",
+        "&:hover [data-section-title]": {
+          borderColor: t.articleDivider,
+        },
+        "&:hover [data-section-title-icon]": {
+          opacity: 1,
+          color: t.pepsiBlue,
+        },
+      }}
+    >
+      <Box
+        ref={titleRef}
+        data-section-title
+        contentEditable
+        suppressContentEditableWarning
+        role="textbox"
+        aria-label="Section title"
+        data-empty={!value.trim() ? "true" : "false"}
+        data-placeholder={placeholder}
+        onFocus={() => setEditing(true)}
+        onBlur={() => {
+          setEditing(false);
+          commitText();
+        }}
+        onInput={commitText}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            titleRef.current?.blur();
+          }
+        }}
+        onPaste={(event) => {
+          event.preventDefault();
+          const text = event.clipboardData.getData("text/plain").replace(/\s+/g, " ");
+          document.execCommand("insertText", false, text);
+          window.setTimeout(commitText, 0);
+        }}
+        sx={{
+          minWidth: 0,
+          maxWidth: "100%",
+          px: 0,
+          py: 0.2,
+          borderBottom: `1px solid ${editing ? t.pepsiBlue : "transparent"}`,
+          outline: "none",
+          color: t.pepsiBlue,
+          fontFamily: theme.palette.fonts.articleBody,
+          fontSize: "1.25rem",
+          fontWeight: 600,
+          lineHeight: 1.1,
+          overflowWrap: "anywhere",
+          transition: "border-color 140ms",
+          "&[data-empty='true']::before": {
+            content: "attr(data-placeholder)",
+            color: t.granite,
+            opacity: 0.72,
+          },
+        }}
+      />
+      <IconButton
+        data-section-title-icon
+        size="small"
+        title="Edit section title"
+        onClick={focusTitle}
+        sx={{
+          flexShrink: 0,
+          width: 22,
+          height: 22,
+          p: 0,
+          color: editing ? t.pepsiBlue : t.granite,
+          opacity: editing ? 1 : 0.62,
+          borderRadius: "6px",
+          "&:hover": {
+            bgcolor: t.surfaceContainerLow,
+            color: t.pepsiBlue,
+            opacity: 1,
+          },
+        }}
+      >
+        <EditOutlinedIcon sx={{ fontSize: 13 }} />
+      </IconButton>
+    </Stack>
+  );
+}
+
 // ────────────────────────────────────────────────────────────
 // Component
 // ────────────────────────────────────────────────────────────
@@ -631,6 +815,8 @@ export default function NewRequest() {
     useState<HTMLElement | null>(null);
   const [improveMenuTarget, setImproveMenuTarget] =
     useState<SelectionTarget | null>(null);
+  const [sectionMenuAnchor, setSectionMenuAnchor] =
+    useState<HTMLElement | null>(null);
   const [knowledgeStepCount, setKnowledgeStepCount] = useState(1);
   const [assistantSuggestion, setAssistantSuggestion] =
     useState<AssistantSuggestion | null>(null);
@@ -771,22 +957,270 @@ export default function NewRequest() {
         section.id === id ? { ...section, ...patch } : section,
       ),
     }));
-  const addCustomSection = () =>
+  const addCustomSection = (type: CustomSectionType = "text") => {
+    const id = `custom-${Date.now().toString(36)}`;
+    const defaultTitle =
+      type === "faq"
+        ? "FAQs"
+        : type === "table"
+          ? "Reference table"
+          : type === "resources"
+            ? "Resource links"
+            : "";
     setForm((f) => ({
       ...f,
       customSections: [
         ...f.customSections,
         {
-          id: `custom-${Date.now().toString(36)}`,
-          title: "",
+          id,
+          type,
+          title: defaultTitle,
           body: "",
+          faqItems: [
+            { id: `${id}-faq-1`, question: "", answer: "" },
+          ],
+          tableColumns: [
+            { id: `${id}-col-1`, header: "Item" },
+            { id: `${id}-col-2`, header: "Details" },
+          ],
+          tableRows: [
+            {
+              id: `${id}-row-1`,
+              label: "",
+              value: "",
+              cells: {
+                [`${id}-col-1`]: "",
+                [`${id}-col-2`]: "",
+              },
+            },
+          ],
+          resourceLinks: [
+            { id: `${id}-resource-1`, label: "", url: "", description: "" },
+          ],
         },
       ],
     }));
+  };
   const removeCustomSection = (id: string) =>
     setForm((f) => ({
       ...f,
       customSections: f.customSections.filter((section) => section.id !== id),
+    }));
+  const updateCustomFaqItem = (
+    sectionId: string,
+    itemId: string,
+    patch: Partial<CustomFaqItem>,
+  ) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              faqItems: section.faqItems.map((item) =>
+                item.id === itemId ? { ...item, ...patch } : item,
+              ),
+            }
+          : section,
+      ),
+    }));
+  const addCustomFaqItem = (sectionId: string) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              faqItems: [
+                ...section.faqItems,
+                {
+                  id: `${sectionId}-faq-${Date.now().toString(36)}`,
+                  question: "",
+                  answer: "",
+                },
+              ],
+            }
+          : section,
+      ),
+    }));
+  const removeCustomFaqItem = (sectionId: string, itemId: string) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              faqItems:
+                section.faqItems.length <= 1
+                  ? section.faqItems
+                  : section.faqItems.filter((item) => item.id !== itemId),
+            }
+          : section,
+      ),
+    }));
+  const updateCustomTableRow = (
+    sectionId: string,
+    rowId: string,
+    patch: Partial<CustomTableRow>,
+  ) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              tableRows: section.tableRows.map((row) =>
+                row.id === rowId
+                  ? {
+                      ...row,
+                      ...patch,
+                      cells: {
+                        ...(row.cells ?? {}),
+                        ...(patch.cells ?? {}),
+                      },
+                    }
+                  : row,
+              ),
+            }
+          : section,
+      ),
+    }));
+  const updateCustomTableColumn = (
+    sectionId: string,
+    columnId: string,
+    header: string,
+  ) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              tableColumns: section.tableColumns.map((column) =>
+                column.id === columnId ? { ...column, header } : column,
+              ),
+            }
+          : section,
+      ),
+    }));
+  const addCustomTableColumn = (sectionId: string) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) => {
+        if (section.id !== sectionId) return section;
+        const columnId = `${sectionId}-col-${Date.now().toString(36)}`;
+        return {
+          ...section,
+          tableColumns: [
+            ...section.tableColumns,
+            { id: columnId, header: `Column ${section.tableColumns.length + 1}` },
+          ],
+          tableRows: section.tableRows.map((row) => ({
+            ...row,
+            cells: { ...(row.cells ?? {}), [columnId]: "" },
+          })),
+        };
+      }),
+    }));
+  const removeCustomTableColumn = (sectionId: string, columnId: string) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) => {
+        if (section.id !== sectionId || section.tableColumns.length <= 1) return section;
+        return {
+          ...section,
+          tableColumns: section.tableColumns.filter((column) => column.id !== columnId),
+          tableRows: section.tableRows.map((row) => {
+            const nextCells = { ...(row.cells ?? {}) };
+            delete nextCells[columnId];
+            return { ...row, cells: nextCells };
+          }),
+        };
+      }),
+    }));
+  const addCustomTableRow = (sectionId: string) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) => {
+        if (section.id !== sectionId) return section;
+        return {
+          ...section,
+          tableRows: [
+            ...section.tableRows,
+            {
+              id: `${sectionId}-row-${Date.now().toString(36)}`,
+              label: "",
+              value: "",
+              cells: Object.fromEntries(
+                section.tableColumns.map((column) => [column.id, ""]),
+              ),
+            },
+          ],
+        };
+      }),
+    }));
+  const removeCustomTableRow = (sectionId: string, rowId: string) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              tableRows:
+                section.tableRows.length <= 1
+                  ? section.tableRows
+                  : section.tableRows.filter((row) => row.id !== rowId),
+            }
+          : section,
+      ),
+    }));
+  const updateCustomResourceLink = (
+    sectionId: string,
+    resourceId: string,
+    patch: Partial<TopicResource>,
+  ) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              resourceLinks: section.resourceLinks.map((resource) =>
+                resource.id === resourceId ? { ...resource, ...patch } : resource,
+              ),
+            }
+          : section,
+      ),
+    }));
+  const addCustomResourceLink = (sectionId: string) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              resourceLinks: [
+                ...section.resourceLinks,
+                { id: `${sectionId}-resource-${Date.now().toString(36)}`, label: "", url: "", description: "" },
+              ],
+            }
+          : section,
+      ),
+    }));
+  const removeCustomResourceLink = (sectionId: string, resourceId: string) =>
+    setForm((f) => ({
+      ...f,
+      customSections: f.customSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              resourceLinks:
+                section.resourceLinks.length <= 1
+                  ? section.resourceLinks
+                  : section.resourceLinks.filter((resource) => resource.id !== resourceId),
+            }
+          : section,
+      ),
     }));
   const updatePolicyMeta = (
     key: keyof typeof form.policyMeta,
@@ -858,6 +1292,7 @@ export default function NewRequest() {
   const customArticleSections: ArticleSectionField[] = form.customSections.map((section, index) => ({
     key: section.id,
     customId: section.id,
+    sectionType: section.type,
     label: section.title.trim() || `Additional section ${index + 1}`,
     placeholder: "Add employee-facing details that do not fit the required template sections.",
     minRows: 4,
@@ -867,12 +1302,90 @@ export default function NewRequest() {
     ...requiredArticleSections,
     ...customArticleSections,
   ];
+  const escapeTableCell = (value: string) =>
+    value.trim().replace(/\|/g, "\\|").replace(/\n+/g, " ");
+  const getTableColumns = (section: CustomSection) =>
+    section.tableColumns.length
+      ? section.tableColumns
+      : [
+          { id: `${section.id}-col-1`, header: "Item" },
+          { id: `${section.id}-col-2`, header: "Details" },
+        ];
+  const getTableCellValue = (
+    row: CustomTableRow,
+    column: CustomTableColumn,
+    columnIndex: number,
+  ) =>
+    (row.cells?.[column.id] ??
+      (columnIndex === 0 ? row.label : columnIndex === 1 ? row.value : "")) ||
+    "";
+  const formatCustomSectionBody = (section: CustomSection) => {
+    if (section.type === "faq") {
+      return section.faqItems
+        .map((item, index) => {
+          const question = item.question.trim() || `Question ${index + 1}`;
+          const answer = item.answer.trim();
+          if (!question && !answer) return "";
+          return `### ${question}\n\n${answer}`;
+        })
+        .filter(Boolean)
+        .join("\n\n");
+    }
+    if (section.type === "table") {
+      const columns = getTableColumns(section);
+      const rows = section.tableRows.filter(
+        (row) =>
+          row.label.trim() ||
+          row.value.trim() ||
+          columns.some((column, columnIndex) =>
+            getTableCellValue(row, column, columnIndex).trim(),
+          ),
+      );
+      if (!rows.length) return "";
+      return [
+        `| ${columns.map((column) => escapeTableCell(column.header || "Column")).join(" |")} |`,
+        `| ${columns.map(() => "---").join(" |")} |`,
+        ...rows.map((row) =>
+          `| ${columns
+            .map((column, columnIndex) =>
+              escapeTableCell(getTableCellValue(row, column, columnIndex)),
+            )
+            .join(" |")} |`,
+        ),
+      ].join("\n");
+    }
+    if (section.type === "resources") {
+      return section.resourceLinks
+        .map((resource) => {
+          const label = resource.label.trim();
+          const url = resource.url.trim();
+          const description = resource.description.trim();
+          if (!label && !url && !description) return "";
+          const link = url ? `[${label || url}](${url})` : label;
+          return `- ${link || "Resource"}${description ? ` — ${description}` : ""}`;
+        })
+        .filter(Boolean)
+        .join("\n");
+    }
+    return section.body;
+  };
   const articleAnswers = Object.fromEntries(
     articleSections.map((field) => {
       const value = field.faqItemId
         ? form.faqItems.find((item) => item.id === field.faqItemId)?.answer ?? ""
         : field.customId
-          ? form.customSections.find((section) => section.id === field.customId)?.body ?? ""
+          ? formatCustomSectionBody(
+              form.customSections.find((section) => section.id === field.customId) ?? {
+                id: field.customId,
+                type: "text",
+                title: "",
+                body: "",
+                faqItems: [],
+                tableColumns: [],
+                tableRows: [],
+                resourceLinks: [],
+              },
+            )
         : form.templateAnswers[field.key] ?? "";
       return [field.key, value];
     }),
@@ -972,26 +1485,23 @@ export default function NewRequest() {
 
     return recommendations;
   };
-  const reviewEditableSections = articleSections.map((field) => ({
-    key: field.key,
-    title: field.label,
-    body: articleAnswers[field.key] ?? "",
-    recommendations: sectionRecommendations(field, articleAnswers[field.key] ?? ""),
-    onTitleChange: (value: string) =>
-      field.faqItemId
-        ? updateFaqItem(field.faqItemId, { question: value })
-        : field.customId
-          ? updateCustomSection(field.customId, { title: value })
-          : updateSectionHeading(field.key, value),
-    onBodyChange: (value: string) =>
-      field.faqItemId
-        ? updateFaqItem(field.faqItemId, { answer: value })
-        : field.customId
-          ? updateCustomSection(field.customId, { body: value })
-          : updateTemplateAnswer(field.key, value),
-  }));
   const customSectionsHaveContent = form.customSections.some(
-    (section) => section.title.trim() || section.body.trim(),
+    (section) =>
+      section.title.trim() ||
+      formatCustomSectionBody(section).trim() ||
+      section.faqItems.some((item) => item.question.trim() || item.answer.trim()) ||
+      section.tableRows.some(
+        (row) =>
+          row.label.trim() ||
+          row.value.trim() ||
+          Object.values(row.cells ?? {}).some((value) => value.trim()),
+      ) ||
+      section.resourceLinks.some(
+        (resource) =>
+          resource.label.trim() ||
+          resource.url.trim() ||
+          resource.description.trim(),
+      ),
   );
   const templateHasContent = (isFaq
     ? form.faqItems.some((item) => item.question.trim() || item.answer.trim())
@@ -2421,6 +2931,777 @@ export default function NewRequest() {
       fontSize: "0.875rem",
     },
   } as const;
+  const compactLabeledInputSx = {
+    ...articleCreatorInputSx,
+    "& .MuiInputLabel-root": {
+      ...articleCreatorInputSx["& .MuiInputLabel-root"],
+      transform: "translate(14px, 8px) scale(1)",
+      maxWidth: "calc(100% - 28px)",
+      lineHeight: 1.15,
+      zIndex: 1,
+    },
+    "& .MuiInputLabel-root.Mui-focused": {
+      color: t.pepsiBlue,
+    },
+    "& .MuiInputLabel-shrink": {
+      transform: "translate(14px, 8px) scale(1)",
+    },
+    "& .MuiInputBase-root": {
+      ...articleCreatorInputSx["& .MuiInputBase-root"],
+      minHeight: 64,
+      alignItems: "flex-start",
+    },
+    "& .MuiFilledInput-input": {
+      px: 1.5,
+      pt: 3.05,
+      pb: 1,
+      fontSize: "0.875rem",
+      lineHeight: 1.35,
+    },
+    "& .MuiFilledInput-inputMultiline": {
+      pt: 3.05,
+      pb: 1,
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: t.granite,
+      opacity: 0.7,
+      fontSize: "0.875rem",
+      lineHeight: 1.35,
+    },
+  } as const;
+  const policyMetaInputSx = {
+    ...articleCreatorInputSx,
+    "& .MuiInputLabel-root": {
+      ...articleCreatorInputSx["& .MuiInputLabel-root"],
+      transform: "translate(14px, 8px) scale(1)",
+      maxWidth: "calc(100% - 28px)",
+      lineHeight: 1.15,
+      zIndex: 1,
+    },
+    "& .MuiInputLabel-root.Mui-focused": {
+      color: t.pepsiBlue,
+    },
+    "& .MuiInputLabel-shrink": {
+      transform: "translate(14px, 8px) scale(1)",
+    },
+    "& .MuiInputBase-root": {
+      ...articleCreatorInputSx["& .MuiInputBase-root"],
+      minHeight: 64,
+      alignItems: "flex-start",
+    },
+    "& .MuiFilledInput-input": {
+      px: 1.5,
+      pt: 3.05,
+      pb: 1,
+      fontSize: "0.875rem",
+      lineHeight: 1.35,
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: t.granite,
+      opacity: 0.7,
+      fontSize: "0.875rem",
+      lineHeight: 1.35,
+    },
+  } as const;
+  const quietSecondaryButtonSx = {
+    alignSelf: "flex-start",
+    minHeight: 28,
+    px: 0,
+    py: 0,
+    borderRadius: "6px",
+    color: t.pepsiBlueStrong,
+    fontSize: "0.8125rem",
+    fontWeight: 700,
+    textTransform: "none",
+    "& .MuiButton-startIcon": {
+      mr: 0.5,
+    },
+    "&:hover": {
+      bgcolor: "transparent",
+      color: t.pepsiNavy,
+      textDecoration: "underline",
+      textUnderlineOffset: "3px",
+    },
+  } as const;
+
+  const renderStructuredReviewEditor = (field: ArticleSectionField) => {
+    if (field.faqItemId) {
+      const itemIndex = form.faqItems.findIndex((item) => item.id === field.faqItemId);
+      const faqItem = form.faqItems[itemIndex];
+      if (!faqItem) return undefined;
+      const isLastFaqItem = field.faqItemId === form.faqItems[form.faqItems.length - 1]?.id;
+
+      return (
+        <Stack spacing={1.25}>
+          <TextField
+            autoFocus
+            fullWidth
+            variant="filled"
+            label="Question"
+            multiline
+            minRows={1}
+            placeholder={`Question ${itemIndex + 1}`}
+            value={faqItem.question}
+            onChange={(event) =>
+              updateFaqItem(field.faqItemId!, { question: event.target.value })
+            }
+            InputLabelProps={{ shrink: true }}
+            InputProps={{ disableUnderline: true }}
+            sx={{
+              ...compactLabeledInputSx,
+              "& .MuiInputBase-root": {
+                ...compactLabeledInputSx["& .MuiInputBase-root"],
+                fontSize: "0.9375rem",
+                fontWeight: 650,
+                color: t.pepsiNavy,
+              },
+            }}
+          />
+          <TextField
+            fullWidth
+            variant="filled"
+            label="Answer"
+            multiline
+            minRows={5}
+            placeholder="Start with the answer, then add timing, scope, exceptions, or next steps."
+            value={faqItem.answer}
+            onChange={(event) =>
+              updateFaqItem(field.faqItemId!, { answer: event.target.value })
+            }
+            InputLabelProps={{ shrink: true }}
+            InputProps={{ disableUnderline: true }}
+            sx={compactLabeledInputSx}
+          />
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            {isLastFaqItem && (
+              <Button
+                variant="text"
+                onClick={() => addFaqItem()}
+                startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                sx={quietSecondaryButtonSx}
+              >
+                Add question
+              </Button>
+            )}
+            {form.faqItems.length > 1 && (
+              <Button
+                size="small"
+                variant="text"
+                color="inherit"
+                onClick={() => {
+                  removeFaqItem(field.faqItemId!);
+                  setReviewEditKey(null);
+                }}
+                sx={{
+                  px: 0,
+                  fontSize: "0.75rem",
+                  color: t.granite,
+                  textTransform: "none",
+                }}
+              >
+                Remove question
+              </Button>
+            )}
+          </Stack>
+        </Stack>
+      );
+    }
+
+    if (!field.customId) return undefined;
+    const customSection = form.customSections.find((section) => section.id === field.customId);
+    if (!customSection || customSection.type === "text") return undefined;
+    const tableColumns = getTableColumns(customSection);
+
+    return (
+      <Stack spacing={1.25}>
+        <EditableSectionTitle
+          value={customSection.title}
+          placeholder="Section title"
+          onChange={(value) => updateCustomSection(field.customId!, { title: value })}
+        />
+
+        {customSection.type === "faq" && (
+          <Stack spacing={1.25}>
+            {customSection.faqItems.map((item, itemIndex) => (
+              <Box
+                key={item.id}
+                sx={{
+                  p: 1.25,
+                  borderRadius: "8px",
+                  border: `1px solid ${t.articleDivider}`,
+                  bgcolor: "#FFFFFF",
+                }}
+              >
+                <Stack direction="row" spacing={1} alignItems="flex-start">
+                  <TextField
+                    fullWidth
+                    variant="filled"
+                    label="Question"
+                    placeholder={`Question ${itemIndex + 1}`}
+                    value={item.question}
+                    onChange={(event) =>
+                      updateCustomFaqItem(field.customId!, item.id, {
+                        question: event.target.value,
+                      })
+                    }
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{ disableUnderline: true }}
+                    sx={{
+                      ...compactLabeledInputSx,
+                      "& .MuiInputBase-root": {
+                        ...compactLabeledInputSx["& .MuiInputBase-root"],
+                        fontSize: "0.9375rem",
+                        fontWeight: 650,
+                        color: t.pepsiNavy,
+                      },
+                    }}
+                  />
+                  {customSection.faqItems.length > 1 && (
+                    <IconButton
+                      size="small"
+                      title="Remove question"
+                      onClick={() => removeCustomFaqItem(field.customId!, item.id)}
+                      sx={{
+                        mt: 1.25,
+                        width: 28,
+                        height: 28,
+                        color: t.granite,
+                        "&:hover": {
+                          bgcolor: t.surfaceContainerLow,
+                          color: t.ink,
+                        },
+                      }}
+                    >
+                      <CloseIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  )}
+                </Stack>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  label="Answer"
+                  multiline
+                  minRows={4}
+                  placeholder="Start with the answer, then add timing, scope, exceptions, or next steps."
+                  value={item.answer}
+                  onChange={(event) =>
+                    updateCustomFaqItem(field.customId!, item.id, {
+                      answer: event.target.value,
+                    })
+                  }
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{ disableUnderline: true }}
+                  sx={{ mt: 1, ...compactLabeledInputSx }}
+                />
+              </Box>
+            ))}
+            <Button
+              variant="text"
+              onClick={() => addCustomFaqItem(field.customId!)}
+              startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+              sx={quietSecondaryButtonSx}
+            >
+              Add question
+            </Button>
+          </Stack>
+        )}
+
+        {customSection.type === "table" && (
+          <Stack spacing={1}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              spacing={1}
+            >
+              <Typography
+                sx={{
+                  fontSize: "0.6875rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: t.granite,
+                }}
+              >
+                Table headers
+              </Typography>
+              <Button
+                variant="text"
+                onClick={() => addCustomTableColumn(field.customId!)}
+                startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                sx={{ ...quietSecondaryButtonSx, alignSelf: "center" }}
+              >
+                Add column
+              </Button>
+            </Stack>
+            <Box sx={{ overflowX: "auto", pb: 0.25 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${tableColumns.length}, minmax(180px, 1fr)) 28px`,
+                  gap: 1,
+                  minWidth: Math.max(tableColumns.length * 190 + 36, 396),
+                  mb: 1,
+                }}
+              >
+                {tableColumns.map((column, columnIndex) => (
+                  <Box key={column.id} sx={{ position: "relative" }}>
+                    <TextField
+                      fullWidth
+                      variant="filled"
+                      label={`Column ${columnIndex + 1}`}
+                      placeholder={
+                        columnIndex === 0
+                          ? "Item"
+                          : columnIndex === 1
+                            ? "Details"
+                            : `Column ${columnIndex + 1}`
+                      }
+                      value={column.header}
+                      onChange={(event) =>
+                        updateCustomTableColumn(
+                          field.customId!,
+                          column.id,
+                          event.target.value,
+                        )
+                      }
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{ disableUnderline: true }}
+                      sx={compactLabeledInputSx}
+                    />
+                    {tableColumns.length > 1 && (
+                      <IconButton
+                        size="small"
+                        title="Remove column"
+                        onClick={() => removeCustomTableColumn(field.customId!, column.id)}
+                        sx={{
+                          position: "absolute",
+                          top: 4,
+                          right: 4,
+                          width: 22,
+                          height: 22,
+                          color: t.granite,
+                          bgcolor: "#FFFFFF",
+                          "&:hover": {
+                            bgcolor: t.surfaceContainerLow,
+                            color: t.ink,
+                          },
+                        }}
+                      >
+                        <CloseIcon sx={{ fontSize: 14 }} />
+                      </IconButton>
+                    )}
+                  </Box>
+                ))}
+                <Box sx={{ width: 28, height: 1 }} />
+              </Box>
+              <Stack spacing={1}>
+                {customSection.tableRows.map((row, rowIndex) => (
+                  <Box
+                    key={row.id}
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${tableColumns.length}, minmax(180px, 1fr)) 28px`,
+                      gap: 1,
+                      alignItems: "flex-start",
+                      minWidth: Math.max(tableColumns.length * 190 + 36, 396),
+                    }}
+                  >
+                    {tableColumns.map((column, columnIndex) => (
+                      <TextField
+                        key={`${row.id}-${column.id}`}
+                        fullWidth
+                        variant="filled"
+                        label={`Row ${rowIndex + 1}`}
+                        placeholder={column.header || `Column ${columnIndex + 1}`}
+                        value={getTableCellValue(row, column, columnIndex)}
+                        onChange={(event) =>
+                          updateCustomTableRow(field.customId!, row.id, {
+                            label: columnIndex === 0 ? event.target.value : row.label,
+                            value: columnIndex === 1 ? event.target.value : row.value,
+                            cells: { [column.id]: event.target.value },
+                          })
+                        }
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{ disableUnderline: true }}
+                        sx={compactLabeledInputSx}
+                      />
+                    ))}
+                    {customSection.tableRows.length > 1 ? (
+                      <IconButton
+                        size="small"
+                        title="Remove row"
+                        onClick={() => removeCustomTableRow(field.customId!, row.id)}
+                        sx={{
+                          mt: 1.2,
+                          width: 28,
+                          height: 28,
+                          color: t.granite,
+                          "&:hover": {
+                            bgcolor: t.surfaceContainerLow,
+                            color: t.ink,
+                          },
+                        }}
+                      >
+                        <CloseIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    ) : (
+                      <Box sx={{ width: 28, height: 28 }} />
+                    )}
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+            <Button
+              variant="text"
+              onClick={() => addCustomTableRow(field.customId!)}
+              startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+              sx={quietSecondaryButtonSx}
+            >
+              Add row
+            </Button>
+          </Stack>
+        )}
+
+        {customSection.type === "resources" && (
+          <Stack spacing={1.25}>
+            {customSection.resourceLinks.map((resource, resourceIndex) => (
+              <Box
+                key={resource.id}
+                sx={{
+                  p: 1.25,
+                  borderRadius: "8px",
+                  border: `1px solid ${t.articleDivider}`,
+                  bgcolor: "#FFFFFF",
+                }}
+              >
+                <Stack direction={{ xs: "column", md: "row" }} spacing={1}>
+                  <TextField
+                    fullWidth
+                    variant="filled"
+                    label="Resource title"
+                    placeholder={resourceIndex === 0 ? "Form or toolkit name" : "Resource title"}
+                    value={resource.label}
+                    onChange={(event) =>
+                      updateCustomResourceLink(field.customId!, resource.id, {
+                        label: event.target.value,
+                      })
+                    }
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{ disableUnderline: true }}
+                    sx={topicResourceInputSx}
+                  />
+                  <TextField
+                    fullWidth
+                    variant="filled"
+                    label="Link"
+                    placeholder="https://"
+                    value={resource.url}
+                    onChange={(event) =>
+                      updateCustomResourceLink(field.customId!, resource.id, {
+                        url: event.target.value,
+                      })
+                    }
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{ disableUnderline: true }}
+                    sx={topicResourceInputSx}
+                  />
+                  {customSection.resourceLinks.length > 1 && (
+                    <IconButton
+                      size="small"
+                      title="Remove resource"
+                      onClick={() => removeCustomResourceLink(field.customId!, resource.id)}
+                      sx={{
+                        mt: { xs: 0, md: 1.2 },
+                        width: 28,
+                        height: 28,
+                        color: t.granite,
+                        "&:hover": {
+                          bgcolor: t.surfaceContainerLow,
+                          color: t.ink,
+                        },
+                      }}
+                    >
+                      <CloseIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  )}
+                </Stack>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  label="Description"
+                  multiline
+                  minRows={2}
+                  placeholder="When should employees use this resource?"
+                  value={resource.description}
+                  onChange={(event) =>
+                    updateCustomResourceLink(field.customId!, resource.id, {
+                      description: event.target.value,
+                    })
+                  }
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{ disableUnderline: true }}
+                  sx={{ mt: 1, ...topicResourceInputSx }}
+                />
+              </Box>
+            ))}
+            <Button
+              variant="text"
+              onClick={() => addCustomResourceLink(field.customId!)}
+              startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+              sx={quietSecondaryButtonSx}
+            >
+              Add resource
+            </Button>
+          </Stack>
+        )}
+      </Stack>
+    );
+  };
+
+  const renderStructuredReviewPreview = (field: ArticleSectionField) => {
+    const renderFaqAccordion = (items: CustomFaqItem[]) => {
+      const visibleItems = items.filter(
+        (item) => item.question.trim() || item.answer.trim(),
+      );
+      if (!visibleItems.length) {
+        return (
+          <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
+            Add content for this section.
+          </Typography>
+        );
+      }
+      return (
+        <Stack spacing={1.25} sx={{ my: 1.5 }}>
+          {visibleItems.map((item, index) => (
+            <Box
+              key={item.id}
+              component="details"
+              open={index === 0}
+              sx={{
+                borderRadius: "8px",
+                overflow: "hidden",
+                bgcolor: t.pepsiBlue,
+                p: 0.75,
+              }}
+            >
+              <Box
+                component="summary"
+                sx={{
+                  cursor: "pointer",
+                  listStyle: "none",
+                  bgcolor: t.pepsiBlue,
+                  color: "#FFFFFF",
+                  fontWeight: 500,
+                  fontSize: { xs: "1rem", md: "1.125rem" },
+                  lineHeight: 1.25,
+                  px: 0.75,
+                  py: 0.6,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  "&::-webkit-details-marker": { display: "none" },
+                  "&::after": {
+                    content: "\"⌄\"",
+                    marginLeft: "auto",
+                    fontSize: "1.25rem",
+                    lineHeight: 1,
+                  },
+                }}
+              >
+                {item.question.trim() || "Question"}
+              </Box>
+              <Box
+                sx={{
+                  bgcolor: "#FFFFFF",
+                  color: t.ink,
+                  borderRadius: "8px",
+                  mt: 0.75,
+                  px: { xs: 1.5, md: 2 },
+                  py: { xs: 1.25, md: 1.6 },
+                }}
+              >
+                {item.answer.trim() ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {item.answer}
+                  </ReactMarkdown>
+                ) : (
+                  <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
+                    Add an answer for this question.
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Stack>
+      );
+    };
+
+    if (field.faqItemId) {
+      const faqItem = form.faqItems.find((item) => item.id === field.faqItemId);
+      return faqItem ? renderFaqAccordion([faqItem]) : undefined;
+    }
+
+    const customSection = field.customId
+      ? form.customSections.find((section) => section.id === field.customId)
+      : null;
+
+    if (customSection?.type === "faq") {
+      return renderFaqAccordion(customSection.faqItems);
+    }
+
+    if (customSection?.type === "table") {
+      const columns = getTableColumns(customSection);
+      const rows = customSection.tableRows.filter((row) =>
+        columns.some((column, columnIndex) =>
+          getTableCellValue(row, column, columnIndex).trim(),
+        ),
+      );
+      if (!rows.length) {
+        return (
+          <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
+            Add content for this section.
+          </Typography>
+        );
+      }
+      return (
+        <Box sx={{ overflowX: "auto", my: 2.25 }}>
+          <Box
+            component="table"
+            sx={{
+              borderCollapse: "collapse",
+              width: "100%",
+              minWidth: Math.max(columns.length * 180, 360),
+              fontSize: "0.8125rem",
+              border: `1px solid ${t.articleDivider}`,
+            }}
+          >
+            <Box component="thead">
+              <Box component="tr">
+                {columns.map((column, index) => (
+                  <Box
+                    key={column.id}
+                    component="th"
+                    sx={{
+                      textAlign: "left",
+                      fontWeight: 600,
+                      color: "#FFFFFF",
+                      fontSize: "0.8125rem",
+                      fontFamily: theme.palette.fonts.articleBody,
+                      py: 1,
+                      px: 1.5,
+                      bgcolor: t.pepsiBlueDeep,
+                    }}
+                  >
+                    {column.header.trim() || `Column ${index + 1}`}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+            <Box component="tbody">
+              {rows.map((row, rowIndex) => (
+                <Box
+                  key={row.id}
+                  component="tr"
+                  sx={{ bgcolor: rowIndex % 2 === 1 ? "#F8FAFC" : "transparent" }}
+                >
+                  {columns.map((column, columnIndex) => (
+                    <Box
+                      key={column.id}
+                      component="td"
+                      sx={{
+                        py: 1.05,
+                        px: 1.5,
+                        borderBottom:
+                          rowIndex === rows.length - 1
+                            ? 0
+                            : `1px solid ${t.articleDivider}`,
+                        verticalAlign: "top",
+                      }}
+                    >
+                      {getTableCellValue(row, column, columnIndex)}
+                    </Box>
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        </Box>
+      );
+    }
+
+    if (customSection?.type === "resources") {
+      const resources = customSection.resourceLinks.filter(
+        (resource) =>
+          resource.label.trim() ||
+          resource.url.trim() ||
+          resource.description.trim(),
+      );
+      if (!resources.length) {
+        return (
+          <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
+            Add content for this section.
+          </Typography>
+        );
+      }
+      return (
+        <Stack component="ul" spacing={0.9} sx={{ my: 1.5, pl: 2.5 }}>
+          {resources.map((resource) => (
+            <Box key={resource.id} component="li">
+              {resource.url.trim() ? (
+                <Box
+                  component="a"
+                  href={resource.url}
+                  sx={{
+                    color: t.pepsiBlue,
+                    textDecoration: "underline",
+                    textDecorationColor: "rgba(0, 75, 147, 0.35)",
+                    textUnderlineOffset: "3px",
+                    fontWeight: 600,
+                  }}
+                >
+                  {resource.label.trim() || resource.url.trim()}
+                </Box>
+              ) : (
+                <Box component="span" sx={{ fontWeight: 600 }}>
+                  {resource.label.trim() || "Resource"}
+                </Box>
+              )}
+              {resource.description.trim() && (
+                <Typography component="span" sx={{ color: t.ink, ml: 0.5 }}>
+                  — {resource.description.trim()}
+                </Typography>
+              )}
+            </Box>
+          ))}
+        </Stack>
+      );
+    }
+
+    return undefined;
+  };
+
+  const reviewEditableSections = articleSections.map((field) => ({
+    key: field.key,
+    title: field.label,
+    body: articleAnswers[field.key] ?? "",
+    hideHeading: !!field.faqItemId,
+    recommendations: sectionRecommendations(field, articleAnswers[field.key] ?? ""),
+    editor: renderStructuredReviewEditor(field),
+    preview: renderStructuredReviewPreview(field),
+    onTitleChange: (value: string) =>
+      field.faqItemId
+        ? updateFaqItem(field.faqItemId, { question: value })
+        : field.customId
+          ? updateCustomSection(field.customId, { title: value })
+          : updateSectionHeading(field.key, value),
+    onBodyChange: (value: string) =>
+      field.faqItemId
+        ? updateFaqItem(field.faqItemId, { answer: value })
+        : field.customId
+          ? updateCustomSection(field.customId, { body: value })
+          : updateTemplateAnswer(field.key, value),
+  }));
 
   const submitStandardization = async () => {
     setMigrationSubmitting(true);
@@ -3093,9 +4374,9 @@ export default function NewRequest() {
               InputProps={{ disableUnderline: true }}
               inputProps={editorSelectionProps({ type: "summary", key: "lead" })}
               sx={{
-                ...articleCreatorInputSx,
+                ...compactLabeledInputSx,
                 "& .MuiInputBase-root": {
-                  ...articleCreatorInputSx["& .MuiInputBase-root"],
+                  ...compactLabeledInputSx["& .MuiInputBase-root"],
                   fontSize: "0.875rem",
                   color: t.inkSoft,
                 },
@@ -3126,10 +4407,10 @@ export default function NewRequest() {
                 }}
               >
                 {[
-                  ["effectiveDate", "Effective date", "When this policy starts"],
-                  ["nextReviewDate", "Next review", "When this article should be checked again"],
-                  ["policyOwner", "Policy owner", "Team, role, or person accountable"],
-                  ["exceptionApprover", "Exception approver", "Who can approve exceptions"],
+                  ["effectiveDate", "Effective date", "Start date"],
+                  ["nextReviewDate", "Next review", "Review date"],
+                  ["policyOwner", "Policy owner", "Owner or team"],
+                  ["exceptionApprover", "Exception approver", "Approver name"],
                 ].map(([key, label, placeholder]) => (
                   <TextField
                     key={key}
@@ -3146,7 +4427,7 @@ export default function NewRequest() {
                     }
                     InputLabelProps={{ shrink: true }}
                     InputProps={{ disableUnderline: true }}
-                    sx={articleCreatorInputSx}
+                    sx={policyMetaInputSx}
                   />
                 ))}
               </Box>
@@ -3265,11 +4546,16 @@ export default function NewRequest() {
               const customSection = field.customId
                 ? form.customSections.find((section) => section.id === field.customId)
                 : null;
+              const customSectionKind = customSection?.type ?? "text";
+              const tableColumns = customSection ? getTableColumns(customSection) : [];
               const sectionValue = articleAnswers[field.key] ?? "";
               const knowledgeStepValues =
                 form.contentType === "Knowledge Article" && field.key === "steps"
                   ? knowledgeStepsForEditor(sectionValue)
                   : [];
+              const isLastFaqItem =
+                !!field.faqItemId &&
+                field.faqItemId === form.faqItems[form.faqItems.length - 1]?.id;
               return (
                 <Box
                   key={field.key}
@@ -3316,9 +4602,9 @@ export default function NewRequest() {
                               faqItemId: field.faqItemId,
                             })}
                             sx={{
-                              ...articleCreatorInputSx,
+                              ...compactLabeledInputSx,
                               "& .MuiInputBase-root": {
-                                ...articleCreatorInputSx["& .MuiInputBase-root"],
+                                ...compactLabeledInputSx["& .MuiInputBase-root"],
                                 fontSize: "1.0625rem",
                                 fontWeight: 650,
                                 color: t.pepsiNavy,
@@ -3328,49 +4614,13 @@ export default function NewRequest() {
                         </Box>
                       ) : field.customId ? (
                         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                          <TextField
-                            fullWidth
-                            variant="standard"
-                            placeholder="Section title"
+                          <EditableSectionTitle
                             value={customSection?.title ?? ""}
-                            onChange={(e) =>
-                              updateCustomSection(field.customId!, { title: e.target.value })
+                            placeholder="Section title"
+                            onChange={(value) =>
+                              updateCustomSection(field.customId!, { title: value })
                             }
-                            InputProps={{ disableUnderline: true }}
-                            sx={{
-                              "& .MuiInputBase-input": {
-                                fontFamily: theme.palette.fonts.articleBody,
-                                fontSize: "1.25rem",
-                                fontWeight: 600,
-                                lineHeight: 1.05,
-                                color: t.pepsiBlue,
-                                px: 0,
-                                py: 0.25,
-                              },
-                            }}
                           />
-                          {!isFaq && (
-                            <IconButton
-                              size="small"
-                              title="Edit section title"
-                              tabIndex={-1}
-                              sx={{
-                                flexShrink: 0,
-                                color: t.granite,
-                                width: 24,
-                                height: 24,
-                                p: 0,
-                                opacity: 0.55,
-                                "&:hover": {
-                                  opacity: 1,
-                                  bgcolor: t.surfaceContainerLow,
-                                  color: t.pepsiBlue,
-                                },
-                              }}
-                            >
-                              <EditOutlinedIcon sx={{ fontSize: 14 }} />
-                            </IconButton>
-                          )}
                           <Button
                             size="small"
                             color="inherit"
@@ -3398,47 +4648,11 @@ export default function NewRequest() {
                         </Stack>
                       ) : (
                         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
-                          <TextField
-                            fullWidth
-                            variant="standard"
+                          <EditableSectionTitle
                             value={field.label}
-                            onChange={(e) => updateSectionHeading(field.key, e.target.value)}
-                            InputProps={{ disableUnderline: true }}
-                            sx={{
-                              flex: 1,
-                              "& .MuiInputBase-input": {
-                                fontFamily: theme.palette.fonts.articleBody,
-                                fontSize: "1.25rem",
-                                fontWeight: 600,
-                                lineHeight: 1.05,
-                                color: t.pepsiBlue,
-                                px: 0,
-                                py: 0.25,
-                              },
-                            }}
+                            placeholder={field.label}
+                            onChange={(value) => updateSectionHeading(field.key, value)}
                           />
-                          {!isFaq && (
-                            <IconButton
-                              size="small"
-                              title="Edit section title"
-                              tabIndex={-1}
-                              sx={{
-                                flexShrink: 0,
-                                color: t.granite,
-                                width: 24,
-                                height: 24,
-                                p: 0,
-                                opacity: 0.55,
-                                "&:hover": {
-                                  opacity: 1,
-                                  bgcolor: t.surfaceContainerLow,
-                                  color: t.pepsiBlue,
-                                },
-                              }}
-                            >
-                              <EditOutlinedIcon sx={{ fontSize: 14 }} />
-                            </IconButton>
-                          )}
                           {!isFaq &&
                             renderInlineEditorTools(
                               {
@@ -3456,7 +4670,346 @@ export default function NewRequest() {
                           key: field.key,
                           faqItemId: field.faqItemId,
                         })}
-                      {form.contentType === "Knowledge Article" && field.key === "steps" ? (
+                      {customSection && customSectionKind === "faq" ? (
+                        <Stack spacing={1.25}>
+                          {customSection.faqItems.map((item, itemIndex) => (
+                            <Box
+                              key={item.id}
+                              sx={{
+                                p: 1.25,
+                                borderRadius: "8px",
+                                border: `1px solid ${t.articleDivider}`,
+                                bgcolor: "#FFFFFF",
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} alignItems="flex-start">
+                                <TextField
+                                  fullWidth
+                                  variant="filled"
+                                  label="Question"
+                                  placeholder={`Question ${itemIndex + 1}`}
+                                  value={item.question}
+                                  onChange={(event) =>
+                                    updateCustomFaqItem(field.customId!, item.id, {
+                                      question: event.target.value,
+                                    })
+                                  }
+                                  InputLabelProps={{ shrink: true }}
+                                  InputProps={{ disableUnderline: true }}
+                                  sx={{
+                                    ...compactLabeledInputSx,
+                                    "& .MuiInputBase-root": {
+                                      ...compactLabeledInputSx["& .MuiInputBase-root"],
+                                      fontSize: "0.9375rem",
+                                      fontWeight: 650,
+                                      color: t.pepsiNavy,
+                                    },
+                                  }}
+                                />
+                                {customSection.faqItems.length > 1 && (
+                                  <IconButton
+                                    size="small"
+                                    title="Remove question"
+                                    onClick={() => removeCustomFaqItem(field.customId!, item.id)}
+                                    sx={{
+                                      mt: 1.25,
+                                      width: 28,
+                                      height: 28,
+                                      color: t.granite,
+                                      "&:hover": {
+                                        bgcolor: t.surfaceContainerLow,
+                                        color: t.ink,
+                                      },
+                                    }}
+                                  >
+                                    <CloseIcon sx={{ fontSize: 16 }} />
+                                  </IconButton>
+                                )}
+                              </Stack>
+                              <TextField
+                                fullWidth
+                                variant="filled"
+                                label="Answer"
+                                multiline
+                                minRows={4}
+                                placeholder="Start with the answer, then add timing, scope, exceptions, or next steps."
+                                value={item.answer}
+                                onChange={(event) =>
+                                  updateCustomFaqItem(field.customId!, item.id, {
+                                    answer: event.target.value,
+                                  })
+                                }
+                                InputLabelProps={{ shrink: true }}
+                                InputProps={{ disableUnderline: true }}
+                                sx={{ mt: 1, ...compactLabeledInputSx }}
+                              />
+                            </Box>
+                          ))}
+                          <Button
+                            variant="text"
+                            onClick={() => addCustomFaqItem(field.customId!)}
+                            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                            sx={quietSecondaryButtonSx}
+                          >
+                            Add question
+                          </Button>
+                        </Stack>
+                      ) : customSection && customSectionKind === "table" ? (
+                        <Stack spacing={1}>
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            justifyContent="space-between"
+                            spacing={1}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: "0.6875rem",
+                                fontWeight: 800,
+                                letterSpacing: "0.08em",
+                                textTransform: "uppercase",
+                                color: t.granite,
+                              }}
+                            >
+                              Table headers
+                            </Typography>
+                            <Button
+                              variant="text"
+                              onClick={() => addCustomTableColumn(field.customId!)}
+                              startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                              sx={{ ...quietSecondaryButtonSx, alignSelf: "center" }}
+                            >
+                              Add column
+                            </Button>
+                          </Stack>
+                          <Box sx={{ overflowX: "auto", pb: 0.25 }}>
+                            <Box
+                              sx={{
+                                display: "grid",
+                                gridTemplateColumns: `repeat(${tableColumns.length}, minmax(180px, 1fr)) 28px`,
+                                gap: 1,
+                                minWidth: Math.max(tableColumns.length * 190 + 36, 396),
+                                mb: 1,
+                              }}
+                            >
+                              {tableColumns.map((column, columnIndex) => (
+                                <Box key={column.id} sx={{ position: "relative" }}>
+                                  <TextField
+                                    fullWidth
+                                    variant="filled"
+                                    label={`Column ${columnIndex + 1}`}
+                                    placeholder={
+                                      columnIndex === 0
+                                        ? "Item"
+                                        : columnIndex === 1
+                                          ? "Details"
+                                          : `Column ${columnIndex + 1}`
+                                    }
+                                    value={column.header}
+                                    onChange={(event) =>
+                                      updateCustomTableColumn(
+                                        field.customId!,
+                                        column.id,
+                                        event.target.value,
+                                      )
+                                    }
+                                    InputLabelProps={{ shrink: true }}
+                                    InputProps={{ disableUnderline: true }}
+                                    sx={compactLabeledInputSx}
+                                  />
+                                  {tableColumns.length > 1 && (
+                                    <IconButton
+                                      size="small"
+                                      title="Remove column"
+                                      onClick={() =>
+                                        removeCustomTableColumn(field.customId!, column.id)
+                                      }
+                                      sx={{
+                                        position: "absolute",
+                                        top: 4,
+                                        right: 4,
+                                        width: 22,
+                                        height: 22,
+                                        color: t.granite,
+                                        bgcolor: "#FFFFFF",
+                                        "&:hover": {
+                                          bgcolor: t.surfaceContainerLow,
+                                          color: t.ink,
+                                        },
+                                      }}
+                                    >
+                                      <CloseIcon sx={{ fontSize: 14 }} />
+                                    </IconButton>
+                                  )}
+                                </Box>
+                              ))}
+                              <Box sx={{ width: 28, height: 1 }} />
+                            </Box>
+                            <Stack spacing={1}>
+                              {customSection.tableRows.map((row, rowIndex) => (
+                                <Box
+                                  key={row.id}
+                                  sx={{
+                                    display: "grid",
+                                    gridTemplateColumns: `repeat(${tableColumns.length}, minmax(180px, 1fr)) 28px`,
+                                    gap: 1,
+                                    alignItems: "flex-start",
+                                    minWidth: Math.max(tableColumns.length * 190 + 36, 396),
+                                  }}
+                                >
+                                  {tableColumns.map((column, columnIndex) => (
+                                    <TextField
+                                      key={`${row.id}-${column.id}`}
+                                      fullWidth
+                                      variant="filled"
+                                      label={`Row ${rowIndex + 1}`}
+                                      placeholder={column.header || `Column ${columnIndex + 1}`}
+                                      value={getTableCellValue(row, column, columnIndex)}
+                                      onChange={(event) =>
+                                        updateCustomTableRow(field.customId!, row.id, {
+                                          label:
+                                            columnIndex === 0 ? event.target.value : row.label,
+                                          value:
+                                            columnIndex === 1 ? event.target.value : row.value,
+                                          cells: { [column.id]: event.target.value },
+                                        })
+                                      }
+                                      InputLabelProps={{ shrink: true }}
+                                      InputProps={{ disableUnderline: true }}
+                                      sx={compactLabeledInputSx}
+                                    />
+                                  ))}
+                                  {customSection.tableRows.length > 1 && (
+                                    <IconButton
+                                      size="small"
+                                      title="Remove row"
+                                      onClick={() =>
+                                        removeCustomTableRow(field.customId!, row.id)
+                                      }
+                                      sx={{
+                                        mt: 1.2,
+                                        width: 28,
+                                        height: 28,
+                                        color: t.granite,
+                                        "&:hover": {
+                                          bgcolor: t.surfaceContainerLow,
+                                          color: t.ink,
+                                        },
+                                      }}
+                                    >
+                                      <CloseIcon sx={{ fontSize: 16 }} />
+                                    </IconButton>
+                                  )}
+                                  {customSection.tableRows.length <= 1 && (
+                                    <Box sx={{ width: 28, height: 28 }} />
+                                  )}
+                                </Box>
+                              ))}
+                            </Stack>
+                          </Box>
+                          <Button
+                            variant="text"
+                            onClick={() => addCustomTableRow(field.customId!)}
+                            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                            sx={quietSecondaryButtonSx}
+                          >
+                            Add row
+                          </Button>
+                        </Stack>
+                      ) : customSection && customSectionKind === "resources" ? (
+                        <Stack spacing={1.25}>
+                          {customSection.resourceLinks.map((resource, resourceIndex) => (
+                            <Box
+                              key={resource.id}
+                              sx={{
+                                p: 1.25,
+                                borderRadius: "8px",
+                                border: `1px solid ${t.articleDivider}`,
+                                bgcolor: "#FFFFFF",
+                              }}
+                            >
+                              <Stack direction={{ xs: "column", md: "row" }} spacing={1}>
+                                <TextField
+                                  fullWidth
+                                  variant="filled"
+                                  label="Resource title"
+                                  placeholder={resourceIndex === 0 ? "Form or toolkit name" : "Resource title"}
+                                  value={resource.label}
+                                  onChange={(event) =>
+                                    updateCustomResourceLink(field.customId!, resource.id, {
+                                      label: event.target.value,
+                                    })
+                                  }
+                                  InputLabelProps={{ shrink: true }}
+                                  InputProps={{ disableUnderline: true }}
+                                  sx={topicResourceInputSx}
+                                />
+                                <TextField
+                                  fullWidth
+                                  variant="filled"
+                                  label="Link"
+                                  placeholder="https://"
+                                  value={resource.url}
+                                  onChange={(event) =>
+                                    updateCustomResourceLink(field.customId!, resource.id, {
+                                      url: event.target.value,
+                                    })
+                                  }
+                                  InputLabelProps={{ shrink: true }}
+                                  InputProps={{ disableUnderline: true }}
+                                  sx={topicResourceInputSx}
+                                />
+                                {customSection.resourceLinks.length > 1 && (
+                                  <IconButton
+                                    size="small"
+                                    title="Remove resource"
+                                    onClick={() =>
+                                      removeCustomResourceLink(field.customId!, resource.id)
+                                    }
+                                    sx={{
+                                      mt: { xs: 0, md: 1.2 },
+                                      width: 28,
+                                      height: 28,
+                                      color: t.granite,
+                                      "&:hover": {
+                                        bgcolor: t.surfaceContainerLow,
+                                        color: t.ink,
+                                      },
+                                    }}
+                                  >
+                                    <CloseIcon sx={{ fontSize: 16 }} />
+                                  </IconButton>
+                                )}
+                              </Stack>
+                              <TextField
+                                fullWidth
+                                variant="filled"
+                                label="Description"
+                                multiline
+                                minRows={2}
+                                placeholder="When should employees use this resource?"
+                                value={resource.description}
+                                onChange={(event) =>
+                                  updateCustomResourceLink(field.customId!, resource.id, {
+                                    description: event.target.value,
+                                  })
+                                }
+                                InputLabelProps={{ shrink: true }}
+                                InputProps={{ disableUnderline: true }}
+                                sx={{ mt: 1, ...topicResourceInputSx }}
+                              />
+                            </Box>
+                          ))}
+                          <Button
+                            variant="text"
+                            onClick={() => addCustomResourceLink(field.customId!)}
+                            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                            sx={quietSecondaryButtonSx}
+                          >
+                            Add resource
+                          </Button>
+                        </Stack>
+                      ) : form.contentType === "Knowledge Article" && field.key === "steps" ? (
                         <Stack
                           spacing={0.5}
                           sx={{
@@ -3558,15 +5111,7 @@ export default function NewRequest() {
                             variant="text"
                             onClick={addKnowledgeStep}
                             startIcon={<AddIcon sx={{ fontSize: 16 }} />}
-                            sx={{
-                              alignSelf: "flex-start",
-                              mt: 0.5,
-                              px: 0,
-                              color: t.pepsiBlueStrong,
-                              fontSize: "0.8125rem",
-                              fontWeight: 700,
-                              textTransform: "none",
-                            }}
+                            sx={{ ...quietSecondaryButtonSx, mt: 0.5 }}
                           >
                             Add step
                           </Button>
@@ -3598,57 +5143,67 @@ export default function NewRequest() {
                           })}
                           onChange={(e) => setSectionValue(field, e.target.value)}
                           sx={{
-                            ...articleCreatorInputSx,
+                            ...compactLabeledInputSx,
                             "& .MuiInputBase-root": {
-                              ...articleCreatorInputSx["& .MuiInputBase-root"],
+                              ...compactLabeledInputSx["& .MuiInputBase-root"],
                               fontSize: "0.875rem",
                             },
                           }}
                         />
                       )}
-                      {field.faqItemId && form.faqItems.length > 1 && (
-                        <Button
-                          size="small"
-                          variant="text"
-                          color="inherit"
-                          onClick={() => removeFaqItem(field.faqItemId!)}
-                          sx={{ mt: 0.5, px: 0, fontSize: "0.75rem", color: t.granite }}
+                      {field.faqItemId && (
+                        <Stack
+                          direction="row"
+                          spacing={1.5}
+                          alignItems="center"
+                          sx={{ mt: 0.5 }}
                         >
-                          Remove question
-                        </Button>
+                          {isLastFaqItem && (
+                            <Button
+                              variant="text"
+                              onClick={() => addFaqItem()}
+                              startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                              sx={quietSecondaryButtonSx}
+                            >
+                              Add question
+                            </Button>
+                          )}
+                          {form.faqItems.length > 1 && (
+                            <Button
+                              size="small"
+                              variant="text"
+                              color="inherit"
+                              onClick={() => removeFaqItem(field.faqItemId!)}
+                              sx={{
+                                px: 0,
+                                fontSize: "0.75rem",
+                                color: t.granite,
+                                textTransform: "none",
+                              }}
+                            >
+                              Remove question
+                            </Button>
+                          )}
+                        </Stack>
                       )}
                     </Box>
                   </Stack>
                 </Box>
               );
             })}
-            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ pt: 0.75 }}>
-              {isFaq && (
-                <Button
-                  variant="outlined"
-                  onClick={() => addFaqItem()}
-                  startIcon={<AddIcon sx={{ fontSize: 16 }} />}
-                  sx={{
-                    borderRadius: 999,
-                    color: t.pepsiBlueStrong,
-                    borderColor: t.articleDivider,
-                    bgcolor: "#FFFFFF",
-                    fontSize: "0.8125rem",
-                    fontWeight: 700,
-                    textTransform: "none",
-                    "&:hover": {
-                      borderColor: t.pepsiBlue,
-                      bgcolor: t.pepsiBlueSubtle,
-                    },
-                  }}
-                >
-                  Add question
-                </Button>
-              )}
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              flexWrap="wrap"
+              useFlexGap
+              sx={{ pt: 3.5 }}
+            >
               <Button
                 variant="outlined"
-                onClick={addCustomSection}
+                onClick={(event) => setSectionMenuAnchor(event.currentTarget)}
                 startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 16 }} />}
                 sx={{
                   borderRadius: 999,
                   color: t.pepsiBlueStrong,
@@ -3665,6 +5220,61 @@ export default function NewRequest() {
               >
                 Add section
               </Button>
+              <Menu
+                anchorEl={sectionMenuAnchor}
+                open={Boolean(sectionMenuAnchor)}
+                onClose={() => setSectionMenuAnchor(null)}
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                transformOrigin={{ vertical: "top", horizontal: "left" }}
+                PaperProps={{
+                  sx: {
+                    mt: 0.75,
+                    width: 260,
+                    borderRadius: "8px",
+                    border: `1px solid ${t.articleDivider}`,
+                    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.12)",
+                  },
+                }}
+              >
+                {SECTION_BLOCK_OPTIONS.map((option) => (
+                  <MenuItem
+                    key={option.type}
+                    onClick={() => {
+                      addCustomSection(option.type);
+                      setSectionMenuAnchor(null);
+                    }}
+                    sx={{
+                      alignItems: "flex-start",
+                      gap: 1,
+                      px: 1.5,
+                      py: 1.1,
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: "0.8125rem",
+                          fontWeight: 700,
+                          color: t.ink,
+                        }}
+                      >
+                        {option.label}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          mt: 0.15,
+                          fontSize: "0.6875rem",
+                          color: t.granite,
+                          whiteSpace: "normal",
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {option.description}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Menu>
             </Stack>
 
           </Stack>

@@ -261,7 +261,8 @@ function fakeJob(input = {}) {
 export default function handler(req, res) {
   const db = data();
   const url = new URL(req.url, `https://${req.headers.host || "localhost"}`);
-  const pathname = url.pathname.replace(/^\/api\/?/, "");
+  const routedPath = url.searchParams.get("path");
+  const pathname = (routedPath || url.pathname).replace(/^\/api\/?/, "");
   const parts = pathname.split("/").filter(Boolean);
   const method = req.method || "GET";
 

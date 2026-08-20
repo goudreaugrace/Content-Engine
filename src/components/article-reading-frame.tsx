@@ -1,10 +1,8 @@
 import { Box, Button, Chip, Stack, Typography, useTheme } from "@mui/material";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import ArticleReviewFrame, { type DetailCard } from "./article-review-frame";
-import { articleAnchorId, articleSectionsFromMarkdown } from "./article-document";
 
 type QuickLink = {
   label: string;
@@ -25,7 +23,6 @@ type Props = {
 };
 
 export default function ArticleReadingFrame({
-  body,
   article,
   tags = [],
   quickLinks = [],
@@ -34,56 +31,14 @@ export default function ArticleReadingFrame({
   availableLocales = [],
   details = [],
 }: Props) {
-  const frameRef = useRef<HTMLDivElement | null>(null);
-  const sections = useMemo(() => articleSectionsFromMarkdown(body), [body]);
-  const sectionIds = useMemo(() => sections.map(articleAnchorId), [sections]);
-  const [activeSectionId, setActiveSectionId] = useState(sectionIds[0] ?? "");
-
-  useEffect(() => {
-    setActiveSectionId(sectionIds[0] ?? "");
-  }, [sectionIds]);
-
-  useEffect(() => {
-    const root = frameRef.current;
-    if (!root || sectionIds.length === 0) return;
-
-    const headings = sectionIds
-      .map((id) => root.querySelector<HTMLElement>(`#${CSS.escape(id)}`))
-      .filter((heading): heading is HTMLElement => Boolean(heading));
-
-    if (!headings.length) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-
-        if (visible[0]?.target.id) {
-          setActiveSectionId(visible[0].target.id);
-        }
-      },
-      {
-        rootMargin: "-18% 0px -68% 0px",
-        threshold: [0, 1],
-      },
-    );
-
-    headings.forEach((heading) => observer.observe(heading));
-    return () => observer.disconnect();
-  }, [sectionIds]);
-
   return (
-    <Box ref={frameRef}>
+    <Box>
       <ArticleReviewFrame
         showHeader={false}
         article={article}
         detailsNode={
           <ArticleSideRail
             tags={tags}
-            sections={sections}
-            activeSectionId={activeSectionId}
-            onSectionClick={setActiveSectionId}
             quickLinks={quickLinks}
             selectedLocale={selectedLocale}
             primaryLocale={primaryLocale}
@@ -98,18 +53,12 @@ export default function ArticleReadingFrame({
 
 function ArticleSideRail({
   tags,
-  sections,
-  activeSectionId,
-  onSectionClick,
   quickLinks,
   selectedLocale,
   primaryLocale,
   availableLocales,
 }: {
   tags: string[];
-  sections: string[];
-  activeSectionId: string;
-  onSectionClick: (id: string) => void;
   quickLinks: QuickLink[];
   selectedLocale?: string;
   primaryLocale?: string;
@@ -177,59 +126,6 @@ function ArticleSideRail({
           </Stack>
         </RailCard>
       )}
-
-      <RailCard title="Table of Contents">
-        {sections.length ? (
-          <Stack spacing={1.25}>
-            {sections.map((section) => {
-              const id = articleAnchorId(section);
-              const selected = id === activeSectionId;
-              return (
-                <Button
-                  key={section}
-                  component="a"
-                  href={`#${id}`}
-                  size="small"
-                  variant="text"
-                  onClick={() => onSectionClick(id)}
-                  startIcon={<DescriptionOutlinedIcon sx={{ fontSize: 22 }} />}
-                  endIcon={<KeyboardArrowRightIcon sx={{ fontSize: 16 }} />}
-                  sx={{
-                    justifyContent: "space-between",
-                    minHeight: 48,
-                    px: 1.125,
-                    py: 1,
-                    borderRadius: "8px",
-                    border: `1px solid ${selected ? t.pepsiNavy : t.articleDivider}`,
-                    color: t.pepsiBlue,
-                    bgcolor: selected ? t.pepsiBlueSubtle : "transparent",
-                    fontFamily: theme.palette.fonts.articleBody,
-                    fontSize: "0.8125rem",
-                    fontWeight: 500,
-                    lineHeight: 1.25,
-                    textAlign: "left",
-                    whiteSpace: "normal",
-                    textTransform: "none",
-                    "& .MuiButton-startIcon": { color: t.pepsiNavy, mr: 1 },
-                    "& .MuiButton-endIcon": { color: t.pepsiNavy, ml: 0.75 },
-                    "& .MuiButton-icon": { flexShrink: 0 },
-                    "&:hover": {
-                      bgcolor: t.pepsiBlueSubtle,
-                      borderColor: t.pepsiNavy,
-                    },
-                  }}
-                >
-                  {section}
-                </Button>
-              );
-            })}
-          </Stack>
-        ) : (
-          <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
-            No sections detected.
-          </Typography>
-        )}
-      </RailCard>
 
       {quickLinks.length > 0 && (
         <RailCard title="Quick Links">

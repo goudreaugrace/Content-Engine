@@ -42,7 +42,10 @@ export type EditableArticleSection = {
   key: string;
   title: string;
   body: string;
+  hideHeading?: boolean;
   recommendations?: string[];
+  editor?: ReactNode;
+  preview?: ReactNode;
   onTitleChange?: (value: string) => void;
   onBodyChange: (value: string) => void;
 };
@@ -190,13 +193,14 @@ export default function ArticleDocument({
 
   return (
     <Box
+      id="top"
       sx={{
-        bgcolor: t.articleRailBg,
-        border: 0,
+        bgcolor: t.surface,
+        border: isImmersive ? `1px solid ${t.articleDivider}` : 0,
         borderRadius: isImmersive ? "8px" : 0,
         overflow: "hidden",
         maxWidth: isImmersive ? "none" : 960,
-        boxShadow: "none",
+        boxShadow: isImmersive ? "0 1px 3px rgba(15, 23, 42, 0.05)" : "none",
       }}
     >
       {isImmersive && showMasthead && <Box sx={{ height: 6, bgcolor: t.pepsiBlueDeep }} />}
@@ -282,9 +286,9 @@ export default function ArticleDocument({
       {/* Article header */}
       <Box
         sx={{
-          px: { xs: 2.5, md: 3 },
-          pt: { xs: 2.5, md: 3 },
-          pb: 1.5,
+          px: { xs: 2.5, md: isImmersive ? 5 : 4 },
+          pt: { xs: 2.75, md: isImmersive ? 4.25 : 3.5 },
+          pb: { xs: 2, md: 2.25 },
         }}
       >
         {showReaderActions && (
@@ -327,12 +331,12 @@ export default function ArticleDocument({
                 component="h1"
                 sx={{
                   fontFamily: theme.palette.fonts.articleTitle,
-                  fontSize: { xs: "2.25rem", md: isImmersive ? "2.85rem" : "2.5rem" },
+                  fontSize: { xs: "2.45rem", md: isImmersive ? "3.35rem" : "2.85rem" },
                   fontWeight: 800,
                   letterSpacing: 0,
-                  lineHeight: 0.95,
+                  lineHeight: 0.92,
                   color: t.pepsiNavy,
-                  mb: 1.25,
+                  mb: 1.4,
                 }}
               >
                 {title}
@@ -405,9 +409,9 @@ export default function ArticleDocument({
             sx={{
               maxWidth: isImmersive ? 1040 : 760,
               color: t.inkSoft,
-              fontSize: "0.875rem",
-              lineHeight: 1.6,
-              mb: 1.75,
+              fontSize: { xs: "0.9375rem", md: "1rem" },
+              lineHeight: 1.65,
+              mb: 2.25,
             }}
           >
             {lead}
@@ -429,20 +433,22 @@ export default function ArticleDocument({
         <Box
           sx={{
             mx: { xs: 2.5, md: isImmersive ? 5 : 4 },
-            mb: 2.5,
-            pb: 2,
+            mt: { xs: 0.5, md: 1 },
+            mb: { xs: 3, md: 4 },
+            pb: 2.25,
             borderBottom: `1px solid ${t.articleDivider}`,
           }}
         >
           <Typography
             sx={{
               fontFamily: theme.palette.fonts.articleBody,
-              fontSize: "1.125rem",
-              fontWeight: 600,
-              color: t.pepsiBlue,
+              fontSize: { xs: "1.5rem", md: "1.85rem" },
+              fontWeight: 800,
+              color: t.pepsiNavy,
               textTransform: "none",
               letterSpacing: 0,
-              mb: 0.75,
+              lineHeight: 1.05,
+              mb: 1.25,
             }}
           >
             Table Of Contents
@@ -452,18 +458,17 @@ export default function ArticleDocument({
             sx={{
               m: 0,
               pl: 2,
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              columnGap: 3,
-              rowGap: 0.35,
+              display: "flex",
+              flexDirection: "column",
+              gap: 0.45,
               color: t.pepsiBlue,
               fontFamily: theme.palette.fonts.articleBody,
-              fontSize: "0.8125rem",
-              lineHeight: 1.55,
+              fontSize: { xs: "0.9375rem", md: "1rem" },
+              lineHeight: 1.5,
               "& li::marker": { color: t.pepsiBlue },
               "& a": {
                 color: t.pepsiBlue,
-                fontWeight: 600,
+                fontWeight: 700,
                 textDecoration: "none",
                 "&:hover": {
                   color: t.pepsiBlueStrong,
@@ -486,13 +491,13 @@ export default function ArticleDocument({
       <Box
         sx={{
           position: "relative",
-          px: { xs: 2.5, md: 3 },
-          py: { xs: 2.5, md: 3 },
+          px: { xs: 2.5, md: isImmersive ? 5 : 4 },
+          py: { xs: 2.5, md: isImmersive ? 4 : 3.5 },
           fontFamily: theme.palette.fonts.articleBody,
           color: t.ink,
-          fontSize: "0.875rem",
+          fontSize: { xs: "0.9375rem", md: "1rem" },
           fontWeight: 500,
-          lineHeight: 1.55,
+          lineHeight: 1.65,
 
           "& > *:first-of-type": { mt: 0 },
           "& > *:last-child": { mb: 0 },
@@ -501,27 +506,27 @@ export default function ArticleDocument({
             display: "none",
           },
           "& h2": {
-            fontFamily: theme.palette.fonts.articleBody,
-            fontSize: "1.25rem",
-            fontWeight: 600,
+            fontFamily: theme.palette.fonts.articleTitle,
+            fontSize: { xs: "1.85rem", md: "2.35rem" },
+            fontWeight: 800,
             letterSpacing: 0,
-            lineHeight: 1.05,
-            color: t.pepsiBlue,
-            mt: 4,
-            mb: 1.25,
+            lineHeight: 0.98,
+            color: t.pepsiNavy,
+            mt: { xs: 4.5, md: 5.25 },
+            mb: 1.15,
             pb: 0,
             borderBottom: 0,
             scrollMarginTop: 24,
           },
           "& h3": {
-            fontFamily: theme.palette.fonts.articleBody,
-            fontSize: "0.9375rem",
-            fontWeight: 600,
+            fontFamily: theme.palette.fonts.articleTitle,
+            fontSize: { xs: "1.45rem", md: "1.75rem" },
+            fontWeight: 800,
             letterSpacing: 0,
-            lineHeight: 1.35,
-            color: t.slate,
-            mt: 2.25,
-            mb: 0.75,
+            lineHeight: 1.05,
+            color: t.pepsiNavy,
+            mt: 3.25,
+            mb: 0.85,
             scrollMarginTop: 24,
           },
           "& h4": {
@@ -533,7 +538,7 @@ export default function ArticleDocument({
             mb: 0.5,
           },
 
-          "& p": { my: 1.15, color: t.ink, maxWidth: "none" },
+          "& p": { my: 1.25, color: t.ink, maxWidth: "none" },
 
           "& ul, & ol": { my: 1.1, pl: 3, maxWidth: "none" },
           "& li": {
@@ -626,32 +631,60 @@ export default function ArticleDocument({
           "& tr:last-of-type td": { borderBottom: 0 },
 
           "& details": {
-            my: 1,
+            my: 1.5,
             maxWidth: "none",
             borderRadius: "8px",
             overflow: "hidden",
+            bgcolor: t.pepsiBlue,
+            p: 0.75,
           },
           "& summary": {
             cursor: "pointer",
             listStyle: "none",
             bgcolor: t.pepsiBlue,
             color: "#FFFFFF",
-            fontWeight: 600,
-            fontSize: "0.8125rem",
-            px: 1.5,
-            py: 1,
+            fontWeight: 500,
+            fontSize: { xs: "1rem", md: "1.125rem" },
+            lineHeight: 1.25,
+            px: 0.75,
+            py: 0.6,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
             "&::-webkit-details-marker": { display: "none" },
+            "&::after": {
+              content: "\"⌄\"",
+              marginLeft: "auto",
+              fontSize: "1.25rem",
+              lineHeight: 1,
+              transition: "transform 140ms",
+            },
             "&:focus-visible": {
               outline: `2px solid ${t.pepsiBlueStrong}`,
               outlineOffset: 2,
             },
           },
           "& details[open]": {
-            border: `1px solid ${t.articleDivider}`,
-            bgcolor: "#FFFFFF",
+            border: 0,
+            bgcolor: t.pepsiBlue,
           },
           "& details[open] summary": {
-            mb: 1,
+            mb: 0.75,
+            "&::after": {
+              transform: "rotate(180deg)",
+            },
+          },
+          "& details > p, & details > ul, & details > ol, & details > table, & details > blockquote": {
+            bgcolor: "#FFFFFF",
+            color: t.ink,
+            borderRadius: "8px",
+            mx: 0,
+            mb: 0,
+            px: { xs: 1.5, md: 2 },
+            py: { xs: 1.25, md: 1.6 },
+          },
+          "& details > p + p, & details > ul + p, & details > p + ul, & details > ol + p": {
+            mt: 0.75,
           },
 
           "& hr": {
@@ -687,46 +720,54 @@ export default function ArticleDocument({
             {editableSections.map((section) => {
               const isEditing = editingKey === section.key;
               return (
-                <Box key={section.key} sx={editableBlockSx}>
+                <Box
+                  key={section.key}
+                  id={section.hideHeading ? articleAnchorId(section.title) : undefined}
+                  sx={editableBlockSx}
+                >
                   {isEditing ? (
                     <Stack spacing={1.25}>
-                      {section.onTitleChange && (
-                        <TextField
-                          autoFocus
-                          fullWidth
-                          variant="filled"
-                          label="Section heading"
-                          value={section.title}
-                          onChange={(event) => section.onTitleChange?.(event.target.value)}
-                          InputProps={{ disableUnderline: true }}
-                          sx={{
-                            "& .MuiInputBase-root": {
-                              bgcolor: t.surfaceContainerLow,
-                              borderRadius: 1.5,
-                              fontWeight: 650,
-                            },
-                          }}
-                        />
+                      {section.editor ?? (
+                        <>
+                          {section.onTitleChange && (
+                            <TextField
+                              autoFocus
+                              fullWidth
+                              variant="filled"
+                              label="Section heading"
+                              value={section.title}
+                              onChange={(event) => section.onTitleChange?.(event.target.value)}
+                              InputProps={{ disableUnderline: true }}
+                              sx={{
+                                "& .MuiInputBase-root": {
+                                  bgcolor: t.surfaceContainerLow,
+                                  borderRadius: 1.5,
+                                  fontWeight: 650,
+                                },
+                              }}
+                            />
+                          )}
+                          <TextField
+                            autoFocus={!section.onTitleChange}
+                            fullWidth
+                            multiline
+                            minRows={6}
+                            variant="filled"
+                            label="Article content"
+                            value={section.body}
+                            onChange={(event) => section.onBodyChange(event.target.value)}
+                            InputProps={{ disableUnderline: true }}
+                            sx={{
+                              "& .MuiInputBase-root": {
+                                bgcolor: t.surfaceContainerLow,
+                                borderRadius: 1.5,
+                                fontSize: isImmersive ? "1rem" : "0.9375rem",
+                                lineHeight: 1.65,
+                              },
+                            }}
+                          />
+                        </>
                       )}
-                      <TextField
-                        autoFocus={!section.onTitleChange}
-                        fullWidth
-                        multiline
-                        minRows={6}
-                        variant="filled"
-                        label="Article content"
-                        value={section.body}
-                        onChange={(event) => section.onBodyChange(event.target.value)}
-                        InputProps={{ disableUnderline: true }}
-                        sx={{
-                          "& .MuiInputBase-root": {
-                            bgcolor: t.surfaceContainerLow,
-                            borderRadius: 1.5,
-                            fontSize: isImmersive ? "1rem" : "0.9375rem",
-                            lineHeight: 1.65,
-                          },
-                        }}
-                      />
                       {recommendationCallouts(section.recommendations)}
                       <Box>
                         <Button size="small" variant="contained" onClick={onDoneEditing}>
@@ -736,8 +777,12 @@ export default function ArticleDocument({
                     </Stack>
                   ) : (
                     <>
-                      <h2 id={articleAnchorId(section.title)}>{section.title}</h2>
-                      {section.body.trim() ? (
+                      {!section.hideHeading && (
+                        <h2 id={articleAnchorId(section.title)}>{section.title}</h2>
+                      )}
+                      {section.preview ? (
+                        section.preview
+                      ) : section.body.trim() ? (
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {section.body}
                         </ReactMarkdown>

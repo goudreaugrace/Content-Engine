@@ -67,12 +67,11 @@ export default function ArticleReaderActions({
   return (
     <Stack
       direction="row"
-      spacing={2}
+      spacing={1.25}
       alignItems="center"
-      justifyContent="flex-end"
+      justifyContent="flex-start"
       sx={{ mb: { xs: 2.5, md: 3.5 } }}
     >
-      <FavoriteBorderIcon sx={{ fontSize: 24, color: "#D0021B" }} />
       <Button
         variant="outlined"
         endIcon={<ExpandMoreIcon />}
@@ -161,6 +160,7 @@ export default function ArticleReaderActions({
       <Button variant="outlined" endIcon={<ExpandMoreIcon />} sx={filterButtonSx}>
         Give Feedback
       </Button>
+      <FavoriteBorderIcon sx={{ fontSize: 24, color: "#D0021B", ml: 0.5 }} />
     </Stack>
   );
 }

@@ -80,6 +80,9 @@ export function normalizeArticleStandard<T extends Article | PublishedArticle>(
   const inputMarkets = context.input?.markets?.length
     ? context.input.markets
     : [article.market.toLowerCase()];
+  const replacesArticleId = "replacesArticleId" in article
+    ? article.replacesArticleId
+    : undefined;
 
   return {
     ...article,
@@ -90,7 +93,37 @@ export function normalizeArticleStandard<T extends Article | PublishedArticle>(
     topics,
     references,
     relatedArticleIds: article.relatedArticleIds ?? [],
-    visibility: article.visibility ?? {
+    taxonomy: article.taxonomy ?? {
+      knowledgeBaseId: article.knowledgeBase ?? context.input?.knowledgeBase ?? "mypepsico-general",
+      sector: article.sector ?? context.input?.sectors?.[0] ?? "global",
+      countries: article.countries ?? context.input?.countries ?? [],
+      writtenLanguage: context.input?.taxonomy?.writtenLanguage,
+      languagesRequired: inferLanguageRequirements(context.input?.countries ?? article.countries ?? []),
+      audiences: context.input?.audience ? [context.input.audience] : article.visibility?.audiences ?? ["All employees"],
+      contentType: article.contentType,
+      topics,
+      businessTerms: inferBusinessTerms(article.title, cleanBody, topics),
+      systems: inferSystems(cleanBody),
+      processes: inferProcesses(article.title, cleanBody),
+    },
+    relationships: uniqueRelationships([
+      ...(article.relationships ?? []),
+      ...(replacesArticleId
+        ? [{
+            targetArticleId: replacesArticleId,
+            relationshipType: "replaces" as const,
+            confidence: 1,
+            reason: "Author marked this article as a replacement during creation.",
+          }]
+        : []),
+      ...(article.relatedArticleIds ?? []).map((targetArticleId) => ({
+        targetArticleId,
+        relationshipType: "relatedTo" as const,
+        confidence: 0.7,
+        reason: "Related article link.",
+      })),
+    ]),
+    visibility: article.visibility ?? context.input?.visibility ?? {
       audiences: context.input?.audience ? [context.input.audience] : ["All employees"],
       markets: inputMarkets,
       countries: article.countries ?? [],
@@ -231,6 +264,51 @@ function normalizeDateLike(value: string | undefined): string | undefined {
   if (!value || value.toUpperCase() === "TBD" || value.toLowerCase().includes("pending")) return undefined;
   const parsed = new Date(value);
   return Number.isNaN(+parsed) ? value : parsed.toISOString();
+}
+
+function inferLanguageRequirements(countries: string[]): string[] {
+  const localeByCountry: Record<string, string[]> = {
+    US: ["en-US"],
+    CA: ["en-CA", "fr-CA"],
+    MX: ["es-MX"],
+    BR: ["pt-BR"],
+    GB: ["en-GB"],
+    IN: ["en-IN", "hi-IN"],
+    FR: ["fr-FR"],
+    DE: ["de-DE"],
+    PH: ["en-PH"],
+  };
+  return unique(countries.flatMap((country) => localeByCountry[country] ?? []));
+}
+
+function inferBusinessTerms(title: string, body: string, topics: string[]): string[] {
+  return unique([
+    ...topics,
+    ...`${title} ${body}`
+      .split(/[^A-Za-z0-9&]+/)
+      .filter((word) => word.length > 4 && /^[A-Z]/.test(word)),
+  ]).slice(0, 14);
+}
+
+function inferSystems(body: string): string[] {
+  const candidates = ["Workday", "ServiceNow", "SAP", "myPepsiCo", "Speak Up", "AIRLINC", "Image Vision"];
+  return candidates.filter((system) => new RegExp(`\\b${system.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(body));
+}
+
+function inferProcesses(title: string, body: string): string[] {
+  const text = `${title}\n${body}`.toLowerCase();
+  const candidates = ["approval", "payroll", "benefits", "reporting", "relocation", "access", "expense", "ethics", "translation", "review"];
+  return candidates.filter((process) => text.includes(process));
+}
+
+function uniqueRelationships<T extends { targetArticleId: string; relationshipType: string }>(relationships: T[]): T[] {
+  const seen = new Set<string>();
+  return relationships.filter((relationship) => {
+    const key = `${relationship.relationshipType}:${relationship.targetArticleId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function unique(values: Array<string | undefined>): string[] {

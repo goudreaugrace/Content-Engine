@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -10,8 +10,6 @@ import {
   keyframes,
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
@@ -24,10 +22,10 @@ import { usePersonaMode } from "../lib/persona";
 
 const STEPS = [
   { key: "welcome", title: "Welcome", label: "Welcome" },
-  { key: "flow", title: "The shape of it", label: "The flow" },
-  { key: "agents", title: "The agents", label: "Agents" },
-  { key: "sequence", title: "Watch one travel", label: "Sequence" },
-  { key: "state", title: "The state right now", label: "Live state" },
+  { key: "flow", title: "Create to publish", label: "Flow" },
+  { key: "agents", title: "Article building blocks", label: "Article parts" },
+  { key: "sequence", title: "Review and publish", label: "Review" },
+  { key: "state", title: "Library state", label: "Library" },
   { key: "ready", title: "You're set up", label: "Ready" },
 ] as const;
 type StepKey = (typeof STEPS)[number]["key"];
@@ -37,6 +35,7 @@ type StepKey = (typeof STEPS)[number]["key"];
 // ────────────────────────────────────────────────────────────
 type LiveStats = {
   articles?: number;
+  published?: number;
   jobs?: number;
   markets?: number;
   audiences?: number;
@@ -49,16 +48,18 @@ function useLiveStats(): LiveStats {
     let cancelled = false;
     (async () => {
       try {
-        const [arts, jobs, markets, audiences, emails] = await Promise.all([
+        const [arts, jobs, markets, audiences, emails, published] = await Promise.all([
           api.listArticles(),
           api.listJobs(),
           api.listMarkets(),
           api.listAudiences(),
           api.listEmails(),
+          api.listPublishedArticles(),
         ]);
         if (cancelled) return;
         setStats({
           articles: arts.length,
+          published: published.length,
           jobs: jobs.length,
           markets: markets.length,
           audiences: audiences.length,
@@ -105,297 +106,188 @@ const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 `;
-// Slightly larger lift for full-step entry, so the screen transition reads as
-// "page advanced" rather than just "content updated."
-const stepEnter = keyframes`
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-`;
-
 // ════════════════════════════════════════════════════════════
-// MAIN COMPONENT — guided orientation flow (one step per screen)
-//
-// Earlier this page was a long-scroll doc with sticky jump-link pills.
-// Stakeholders coming in cold need an experience that LANDS the system,
-// not a docs page. The shell here gives them:
-//   · A confident Welcome with a 60-second promise and explicit "Skip" exit
-//   · One step on screen at a time so each visual gets full attention
-//   · A thin progress bar + footer Back/Next so they always know where
-//     they are and how to move
-//   · Keyboard nav (← / → / Enter / Esc) so power users zip through
-//   · A Ready close that hands off to a concrete next action — not just
-//     "thanks for reading"
-// All step-internal visuals (FlowDiagram, AgentConstellation,
-// SequenceLaneDiagram, DataStack) are untouched.
+// MAIN COMPONENT — scrollable guide with sticky jump navigation
 // ════════════════════════════════════════════════════════════
 const COMPLETED_KEY = "how-it-works-completed-v1";
 
 export default function HowItWorks() {
   const theme = useTheme();
   const t = theme.palette.tokens;
-  const navigate = useNavigate();
   const stats = useLiveStats();
-
-  const [stepIndex, setStepIndex] = useState(0);
-  const totalSteps = STEPS.length;
-  const currentStep = STEPS[stepIndex];
-  const isFirst = stepIndex === 0;
-  const isLast = stepIndex === totalSteps - 1;
+  const [activeSection, setActiveSection] = useState<StepKey>("welcome");
 
   // Remembers across reloads that someone has been through the tour.
-  // Used only to soften the welcome copy on return visits — no hard
-  // redirect; they navigated here on purpose.
-  const hasCompletedBefore = useMemo(() => {
+  const [hasCompletedBefore] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
       return localStorage.getItem(COMPLETED_KEY) === "true";
     } catch {
       return false;
     }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(COMPLETED_KEY, "true");
+    } catch {
+      /* localStorage unavailable — non-fatal */
+    }
   }, []);
 
-  const goNext = useCallback(() => {
-    setStepIndex((i) => {
-      const next = Math.min(totalSteps - 1, i + 1);
-      if (next === totalSteps - 1) {
-        try {
-          localStorage.setItem(COMPLETED_KEY, "true");
-        } catch {
-          /* localStorage unavailable — non-fatal */
-        }
-      }
-      return next;
+  useEffect(() => {
+    const elements = STEPS.map((step) => document.getElementById(`section-${step.key}`)).filter(
+      (el): el is HTMLElement => Boolean(el),
+    );
+    if (!elements.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        const key = visible?.target.getAttribute("data-section-key") as StepKey | null;
+        if (key) setActiveSection(key);
+      },
+      { rootMargin: "-24% 0px -58% 0px", threshold: [0.08, 0.25, 0.6] },
+    );
+
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, []);
+
+  const jumpToSection = (key: StepKey) => {
+    document.getElementById(`section-${key}`)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
     });
-  }, [totalSteps]);
-
-  const goBack = useCallback(() => {
-    setStepIndex((i) => Math.max(0, i - 1));
-  }, []);
-
-  const skip = useCallback(() => {
-    navigate("/");
-  }, [navigate]);
-
-  // Keyboard navigation — bail out if focus is in a form field so we don't
-  // intercept typing in (hypothetical) inputs on a step.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement | null)?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || tag === "select") return;
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        if (!isLast) goNext();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        if (!isFirst) goBack();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        skip();
-      } else if (e.key === "Enter" && isFirst) {
-        e.preventDefault();
-        goNext();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [goNext, goBack, skip, isFirst, isLast]);
-
-  // Snap the viewport back to the top on step change so each step lands at
-  // its own headline, not wherever the previous step's scroll left off.
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-  }, [stepIndex]);
-
-  const progress = ((stepIndex + 1) / totalSteps) * 100;
-  const nextLabel = isLast ? "Done" : stepIndex === totalSteps - 2 ? "Finish" : "Next";
+  };
 
   return (
-    <Box sx={{ maxWidth: 1280, mx: "auto", position: "relative" }}>
-      {/* ─────────── Top chrome: progress + step counter + skip ─────────── */}
+    <Box
+      sx={{
+        maxWidth: 1320,
+        mx: "auto",
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) 190px" },
+        gap: { xs: 4, lg: 5 },
+        alignItems: "start",
+      }}
+    >
       <Box
         sx={{
-          position: "sticky",
-          top: 0,
-          zIndex: 5,
-          bgcolor: t.paper,
-          mx: { xs: -2, md: -3 },
-          px: { xs: 2, md: 3 },
-          pt: 1.5,
-          pb: 1.25,
-          borderBottom: `1px solid ${t.border}`,
+          minWidth: 0,
+          pb: { xs: 6, md: 10 },
         }}
       >
-        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
-          <Box
+        <GuideSection stepKey="welcome" compact={false}>
+          <StepWelcome hasCompletedBefore={hasCompletedBefore} />
+        </GuideSection>
+        <GuideSection stepKey="flow">
+          <StepFlow />
+        </GuideSection>
+        <GuideSection stepKey="agents">
+          <StepAgents />
+        </GuideSection>
+        <GuideSection stepKey="sequence">
+          <StepSequence />
+        </GuideSection>
+        <GuideSection stepKey="state">
+          <StepState stats={stats} />
+        </GuideSection>
+        <GuideSection stepKey="ready">
+          <StepReady />
+        </GuideSection>
+      </Box>
+
+      <Box
+        component="aside"
+        sx={{
+          display: { xs: "none", lg: "block" },
+          position: "sticky",
+          top: 24,
+          pt: 1,
+        }}
+      >
+        <Box
+          sx={{
+            borderLeft: `1px solid ${t.border}`,
+            pl: 2,
+            py: 0.5,
+          }}
+        >
+          <Typography
             sx={{
               fontFamily: theme.palette.fonts.mono,
               fontSize: "0.6875rem",
-              letterSpacing: "0.1em",
+              letterSpacing: "0.08em",
               color: t.granite,
-              flexShrink: 0,
+              mb: 1.25,
+              textTransform: "uppercase",
             }}
           >
-            ORIENTATION · {String(stepIndex + 1).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
-          </Box>
-          <Box
-            sx={{
-              flex: 1,
-              fontSize: "0.8125rem",
-              color: t.slate,
-              display: { xs: "none", md: "block" },
-              minWidth: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {currentStep.title}
-          </Box>
-          <Button
-            onClick={skip}
-            size="small"
-            disableRipple
-            sx={{
-              color: t.slate,
-              fontSize: "0.8125rem",
-              fontWeight: 500,
-              textTransform: "none",
-              px: 1,
-              "&:hover": { color: t.ink, bgcolor: t.mist },
-            }}
-            endIcon={<CloseIcon sx={{ fontSize: 14 }} />}
-          >
-            {isLast ? "Close tour" : "Skip tour"}
-          </Button>
-        </Stack>
-        {/* Thin progress rail — single blue fill so the system color tells the
-            story. Reserve ember strictly for attention signals elsewhere. */}
-        <Box sx={{ height: 2, bgcolor: t.border, borderRadius: 999, overflow: "hidden" }}>
-          <Box
-            sx={{
-              height: "100%",
-              width: `${progress}%`,
-              bgcolor: t.pepsiBlue,
-              transition: "width 420ms cubic-bezier(0.22, 1, 0.36, 1)",
-            }}
-          />
-        </Box>
-      </Box>
-
-      {/* ─────────── Step body ─────────── */}
-      <Box
-        key={currentStep.key}
-        sx={{
-          py: { xs: 4, md: 8 },
-          animation: `${stepEnter} 420ms cubic-bezier(0.22, 1, 0.36, 1)`,
-          // Reserve enough vertical room that the step doesn't share the
-          // viewport with the footer bar when there's lots of content.
-          minHeight: { xs: "auto", md: "calc(100vh - 220px)" },
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: { xs: "flex-start", md: "center" },
-        }}
-      >
-        {currentStep.key === "welcome" && (
-          <StepWelcome
-            hasCompletedBefore={hasCompletedBefore}
-            onStart={goNext}
-            onSkip={skip}
-          />
-        )}
-        {currentStep.key === "flow" && <StepFlow />}
-        {currentStep.key === "agents" && <StepAgents />}
-        {currentStep.key === "sequence" && <StepSequence />}
-        {currentStep.key === "state" && <StepState stats={stats} />}
-        {currentStep.key === "ready" && <StepReady onBack={goBack} />}
-      </Box>
-
-      {/* ─────────── Footer nav: Back · dots · Next ───────────
-          Hidden on Welcome (its own dual-CTA layout owns the primary
-          action) so the first impression stays uncluttered. Visible on
-          every other step including Ready, where Next becomes "Done". */}
-      {!isFirst && (
-        <Box
-          sx={{
-            position: "sticky",
-            bottom: 0,
-            zIndex: 5,
-            bgcolor: t.paper,
-            borderTop: `1px solid ${t.border}`,
-            mx: { xs: -2, md: -3 },
-            px: { xs: 2, md: 3 },
-            py: 1.75,
-          }}
-        >
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            spacing={2}
-          >
-            <Button
-              onClick={goBack}
-              startIcon={<ArrowBackIcon sx={{ fontSize: 18 }} />}
-              disableRipple
-              sx={{
-                color: t.slate,
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                textTransform: "none",
-                "&:hover": { color: t.ink, bgcolor: t.mist },
-              }}
-            >
-              Back
-            </Button>
-
-            {/* Step dots — current step's dot widens to a pill so the
-                affordance reads "you are here" without text. */}
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              {STEPS.map((s, i) => {
-                const isCurrent = i === stepIndex;
-                const isPast = i < stepIndex;
-                return (
-                  <Box
-                    key={s.key}
-                    role="button"
-                    aria-label={`Go to step ${i + 1}: ${s.title}`}
-                    onClick={() => setStepIndex(i)}
-                    sx={{
-                      width: isCurrent ? 22 : 6,
-                      height: 6,
-                      borderRadius: 999,
-                      cursor: "pointer",
-                      bgcolor: isCurrent || isPast ? t.pepsiBlue : t.border,
-                      opacity: isPast ? 0.45 : 1,
-                      transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
-                      "&:hover": {
-                        bgcolor:
-                          isCurrent || isPast ? t.pepsiBlue : t.borderStrong,
-                      },
-                    }}
-                  />
-                );
-              })}
-            </Stack>
-
-            <Button
-              variant={isLast ? "outlined" : "contained"}
-              onClick={isLast ? skip : goNext}
-              endIcon={
-                isLast ? undefined : <ArrowForwardIcon sx={{ fontSize: 18 }} />
-              }
-              sx={{
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                textTransform: "none",
-                minWidth: 110,
-              }}
-            >
-              {nextLabel}
-            </Button>
+            On this page
+          </Typography>
+          <Stack component="nav" spacing={0.25} aria-label="How it works sections">
+            {STEPS.map((step) => {
+              const active = activeSection === step.key;
+              return (
+                <Button
+                  key={step.key}
+                  onClick={() => jumpToSection(step.key)}
+                  disableRipple
+                  fullWidth
+                  sx={{
+                    justifyContent: "flex-start",
+                    textTransform: "none",
+                    minHeight: 30,
+                    px: 1,
+                    py: 0.5,
+                    borderRadius: 1,
+                    color: active ? t.pepsiBlueStrong : t.slate,
+                    bgcolor: active ? t.pepsiBlueSubtle : "transparent",
+                    fontSize: "0.8125rem",
+                    fontWeight: active ? 700 : 500,
+                    "&:hover": {
+                      bgcolor: active ? t.pepsiBlueSubtle : t.mist,
+                      color: t.pepsiBlueStrong,
+                    },
+                  }}
+                >
+                  {step.label}
+                </Button>
+              );
+            })}
           </Stack>
         </Box>
-      )}
+      </Box>
+    </Box>
+  );
+}
+
+function GuideSection({
+  stepKey,
+  children,
+  compact = true,
+}: {
+  stepKey: StepKey;
+  children: ReactNode;
+  compact?: boolean;
+}) {
+  return (
+    <Box
+      id={`section-${stepKey}`}
+      data-section-key={stepKey}
+      component="section"
+      sx={{
+        scrollMarginTop: 28,
+        pt: compact ? { xs: 5, md: 7 } : { xs: 2, md: 4 },
+        pb: { xs: 5, md: 7 },
+        borderBottom: compact ? "1px solid" : "none",
+        borderColor: "divider",
+      }}
+    >
+      {children}
     </Box>
   );
 }
@@ -409,15 +301,7 @@ export default function HowItWorks() {
 // acknowledges they've been here so the screen doesn't feel like
 // it's re-introducing itself.
 // ════════════════════════════════════════════════════════════
-function StepWelcome({
-  hasCompletedBefore,
-  onStart,
-  onSkip,
-}: {
-  hasCompletedBefore: boolean;
-  onStart: () => void;
-  onSkip: () => void;
-}) {
+function StepWelcome({ hasCompletedBefore }: { hasCompletedBefore: boolean }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
 
@@ -427,15 +311,15 @@ function StepWelcome({
   const promises = [
     {
       icon: <RouteOutlinedIcon sx={{ fontSize: 20 }} />,
-      label: "The flow from submission to review",
+      label: "Set destination, access, language, and format before writing",
     },
     {
       icon: <HubOutlinedIcon sx={{ fontSize: 20 }} />,
-      label: "The seven agents that do the work",
+      label: "Use structured sections, source files, FAQs, tables, and resources",
     },
     {
       icon: <InsightsOutlinedIcon sx={{ fontSize: 20 }} />,
-      label: "The live state and where to tune it",
+      label: "Review the same article view employees will read before approval",
     },
   ];
 
@@ -443,9 +327,9 @@ function StepWelcome({
     <Box
       sx={{
         maxWidth: 720,
-        mx: "auto",
-        textAlign: { xs: "left", md: "center" },
-        px: { xs: 0, md: 2 },
+        mx: 0,
+        textAlign: "left",
+        px: 0,
       }}
     >
       <Typography
@@ -458,7 +342,7 @@ function StepWelcome({
           fontWeight: 600,
         }}
       >
-        {hasCompletedBefore ? "Welcome back · Orientation" : "Orientation tour"}
+        {hasCompletedBefore ? "Welcome back" : "How it works"}
       </Typography>
 
       <Typography
@@ -471,12 +355,12 @@ function StepWelcome({
           fontWeight: 500,
           letterSpacing: "-0.015em",
           maxWidth: "20ch",
-          mx: { xs: 0, md: "auto" },
+          mx: 0,
         }}
       >
         {hasCompletedBefore
-          ? "The Content Agent, in five quick screens."
-          : "Here's how the Content Agent ships an article."}
+          ? "Content Engine, as a scrollable guide."
+          : "Here's how Content Engine ships an article."}
       </Typography>
 
       <Typography
@@ -486,11 +370,12 @@ function StepWelcome({
           lineHeight: 1.6,
           mb: 5,
           maxWidth: "52ch",
-          mx: { xs: 0, md: "auto" },
+          mx: 0,
         }}
       >
-        A short walkthrough of the system from request to published article,
-        plus where you can shape its behavior. About two minutes.
+        Scroll through the self-service authoring flow, structured article
+        templates, and review-to-publish experience. Use the links on the right
+        to jump between sections.
       </Typography>
 
       {/* What you'll see — three promises with icons. Inline, no card
@@ -498,7 +383,7 @@ function StepWelcome({
       <Box
         sx={{
           maxWidth: 480,
-          mx: { xs: 0, md: "auto" },
+          mx: 0,
           mb: 5,
           textAlign: "left",
         }}
@@ -565,60 +450,6 @@ function StepWelcome({
           ))}
         </Stack>
       </Box>
-
-      {/* Primary + secondary CTAs. Primary uses the system's contained
-          button; secondary stays text-button quiet. */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={1.5}
-        justifyContent={{ xs: "flex-start", md: "center" }}
-        alignItems={{ xs: "stretch", sm: "center" }}
-        sx={{ mb: 3 }}
-      >
-        <Button
-          variant="contained"
-          size="large"
-          onClick={onStart}
-          endIcon={<ArrowForwardIcon />}
-          sx={{
-            fontSize: "0.9375rem",
-            fontWeight: 500,
-            textTransform: "none",
-            px: 3,
-            py: 1.25,
-          }}
-        >
-          {hasCompletedBefore ? "Take the tour again" : "Start tour"}
-        </Button>
-        <Button
-          variant="text"
-          size="large"
-          onClick={onSkip}
-          sx={{
-            fontSize: "0.9375rem",
-            fontWeight: 500,
-            textTransform: "none",
-            color: t.slate,
-            px: 2,
-            "&:hover": { color: t.ink, bgcolor: t.mist },
-          }}
-        >
-          Skip To Articles
-        </Button>
-      </Stack>
-
-      {/* Keyboard hint — quiet caption-level. Power users see it once,
-          everyone else ignores it harmlessly. */}
-      <Typography
-        sx={{
-          fontSize: "0.75rem",
-          color: t.granite,
-          fontFamily: theme.palette.fonts.mono,
-          letterSpacing: "0.04em",
-        }}
-      >
-        ← / → to navigate · Esc to skip
-      </Typography>
     </Box>
   );
 }
@@ -634,8 +465,8 @@ function StepFlow() {
     <Box>
       <StepHeader
         kicker="02"
-        title="The shape of it"
-        sub="One submission, three phases. The middle phase is where every agent lives — they all run inside one orchestrator call."
+        title="Create to publish"
+        sub="A Content Owner chooses the basics, writes with the right template blocks, reviews the employee-facing article, then sends it for approval and publishing."
       />
       <Box sx={{ position: "relative", py: { xs: 2, md: 4 } }}>
         <FlowDiagram />
@@ -682,14 +513,14 @@ function FlowDiagram() {
           style={{ animation: `${dash} 1.8s linear infinite` }}
         />
 
-        {/* PHASE 1 — Submit */}
+        {/* PHASE 1 — Set up */}
         <PhaseNode
           x={50}
           y={70}
           width={140}
           height={180}
           number="01"
-          title="Submit"
+          title="Set up"
           bg={t.surface}
           stroke={t.border}
         />
@@ -701,7 +532,7 @@ function FlowDiagram() {
         <rect x={70} y={213} width={56} height={20} rx={3} fill={t.ink} />
         <rect x={130} y={213} width={40} height={20} rx={3} fill={t.surface} stroke={t.border} />
 
-        {/* PHASE 2 — Process (big, accented) */}
+        {/* PHASE 2 — Write article (big, accented) */}
         <rect
           x={360}
           y={50}
@@ -730,17 +561,17 @@ function FlowDiagram() {
           fontSize="17"
           fontWeight="600"
         >
-          Agents work
+          Write article
         </text>
-        {/* Mini agent nodes inside Process — row 2 shifted down for clearance
+        {/* Mini building-block nodes inside Process — row 2 shifted down for clearance
             between the row-1 label and the row-2 circle. */}
         {[
-          { x: 390, y: 140, label: "intake" },
-          { x: 450, y: 140, label: "router" },
-          { x: 510, y: 140, label: "country" },
-          { x: 390, y: 195, label: "comply" },
-          { x: 450, y: 195, label: "revise" },
-          { x: 510, y: 195, label: "store" },
+          { x: 390, y: 140, label: "template" },
+          { x: 450, y: 140, label: "FAQ" },
+          { x: 510, y: 140, label: "table" },
+          { x: 390, y: 195, label: "source" },
+          { x: 450, y: 195, label: "related" },
+          { x: 510, y: 195, label: "preview" },
         ].map((n) => (
           <g key={n.label}>
             <circle cx={n.x} cy={n.y} r={6} fill={t.pepsiBlue} />
@@ -770,7 +601,7 @@ function FlowDiagram() {
           fill={t.pepsiBlue}
           fontSize="10"
         >
-          7 agents · 1 orchestrator
+          templates · sources · preview
         </text>
 
         {/* PHASE 3 — Review */}
@@ -802,7 +633,7 @@ function FlowDiagram() {
           fill={t.pepsiBlueStrong}
           fontWeight="600"
         >
-          new article
+          publish ready
         </text>
       </Box>
     </Box>
@@ -863,20 +694,20 @@ function alphaHex(hex: string, a: number): string {
 // STEP 3 — AGENTS (radial constellation)
 // ════════════════════════════════════════════════════════════
 const AGENTS = [
-  { id: "intake", name: "Intake", role: "Parses the request and checks if it's complete enough to draft.", color: "blue" },
-  { id: "clarifier", name: "Clarifier", role: "Drafts the follow-up email when something's missing.", color: "neutral" },
-  { id: "router", name: "Router", role: "Picks which country agent(s) to invoke.", color: "blue" },
-  { id: "country", name: "Country", role: "Writes the article in the country's tone and language, composed on top of its sector's corporate guidelines.", color: "ember" },
-  { id: "compliance", name: "Compliance", role: "Checks the request against DEEx guidelines in parallel.", color: "blue" },
-  { id: "revision", name: "Revision", role: "Re-runs the country agent when compliance flags errors.", color: "ember" },
-  { id: "translation", name: "Translation", role: "Translates an article into another supported language.", color: "neutral" },
+  { id: "basics", name: "Basics", role: "Title, content type, knowledge base, sector, country scope, employee audience, access groups, source language, and approver are captured before writing starts.", color: "blue" },
+  { id: "templates", name: "Templates", role: "Each content type starts with the right structure, but authors can rename sections and add new blocks.", color: "blue" },
+  { id: "sources", name: "Sources", role: "The support rail keeps source uploads, attachment reminders, and related article signals visible while the author writes.", color: "neutral" },
+  { id: "sections", name: "Sections", role: "Authors can add text, FAQ, table, resource-link, accordion, and callout sections so articles can use the blocks they actually need.", color: "ember" },
+  { id: "editor", name: "Text editor", role: "Inline editing keeps writing close to the article while basic formatting and improve actions stay contextual.", color: "neutral" },
+  { id: "review", name: "Review", role: "The final step shows the employee-facing article preview plus compact readiness, source, access, and findability guidance.", color: "blue" },
+  { id: "published", name: "Published", role: "Approved content opens as a PepsiCo-styled article with side metadata, translations, quick links, feedback, and performance data.", color: "ember" },
 ] as const;
 
 function StepAgents() {
   const theme = useTheme();
   const t = theme.palette.tokens;
-  const [active, setActive] = useState<string>("country");
-  // Auto-cycle through agents
+  const [active, setActive] = useState<string>("sections");
+  // Auto-cycle through article building blocks.
   useEffect(() => {
     const id = setInterval(() => {
       setActive((cur) => {
@@ -892,8 +723,8 @@ function StepAgents() {
     <Box>
       <StepHeader
         kicker="03"
-        title="The agents"
-        sub="Seven specialists, one orchestrator. Each does one job and hands off. Tap any node to learn what it owns."
+        title="Article building blocks"
+        sub="The creator is structured, but not locked down. Authors start from a content-type template, then add the section types the article actually needs."
       />
 
       <Stack
@@ -907,7 +738,7 @@ function StepAgents() {
           <AgentConstellation active={active} onSelect={setActive} />
         </Box>
 
-        {/* Active agent detail */}
+        {/* Active building-block detail */}
         <Box
           key={activeAgent.id}
           sx={{
@@ -924,7 +755,7 @@ function StepAgents() {
               mb: 1.25,
             }}
           >
-            AGENT · {String(AGENTS.findIndex((a) => a.id === active) + 1).padStart(2, "0")} OF {AGENTS.length}
+            PART · {String(AGENTS.findIndex((a) => a.id === active) + 1).padStart(2, "0")} OF {AGENTS.length}
           </Box>
           <Typography sx={{ fontSize: "2rem", fontWeight: 600, color: t.ink, mb: 1 }}>
             {activeAgent.name}
@@ -990,7 +821,7 @@ function AgentConstellation({
         strokeDasharray="2 5"
       />
 
-      {/* Connection lines from center to each agent */}
+      {/* Connection lines from center to each article part */}
       {AGENTS.map((a, i) => {
         const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
         const x = cx + Math.cos(angle) * radius;
@@ -1011,7 +842,7 @@ function AgentConstellation({
         );
       })}
 
-      {/* Center: orchestrator */}
+      {/* Center: article standard */}
       <circle
         cx={cx}
         cy={cy}
@@ -1045,10 +876,10 @@ function AgentConstellation({
         fontWeight="600"
         fill="#FFFFFF"
       >
-        Orchestrator
+        Standard
       </text>
 
-      {/* Agent nodes */}
+      {/* Article-part nodes */}
       {AGENTS.map((a, i) => {
         const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
         const x = cx + Math.cos(angle) * radius;
@@ -1116,8 +947,8 @@ function StepSequence() {
     <Box>
       <StepHeader
         kicker="04"
-        title="Watch one travel"
-        sub="A single article moving through the system. Time flows downward; each vertical lane is an actor. Country and Compliance run side-by-side."
+        title="Review and publish"
+        sub="The article moves from guided setup to editable article preview, then into the published reader without changing format."
       />
       {/* Visual — full width so the diagram has room to breathe. */}
       <Box
@@ -1148,16 +979,16 @@ function StepSequence() {
           }}
         >
           <Insight
-            title="Parallel by design"
-            body="Compliance scans the request while the country agent writes. Total time is one agent call, not two."
+            title="Same article, two moments"
+            body="Authors review the article in the same visual system employees will see after publish."
           />
           <Insight
-            title="Conditional revision"
-            body="The country agent only re-runs if compliance found severity=error. Warnings stay attached for the reviewer."
+            title="Structured, not rigid"
+            body="FAQ blocks, tables, resources, and text sections can be mixed as the content requires."
           />
           <Insight
-            title="Trace is the receipt"
-            body="Every step writes back to the job, so the dashboard's Writing… row and the trace view stay live."
+            title="Governance stays outside the prose"
+            body="Owner, approver, knowledge base, country scope, access groups, source language, translations, and publish status live as metadata."
           />
         </Box>
       </Box>
@@ -1189,12 +1020,12 @@ function SequenceLaneDiagram() {
   const W = 720;
   const H = 540;
   const lanes = [
-    { id: "frontend", name: "Frontend", x: 80 },
-    { id: "orch", name: "Orchestrator", x: 215 },
-    { id: "intake", name: "Intake", x: 335 },
-    { id: "router", name: "Router", x: 445 },
-    { id: "country", name: "Country", x: 555 },
-    { id: "comply", name: "Compliance", x: 660 },
+    { id: "owner", name: "Owner", x: 80 },
+    { id: "basics", name: "Basics", x: 215 },
+    { id: "article", name: "Article", x: 335 },
+    { id: "support", name: "Support", x: 445 },
+    { id: "reviewer", name: "Reviewer", x: 555 },
+    { id: "published", name: "Published", x: 660 },
   ];
   // Vertical positions for messages — generous spacing so labels never collide
   // with the dashed lane rails or with adjacent message labels.
@@ -1257,35 +1088,35 @@ function SequenceLaneDiagram() {
       ))}
 
       {/* Messages */}
-      {/* T0: Frontend → Orchestrator */}
-      <Message x1={xOf("frontend")} x2={xOf("orch")} y={t0} label="POST /api/jobs" />
-      {/* T1: Orchestrator → Intake */}
-      <Message x1={xOf("orch")} x2={xOf("intake")} y={t1} label="parse request" color={t.pepsiBlue} />
+      {/* T0: Owner -> Basics */}
+      <Message x1={xOf("owner")} x2={xOf("basics")} y={t0} label="choose content type" />
+      {/* T1: Basics -> Article */}
+      <Message x1={xOf("basics")} x2={xOf("article")} y={t1} label="set KB · scope · approver" color={t.pepsiBlue} />
       {/* T1 return */}
-      <Message x1={xOf("intake")} x2={xOf("orch")} y={t1 + 24} label="complete=true" returnArrow />
-      {/* T2: Orchestrator → Router */}
-      <Message x1={xOf("orch")} x2={xOf("router")} y={t2} label="route(country='mx')" color={t.pepsiBlue} />
-      <Message x1={xOf("router")} x2={xOf("orch")} y={t2 + 24} label='countrys=["mx"]' returnArrow />
+      <Message x1={xOf("article")} x2={xOf("basics")} y={t1 + 24} label="ready to write" returnArrow />
+      {/* T2: Article -> Support */}
+      <Message x1={xOf("article")} x2={xOf("support")} y={t2} label="load template" color={t.pepsiBlue} />
+      <Message x1={xOf("support")} x2={xOf("article")} y={t2 + 24} label="sources attached" returnArrow />
 
-      {/* T3: Parallel — orchestrator dispatches Country + Compliance.
+      {/* T3: Parallel — writing happens while source support stays visible.
           The bar sits well above the first message so its label has its own row. */}
       <ParallelBar
         y={t3 - 28}
-        x1={xOf("orch") - 12}
-        x2={xOf("comply") + 12}
-        label="Promise.all"
+        x1={xOf("article") - 12}
+        x2={xOf("reviewer") + 12}
+        label="while writing"
       />
-      <Message x1={xOf("orch")} x2={xOf("country")} y={t3} label="draft(profile)" color={t.ember} />
-      <Message x1={xOf("orch")} x2={xOf("comply")} y={t3 + 24} label="check(rules)" color={t.ember} />
+      <Message x1={xOf("article")} x2={xOf("support")} y={t3} label="add FAQ · table · resources" color={t.ember} />
+      <Message x1={xOf("article")} x2={xOf("reviewer")} y={t3 + 24} label="preview readiness" color={t.ember} />
 
-      {/* T4: Returns from country + compliance */}
-      <Message x1={xOf("country")} x2={xOf("orch")} y={t4} label="draft body" returnArrow />
-      <Message x1={xOf("comply")} x2={xOf("orch")} y={t4 + 24} label="issues=[]" returnArrow />
+      {/* T4: Returns from support + reviewer */}
+      <Message x1={xOf("support")} x2={xOf("article")} y={t4} label="related articles" returnArrow />
+      <Message x1={xOf("reviewer")} x2={xOf("article")} y={t4 + 24} label="recommendations" returnArrow />
 
-      {/* T5: Orchestrator self-action */}
-      <SelfNote x={xOf("orch")} y={t5} text="write article · status=needs-review" />
+      {/* T5: Article self-action */}
+      <SelfNote x={xOf("article")} y={t5} text="submit article for review" />
       {/* T6: notify */}
-      <Message x1={xOf("orch")} x2={xOf("frontend")} y={t6} label="job complete" />
+      <Message x1={xOf("reviewer")} x2={xOf("published")} y={t6} label="publish employee view" />
 
       {/* Time labels on the left — single label per timeline row */}
       {[
@@ -1471,12 +1302,16 @@ function SelfNote({ x, y, text }: { x: number; y: number; text: string }) {
 function StepState({ stats }: { stats: LiveStats }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const profileCount =
+    stats.markets !== undefined && stats.audiences !== undefined
+      ? stats.markets + stats.audiences
+      : undefined;
   return (
     <Box>
       <StepHeader
         kicker="05"
-        title="The state right now"
-        sub="Live numbers from the running server. Refreshes when you arrive."
+        title="Library state"
+        sub="Live counts from the current workspace: drafts, published articles, profiles, and messages."
       />
       <Stack
         direction={{ xs: "column", md: "row" }}
@@ -1489,18 +1324,18 @@ function StepState({ stats }: { stats: LiveStats }) {
         </Box>
         <Box sx={{ flex: "1 1 50%" }}>
           <Typography sx={{ fontSize: "1.0625rem", color: t.ink, lineHeight: 1.65, mb: 2 }}>
-            Every piece of strategy lives in JSON on disk. Per-file write locks
-            keep parallel agent work from clobbering anything.
+            The app keeps source articles, published articles, jobs, messages,
+            and profile rules as separate records. That is why a draft can be
+            reviewed, published, edited, and measured without duplicating the article.
           </Typography>
           <Typography sx={{ fontSize: "0.9375rem", color: t.slate, lineHeight: 1.65, mb: 3 }}>
-            Countries and audiences are the most-tuned files. Edit either through
-            the admin pages and the next article submitted picks up your
-            changes — no deploy.
+            Content Owners create and maintain article content. Team Admins and
+            Super Admins manage review, governance, profile data, and published health.
           </Typography>
           <Stack direction="row" spacing={2.5} flexWrap="wrap" useFlexGap>
             <BigStat label="Need review" value={stats.needsReview} accent />
-            <BigStat label="Countries" value={stats.markets} />
-            <BigStat label="Audiences" value={stats.audiences} />
+            <BigStat label="Published" value={stats.published} />
+            <BigStat label="Profiles" value={profileCount} />
           </Stack>
         </Box>
       </Stack>
@@ -1512,12 +1347,19 @@ function DataStack({ stats }: { stats: LiveStats }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
   const layers = [
-    { name: "articles.json", value: stats.articles, color: t.pepsiBlue },
-    { name: "jobs.json", value: stats.jobs, color: t.slate },
-    { name: "emails.json", value: stats.emails, color: t.slate },
-    { name: "audience-profiles/", value: stats.audiences, color: t.pepsiBlue },
-    { name: "market-profiles/", value: stats.markets, color: t.pepsiBlue },
-    { name: "deex-rules.json", value: 1, color: t.granite, label: "static" },
+    { name: "source articles", value: stats.articles, color: t.pepsiBlue },
+    { name: "published articles", value: stats.published, color: t.pepsiBlue },
+    {
+      name: "jobs + messages",
+      value:
+        stats.jobs !== undefined && stats.emails !== undefined
+          ? stats.jobs + stats.emails
+          : undefined,
+      color: t.slate,
+    },
+    { name: "audience profiles", value: stats.audiences, color: t.pepsiBlue },
+    { name: "market profiles", value: stats.markets, color: t.pepsiBlue },
+    { name: "review rules", value: 1, color: t.granite, label: "static" },
   ];
 
   return (
@@ -1595,7 +1437,7 @@ function DataStack({ stats }: { stats: LiveStats }) {
           letterSpacing: "0.08em",
         }}
       >
-        SERVER/DATA/
+        WORKSPACE DATA
       </Box>
     </Box>
   );
@@ -1663,7 +1505,7 @@ function BigStat({
 // (Author / Reviewer / Admin), so anyone leaving the tour can
 // identify themselves and land somewhere useful.
 // ════════════════════════════════════════════════════════════
-function StepReady({ onBack }: { onBack: () => void }) {
+function StepReady() {
   const theme = useTheme();
   const t = theme.palette.tokens;
   const navigate = useNavigate();
@@ -1676,9 +1518,9 @@ function StepReady({ onBack }: { onBack: () => void }) {
     canCreateArticle
       ? {
           icon: <ArticleOutlinedIcon />,
-          role: "If you're an author",
+          role: "If you're a content owner",
           label: "Start a new article",
-          sub: "Open the request form and let the agents draft it.",
+          sub: "Start with basics, write from a template, review the employee-facing preview, and submit for approval.",
           to: "/new",
           cta: "New article",
           primary: true,
@@ -1696,7 +1538,7 @@ function StepReady({ onBack }: { onBack: () => void }) {
       icon: <RateReviewOutlinedIcon />,
       role: "If you're a reviewer",
       label: "Open the review queue",
-      sub: "Walk through drafts that are waiting on you.",
+      sub: "Review drafts and published health signals that need attention.",
       to: "/review",
       cta: "Go to queue",
     },
@@ -1704,7 +1546,7 @@ function StepReady({ onBack }: { onBack: () => void }) {
       icon: <PublicOutlinedIcon />,
       role: "If you're an admin",
       label: "Edit a sector or country",
-      sub: "Tune tone, language, or guidelines at either tier.",
+      sub: "Tune sector, market, audience, and governance settings that flow into new articles.",
       to: "/admin/sectors",
       cta: "Open sectors",
     },
@@ -1766,8 +1608,8 @@ function StepReady({ onBack }: { onBack: () => void }) {
           lineHeight: 1.6,
         }}
       >
-        Pick your first move. Each of these opens a real surface, with real
-        data, that you can use right now.
+        Pick your first move. Each option opens a real surface, with real data,
+        that you can use right now.
       </Typography>
 
       {/* Three persona-keyed entry cards. Primary card carries a contained
@@ -1891,7 +1733,7 @@ function StepReady({ onBack }: { onBack: () => void }) {
         ))}
       </Box>
 
-      {/* Quiet footer hint — replayable orientation, no anxiety. */}
+      {/* Quiet footer hint — the guide remains available from the sidebar. */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
@@ -1900,34 +1742,8 @@ function StepReady({ onBack }: { onBack: () => void }) {
         sx={{ color: t.granite, fontSize: "0.8125rem" }}
       >
         <Typography sx={{ fontSize: "0.8125rem", color: t.granite }}>
-          You can revisit this tour any time from the sidebar.
+          You can revisit this guide any time from the sidebar.
         </Typography>
-        <Box
-          sx={{
-            display: { xs: "none", sm: "block" },
-            width: 4,
-            height: 4,
-            borderRadius: "50%",
-            bgcolor: t.border,
-          }}
-        />
-        <Button
-          onClick={onBack}
-          variant="text"
-          size="small"
-          disableRipple
-          sx={{
-            color: t.slate,
-            fontSize: "0.8125rem",
-            fontWeight: 500,
-            textTransform: "none",
-            p: 0,
-            minWidth: 0,
-            "&:hover": { color: t.ink, bgcolor: "transparent" },
-          }}
-        >
-          Revisit The Last Step
-        </Button>
       </Stack>
     </Box>
   );
@@ -1958,7 +1774,7 @@ function StepHeader({
           mb: 1,
         }}
       >
-        STEP · {kicker}
+        SECTION · {kicker}
       </Typography>
       <Typography variant="h4" component="h2" sx={{ mb: 1.5, fontSize: { xs: "1.625rem", md: "1.875rem" } }}>
         {title}

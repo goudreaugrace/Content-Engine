@@ -78,6 +78,11 @@ export type JobInput = {
   sourceText: string;
   /** Final employee-facing article body reviewed by the requester before submission. */
   finalArticleBody?: string;
+  /** Structured source for employee-facing content; `finalArticleBody` stays as the generated fallback. */
+  sections?: ArticleSection[];
+  taxonomy?: ArticleTaxonomy;
+  relationships?: ArticleRelationship[];
+  visibility?: ArticleVisibility;
   submittedBy: { name: string; email: string };
   approver?: { name: string; email: string; role?: string };
   /**
@@ -153,6 +158,8 @@ export type ArticleVisibility = {
   audiences: string[];
   markets: string[];
   countries: string[];
+  canRead?: string[];
+  cannotRead?: string[];
   security: "all-employees" | "restricted";
   notes?: string;
 };
@@ -177,6 +184,88 @@ export type ArticleTranslation = {
 };
 
 export type ArticleTranslations = Record<string, string | ArticleTranslation>;
+
+export type TextSection = {
+  id: string;
+  type: "text";
+  title: string;
+  body: string;
+  required?: boolean;
+};
+
+export type FAQSection = {
+  id: string;
+  type: "faq";
+  title: string;
+  items: Array<{ id: string; question: string; answer: string }>;
+};
+
+export type TableSection = {
+  id: string;
+  type: "table";
+  title: string;
+  columns: Array<{ id: string; header: string }>;
+  rows: Array<{ id: string; cells: Record<string, string> }>;
+};
+
+export type ResourceLinksSection = {
+  id: string;
+  type: "resourceLinks";
+  title: string;
+  links: Array<{ id: string; label: string; url: string; description?: string }>;
+};
+
+export type AccordionSection = {
+  id: string;
+  type: "accordion";
+  title: string;
+  items: Array<{ id: string; title: string; body: string }>;
+};
+
+export type CalloutSection = {
+  id: string;
+  type: "callout";
+  title?: string;
+  body: string;
+  tone: "info" | "warning" | "success";
+};
+
+export type ArticleSection =
+  | TextSection
+  | FAQSection
+  | TableSection
+  | ResourceLinksSection
+  | AccordionSection
+  | CalloutSection;
+
+export type ArticleTaxonomy = {
+  knowledgeBaseId: string;
+  sector: string;
+  countries: string[];
+  writtenLanguage?: string;
+  languagesRequired: string[];
+  audiences: string[];
+  contentType: ContentType;
+  topics: string[];
+  businessTerms: string[];
+  systems: string[];
+  processes: string[];
+};
+
+export type ArticleRelationship = {
+  targetArticleId: string;
+  relationshipType:
+    | "canonical"
+    | "duplicateOf"
+    | "replaces"
+    | "relatedTo"
+    | "parentOf"
+    | "childOf"
+    | "requires"
+    | "sourceFor";
+  confidence?: number;
+  reason?: string;
+};
 
 export type ArticleFeedbackComment = {
   id: string;
@@ -248,6 +337,9 @@ export type Article = {
   nextReviewAt?: string;
   approvedBy?: string;
   body: string;
+  sections?: ArticleSection[];
+  taxonomy?: ArticleTaxonomy;
+  relationships?: ArticleRelationship[];
   submittedBy: { name: string; email: string };
   submittedAt: string;
   status: ArticleStatus;
@@ -594,6 +686,9 @@ export type PublishedArticle = {
   nextReviewAt?: string;
   approvedBy?: string;
   body: string;
+  sections?: ArticleSection[];
+  taxonomy?: ArticleTaxonomy;
+  relationships?: ArticleRelationship[];
   seo: ArticleSEO;
   globalJustification?: string;
   /** All translations carried forward from the source Article. */

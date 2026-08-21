@@ -241,7 +241,7 @@ export default function EditableArticle({
   return (
     <Box
       sx={{
-        bgcolor: t.articleRailBg,
+        bgcolor: t.articleDocumentBg,
         border: 0,
         borderRadius: "8px",
         overflow: "hidden",

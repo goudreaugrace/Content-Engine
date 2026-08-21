@@ -60,9 +60,13 @@ function withArticleDefaults(article) {
   return {
     countries: [],
     seo: { title: "", metaDescription: "", keywords: [] },
+    sections: [],
+    relationships: [],
     ...article,
     countries: Array.isArray(article?.countries) ? article.countries : [],
     seo: { title: "", metaDescription: "", keywords: [], ...(article?.seo || {}) },
+    sections: Array.isArray(article?.sections) ? article.sections : [],
+    relationships: Array.isArray(article?.relationships) ? article.relationships : [],
   };
 }
 
@@ -288,6 +292,9 @@ function publishedFromSource(article, reviewer = "Demo Reviewer") {
     nextReviewAt: article.nextReviewAt,
     approvedBy: article.approvedBy || reviewer,
     body: article.body,
+    sections: Array.isArray(article.sections) ? article.sections : [],
+    taxonomy: article.taxonomy,
+    relationships: Array.isArray(article.relationships) ? article.relationships : [],
     seo: article.seo || { title: article.title, metaDescription: article.lead || "", keywords: [] },
     globalJustification: article.globalJustification,
     translations: article.translations || {},
@@ -338,6 +345,87 @@ function listPublished(db) {
   return Array.from(byId.values());
 }
 
+function slug(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function buildKnowledgeGraph(articles) {
+  const nodes = new Map();
+  const edges = [];
+  const addNode = (node) => {
+    if (!nodes.has(node.id)) nodes.set(node.id, node);
+  };
+  const connect = (edge) => edges.push(edge);
+  articles.forEach((article) => {
+    const articleNodeId = `article:${article.id}`;
+    addNode({
+      id: articleNodeId,
+      type: article.contentType === "Policy" ? "Policy" : "Article",
+      label: article.title,
+      articleId: article.id,
+    });
+    const taxonomy = article.taxonomy || {};
+    const knowledgeBase = taxonomy.knowledgeBaseId || article.knowledgeBase;
+    if (knowledgeBase) {
+      const id = `knowledge-base:${knowledgeBase}`;
+      addNode({ id, type: "Knowledge Base", label: knowledgeBase });
+      connect({ source: articleNodeId, target: id, type: "belongsTo" });
+    }
+    const sector = taxonomy.sector || article.sector;
+    if (sector) {
+      const id = `sector:${sector}`;
+      addNode({ id, type: "Sector", label: sector });
+      connect({ source: articleNodeId, target: id, type: "belongsTo" });
+    }
+    (taxonomy.countries || article.countries || []).forEach((country) => {
+      const id = `country:${country}`;
+      addNode({ id, type: "Country", label: country });
+      connect({ source: articleNodeId, target: id, type: "appliesIn" });
+    });
+    (taxonomy.audiences || article.visibility?.audiences || []).forEach((audience) => {
+      const id = `audience:${slug(audience)}`;
+      addNode({ id, type: "Audience", label: audience });
+      connect({ source: articleNodeId, target: id, type: "appliesTo" });
+    });
+    (taxonomy.topics || article.topics || []).forEach((topic) => {
+      const id = `topic:${slug(topic)}`;
+      addNode({ id, type: "Topic", label: topic });
+      connect({ source: articleNodeId, target: id, type: "covers" });
+    });
+    (taxonomy.systems || []).forEach((system) => {
+      const id = `system:${slug(system)}`;
+      addNode({ id, type: "System", label: system });
+      connect({ source: articleNodeId, target: id, type: "covers" });
+    });
+    (taxonomy.processes || []).forEach((process) => {
+      const id = `process:${slug(process)}`;
+      addNode({ id, type: "Process", label: process });
+      connect({ source: articleNodeId, target: id, type: "explains" });
+    });
+    (article.references || []).forEach((ref) => {
+      const id = `source:${ref.id}`;
+      addNode({ id, type: "Source Document", label: ref.title });
+      connect({ source: articleNodeId, target: id, type: "references" });
+    });
+    (article.relationships || []).forEach((relationship) => {
+      connect({
+        source: articleNodeId,
+        target: `article:${relationship.targetArticleId}`,
+        type: relationship.relationshipType === "duplicateOf"
+          ? "duplicates"
+          : relationship.relationshipType === "replaces"
+            ? "replaces"
+            : relationship.relationshipType === "requires"
+              ? "requires"
+              : "relatesTo",
+        confidence: relationship.confidence,
+        reason: relationship.reason,
+      });
+    });
+  });
+  return { nodes: Array.from(nodes.values()), edges };
+}
+
 function sortDesc(items, key) {
   return [...items].sort((a, b) => +new Date(b[key] || 0) - +new Date(a[key] || 0));
 }
@@ -354,7 +442,94 @@ function fakeJob(input = {}) {
   };
 }
 
+function parseBody(body) {
+  if (!body) return {};
+  if (typeof body !== "string") return body;
+  try {
+    return JSON.parse(body);
+  } catch {
+    return {};
+  }
+}
+
+function marketFromInput(input = {}) {
+  const markets = Array.isArray(input.markets) && input.markets.length
+    ? input.markets
+    : input.market
+      ? [input.market]
+      : ["us"];
+  if (markets.includes("global") || markets.length > 1) return "Global";
+  return ({ us: "US", mx: "MX", br: "BR", uk: "UK", in: "IN" })[markets[0]] || "Global";
+}
+
+function createDemoArticleFromInput(input = {}, overrides = {}) {
+  const now = new Date().toISOString();
+  const id = overrides.id || `ka-${String(Date.now()).slice(-8)}`;
+  const title = input.title || input.sourceTitle || "Untitled article";
+  const summary = input.summary || input.seo?.metaDescription || "Review this article before publishing it to employees.";
+  const body =
+    input.finalArticleBody ||
+    input.sourceContent ||
+    [
+      `# ${title}`,
+      "",
+      "## Summary",
+      summary,
+      "",
+      "## Details",
+      input.sourceText || "Add the employee-facing guidance for this article.",
+    ].join("\n");
+
+  return withArticleDefaults({
+    id,
+    jobId: overrides.jobId,
+    title,
+    contentType: input.contentType || "Knowledge Article",
+    knowledgeBase: input.knowledgeBase || "myPepsiCo KB",
+    sector: Array.isArray(input.sectors) ? input.sectors[0] : input.sector,
+    market: marketFromInput(input),
+    countries: Array.isArray(input.countries) ? input.countries : [],
+    seo: {
+      title: input.seo?.title || title,
+      metaDescription: input.seo?.metaDescription || summary,
+      keywords: Array.isArray(input.seo?.keywords) ? input.seo.keywords : [],
+      summary: input.seo?.summary || summary,
+      keyQuestions: Array.isArray(input.seo?.keyQuestions) ? input.seo.keyQuestions : [],
+      entities: Array.isArray(input.seo?.entities) ? input.seo.entities : [],
+    },
+    globalJustification: input.globalJustification,
+    replacesArticleId: input.replacesArticleId,
+    lead: summary,
+    aliases: [],
+    topics: [],
+    references: [],
+    relatedArticleIds: [],
+    visibility: {
+      audiences: [],
+      markets: Array.isArray(input.markets) ? input.markets : [],
+      countries: Array.isArray(input.countries) ? input.countries : [],
+      security: "all-employees",
+    },
+    owner: input.submittedBy?.name || "Demo User",
+    approvedBy: input.approver?.name,
+    body,
+    sections: Array.isArray(input.sections) ? input.sections : [],
+    taxonomy: input.taxonomy,
+    relationships: Array.isArray(input.relationships) ? input.relationships : [],
+    submittedBy: input.submittedBy || { name: "Demo User", email: "content-owner@pepsico.com" },
+    submittedAt: now,
+    status: "needs-review",
+    complianceIssues: [],
+    approvalResults: [],
+    autoApproveCandidate: true,
+    version: 1,
+    rejections: [],
+    ...overrides,
+  });
+}
+
 export default function handler(req, res) {
+  req.body = parseBody(req.body);
   const db = data();
   const url = new URL(req.url, `https://${req.headers.host || "localhost"}`);
   const routedPath = url.searchParams.get("path");
@@ -409,6 +584,7 @@ export default function handler(req, res) {
 
   if (parts[0] === "published-articles") {
     if (parts.length === 1 && method === "GET") return send(res, 200, sortDesc(listPublished(db).map(enrichedPublished), "publishedAt"));
+    if (parts[1] === "knowledge-graph" && method === "GET") return send(res, 200, buildKnowledgeGraph(listPublished(db)));
     const article = findPublishedById(db, parts[1]);
     if (!article) return notFound(res);
     if (parts.length === 2 && method === "GET") return send(res, 200, { ...enrichedPublished(article), similar: [] });
@@ -447,7 +623,14 @@ export default function handler(req, res) {
 
   if (parts[0] === "jobs") {
     if (parts.length === 1 && method === "GET") return send(res, 200, sortDesc(db.jobs, "createdAt"));
-    if (parts.length === 1 && method === "POST") return send(res, 200, fakeJob(req.body || {}));
+    if (parts.length === 1 && method === "POST") {
+      const job = fakeJob(req.body || {});
+      const article = createDemoArticleFromInput(req.body || {}, { jobId: job.id });
+      const storedJob = { ...job, articleIds: [article.id] };
+      upsert(db.articles, article);
+      upsert(db.jobs, storedJob);
+      return send(res, 201, storedJob);
+    }
     const job = db.jobs.find((j) => j.id === parts[1]);
     return job ? send(res, 200, job) : notFound(res);
   }
@@ -482,7 +665,18 @@ export default function handler(req, res) {
 
   if (parts[0] === "attention" || parts[0] === "activity") return send(res, 200, []);
   if (parts[0] === "uploads" && method === "POST") return send(res, 200, { id: `upload-${Date.now()}`, kind: "doc", title: req.body?.title || "Uploaded source", fileName: req.body?.fileName || "source.txt", filePath: "vercel-demo", mimeType: req.body?.mimeType || "text/plain" });
-  if (parts[0] === "migrations" && parts[1] === "standardize" && method === "POST") return send(res, 200, { job: fakeJob(req.body || {}), article: { ...db.articles[0], id: `article-${Date.now()}`, title: req.body?.sourceTitle || "Standardized article", status: "needs-review" } });
+  if (parts[0] === "migrations" && parts[1] === "standardize" && method === "POST") {
+    const job = fakeJob(req.body || {});
+    const article = createDemoArticleFromInput(req.body || {}, {
+      id: `ka-${String(Date.now()).slice(-8)}`,
+      jobId: job.id,
+      title: req.body?.sourceTitle || "Standardized article",
+    });
+    const storedJob = { ...job, articleIds: [article.id] };
+    upsert(db.articles, article);
+    upsert(db.jobs, storedJob);
+    return send(res, 200, { job: storedJob, article });
+  }
 
   return notFound(res);
 }

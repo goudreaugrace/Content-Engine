@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {
   Box,
   Typography,
@@ -48,6 +46,9 @@ import {
   api,
   currentUser,
   type AudienceProfile,
+  type ArticleRelationship,
+  type ArticleSection,
+  type ArticleTaxonomy,
   type ContentType,
   type Country,
   type Market,
@@ -55,7 +56,7 @@ import {
   type SectorProfile,
   type SimilarMatch,
 } from "../lib/api";
-import ArticleDocument from "../components/article-document";
+import ArticleDocument, { StructuredArticleSections } from "../components/article-document";
 import ArticleReadingFrame from "../components/article-reading-frame";
 import { usePersonaMode } from "../lib/persona";
 
@@ -91,6 +92,16 @@ const contentTypes = [
     example: "e.g. 'New parent leave benefits hub'",
   },
 ] as const;
+
+const WRITTEN_LANGUAGE_OPTIONS = [
+  { value: "auto", label: "Auto-detect from article text" },
+  { value: "en-US", label: "English (US)" },
+  { value: "es-MX", label: "Spanish (Mexico)" },
+  { value: "pt-BR", label: "Portuguese (Brazil)" },
+  { value: "fr-CA", label: "French (Canada)" },
+] as const;
+
+const POLICY_DATE_FIELD_KEYS = new Set(["effectiveDate", "nextReviewDate"]);
 
 // Static label lookup for markets so we don't need to wait on the
 // market-profile fetch to render chips in the picker. Kept as a
@@ -171,7 +182,7 @@ type ArticleSectionField = TemplateField & {
   required?: boolean;
 };
 
-type CustomSectionType = "text" | "faq" | "table" | "resources";
+type CustomSectionType = "text" | "faq" | "table" | "resources" | "accordion" | "callout";
 
 type CustomFaqItem = {
   id: string;
@@ -234,6 +245,16 @@ const SECTION_BLOCK_OPTIONS: Array<{
     label: "Resource links",
     description: "Links, forms, toolkits, or documents.",
   },
+  {
+    type: "accordion",
+    label: "Accordion section",
+    description: "Expandable questions or grouped details.",
+  },
+  {
+    type: "callout",
+    label: "Callout",
+    description: "A short note, warning, or important reminder.",
+  },
 ];
 
 type AssistantAction = "fill" | "polish" | "employee";
@@ -267,24 +288,28 @@ const CONTENT_TEMPLATES: Record<ContentType, TemplateField[]> = {
     },
   ],
   Policy: [
-    { key: "description", label: "Description", placeholder: "Explain what the policy provides in plain terms. Name the actual rule, benefit, or requirement in the first few lines.", minRows: 5 },
-    { key: "whoApplies", label: "Eligibility and scope", placeholder: "Who is covered, who is not, country or role limits, and any important thresholds. Use a vertical list when possible.", minRows: 5 },
+    { key: "description", label: "Summary", placeholder: "Explain what the policy covers and the employee decision it supports.", minRows: 5 },
+    { key: "whoApplies", label: "Who this applies to", placeholder: "Who is covered, who is not, country or role limits, and any important thresholds. Use a vertical list when possible.", minRows: 5 },
     { key: "policyDetails", label: "Policy details", placeholder: "Write the official rule, requirement, or standard. Keep process steps out unless they are part of the policy itself.", minRows: 7 },
     { key: "exceptions", label: "Exceptions", placeholder: "What exceptions exist, and who can approve them?", minRows: 3 },
-    { key: "effectiveDate", label: "Effective date and review", placeholder: "When does this policy start, change, expire, or need its next review?", minRows: 2 },
-    { key: "relatedContent", label: "Related content", placeholder: "Link to separate how-to articles, forms, or related policies instead of repeating them here.", minRows: 3 },
+    { key: "localVariations", label: "Local variations", placeholder: "Note where countries or groups have different details. If the rules differ heavily, create separate local articles.", minRows: 4 },
+    { key: "policyFaqs", label: "Policy FAQs", placeholder: "Add common employee questions about this policy. You can also add a full FAQ section below.", minRows: 4 },
+    { key: "relatedContent", label: "Related guides and resources", placeholder: "Link to separate how-to articles, forms, or related policies instead of repeating them here.", minRows: 3 },
   ],
   "Knowledge Article": [
+    { key: "whoApplies", label: "Who this applies to", placeholder: "Who should use these steps? Include country, role, system, or employee group limits.", minRows: 3 },
     { key: "beforeStart", label: "Before you start", placeholder: "What should the employee have ready before following the steps?", minRows: 4 },
     { key: "steps", label: "Steps", placeholder: "Write the task in order. One action per line works well.", minRows: 8 },
-    { key: "commonIssues", label: "Common issues", placeholder: "Add known errors, edge cases, or troubleshooting guidance.", minRows: 5 },
+    { key: "commonIssues", label: "Common situations", placeholder: "Add known errors, edge cases, or troubleshooting guidance.", minRows: 5 },
     { key: "whatNext", label: "What to do next", placeholder: "Tell the employee what confirmation, follow-up, or support path comes after the steps.", minRows: 3 },
+    { key: "relatedContent", label: "Related guides and resources", placeholder: "Add related articles, forms, tools, or support paths employees may need next.", minRows: 3 },
   ],
   "Topic Page": [
     { key: "overview", label: "Overview", placeholder: "Explain the topic and when employees should use this page.", minRows: 5 },
-    { key: "details", label: "Details", placeholder: "Add the context employees need before choosing a resource. Keep this overview short and link to separate articles for detailed instructions.", minRows: 5 },
+    { key: "whenToUse", label: "When to use this page", placeholder: "Describe the situations this hub supports, and who it is meant for.", minRows: 4 },
     { key: "keyResources", label: "Key resources", placeholder: "List the main links, tools, teams, or documents this page should connect.", minRows: 5 },
-    { key: "relatedTopics", label: "Related topics", placeholder: "Adjacent topics that should link to this page or from this page.", minRows: 4 },
+    { key: "relatedTopics", label: "Related articles", placeholder: "Adjacent articles that should link to this page or from this page.", minRows: 4 },
+    { key: "belongsElsewhere", label: "What belongs elsewhere", placeholder: "Clarify what should live in a separate article, policy, FAQ, or source document.", minRows: 3 },
   ],
 };
 
@@ -542,10 +567,10 @@ function marketForPreview(marketId: string | undefined): Market {
  * Phase C's rules engine validates the resulting article against the same list.
  */
 const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
-  FAQ: ["Question", "Answer", "Related"],
-  Policy: ["Description", "Eligibility and scope", "Policy details", "Effective date"],
-  "Knowledge Article": ["Before you start", "Steps", "Common issues"],
-  "Topic Page": ["Overview", "Details", "Resources"],
+  FAQ: ["Question", "Answer", "Related guides"],
+  Policy: ["Summary", "Who this applies to", "Policy details", "At a glance"],
+  "Knowledge Article": ["Who this applies to", "Before you start", "Steps"],
+  "Topic Page": ["Overview", "When to use this page", "Key resources"],
 };
 
 function articleLengthStatus(characterCount: number): {
@@ -587,6 +612,7 @@ function displayLanguage(code: string): string {
     "en-GB": "English (en-GB)",
     "es-MX": "Spanish (es-MX)",
     "pt-BR": "Portuguese (pt-BR)",
+    "fr-CA": "French (fr-CA)",
     "en-IN": "English (en-IN)",
   };
   return names[code] ?? code;
@@ -754,7 +780,10 @@ export default function NewRequest() {
     // the specific-market picker is hidden.
     markets: ["us"] as string[],
     audience: [] as string[],
+    canRead: [] as string[],
+    cannotRead: "",
     countries: [] as string[],
+    writtenLanguage: "auto",
     summary: "",
     sourceText: "",
     templateAnswers: {} as Record<string, string>,
@@ -907,7 +936,11 @@ export default function NewRequest() {
     if (!singleMarket) return;
     const allEmployees = audiences.find((a) => a.id === "all");
     if (allEmployees) {
-      setForm((f) => ({ ...f, audience: [allEmployees.label] }));
+      setForm((f) => ({
+        ...f,
+        audience: [allEmployees.label],
+        canRead: f.canRead.length ? f.canRead : [allEmployees.label],
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [singleMarket, audiences]);
@@ -966,7 +999,11 @@ export default function NewRequest() {
           ? "Reference table"
           : type === "resources"
             ? "Resource links"
-            : "";
+            : type === "accordion"
+              ? "Additional details"
+              : type === "callout"
+                ? "Important note"
+                : "";
     setForm((f) => ({
       ...f,
       customSections: [
@@ -1367,6 +1404,23 @@ export default function NewRequest() {
         .filter(Boolean)
         .join("\n");
     }
+    if (section.type === "accordion") {
+      return section.faqItems
+        .map((item, index) => {
+          const title = item.question.trim() || `Detail ${index + 1}`;
+          const body = item.answer.trim();
+          if (!title && !body) return "";
+          return `<details>\n<summary>${title}</summary>\n\n${body}\n</details>`;
+        })
+        .filter(Boolean)
+        .join("\n\n");
+    }
+    if (section.type === "callout") {
+      return section.body
+        .split(/\n+/)
+        .map((line) => (line.trim() ? `> ${line.trim()}` : ">"))
+        .join("\n");
+    }
     return section.body;
   };
   const articleAnswers = Object.fromEntries(
@@ -1577,6 +1631,10 @@ export default function NewRequest() {
           title,
           summary,
           countries: derivedCountries,
+          knowledgeBase: form.knowledgeBase,
+          audience: form.audience,
+          contentType: form.contentType,
+          topics: generatedSearch.keywords,
         });
         setSimilarMatches(res.matches);
       } catch {
@@ -1635,12 +1693,14 @@ export default function NewRequest() {
   // current step's required fields are valid. The Submit button on the last
   // step requires ALL steps to be valid (defense against a previously-valid
   // step being mutated via the back nav and breaking).
+  const setupCanRead = form.canRead.length > 0 ? form.canRead : form.audience;
   const step0Valid =
     !!form.title.trim() &&
     !!form.knowledgeBase.trim() &&
     form.markets.length > 0 &&
     (!isGlobal || form.globalJustification.trim().length >= 10) &&
     form.audience.length > 0 &&
+    setupCanRead.length > 0 &&
     derivedCountries.length > 0;
 
   const step1Valid =
@@ -1869,6 +1929,176 @@ export default function NewRequest() {
     topicResourceMarkdown,
   ].filter(Boolean).join("\n\n");
   const detectedDraftLanguage = detectDraftLanguage(finalArticleBody);
+  const effectiveWrittenLanguage =
+    form.writtenLanguage === "auto" ? detectedDraftLanguage : form.writtenLanguage;
+  const effectiveCanRead = setupCanRead;
+  const cannotReadGroups = form.cannotRead
+    .split(",")
+    .map((group) => group.trim())
+    .filter(Boolean);
+  const articleSectionFromCustom = (section: CustomSection): ArticleSection => {
+    if (section.type === "faq") {
+      return {
+        id: section.id,
+        type: "faq",
+        title: section.title.trim() || "FAQs",
+        items: section.faqItems.map((item, index) => ({
+          id: item.id,
+          question: item.question.trim() || `Question ${index + 1}`,
+          answer: item.answer,
+        })),
+      };
+    }
+    if (section.type === "accordion") {
+      return {
+        id: section.id,
+        type: "accordion",
+        title: section.title.trim() || "Additional details",
+        items: section.faqItems.map((item, index) => ({
+          id: item.id,
+          title: item.question.trim() || `Detail ${index + 1}`,
+          body: item.answer,
+        })),
+      };
+    }
+    if (section.type === "table") {
+      const columns = getTableColumns(section);
+      return {
+        id: section.id,
+        type: "table",
+        title: section.title.trim() || "Reference table",
+        columns,
+        rows: section.tableRows.map((row) => ({
+          id: row.id,
+          cells: Object.fromEntries(
+            columns.map((column, columnIndex) => [
+              column.id,
+              getTableCellValue(row, column, columnIndex),
+            ]),
+          ),
+        })),
+      };
+    }
+    if (section.type === "resources") {
+      return {
+        id: section.id,
+        type: "resourceLinks",
+        title: section.title.trim() || "Resource links",
+        links: section.resourceLinks.map((resource) => ({
+          id: resource.id,
+          label: resource.label,
+          url: resource.url,
+          description: resource.description,
+        })),
+      };
+    }
+    if (section.type === "callout") {
+      return {
+        id: section.id,
+        type: "callout",
+        title: section.title.trim() || undefined,
+        body: section.body,
+        tone: "info",
+      };
+    }
+    return {
+      id: section.id,
+      type: "text",
+      title: section.title.trim() || "Additional details",
+      body: section.body,
+    };
+  };
+  const requiredStructuredSections: ArticleSection[] =
+    form.contentType === "FAQ"
+      ? [{
+          id: "faq-questions",
+          type: "faq",
+          title: "Questions",
+          items: form.faqItems.map((item, index) => ({
+            id: item.id,
+            question: item.question.trim() || `Question ${index + 1}`,
+            answer: item.answer,
+          })),
+        }]
+      : requiredArticleSections.map((field) => ({
+          id: field.key,
+          type: "text" as const,
+          title: field.label,
+          body: articleAnswers[field.key] ?? "",
+          required: true,
+        }));
+  const policyAtAGlanceSection: ArticleSection[] =
+    form.contentType === "Policy" && policyAtAGlanceRows.length > 0
+      ? [{
+          id: "policy-at-a-glance",
+          type: "table",
+          title: "At a glance",
+          columns: [
+            { id: "detail", header: "Detail" },
+            { id: "value", header: "Value" },
+          ],
+          rows: policyAtAGlanceRows.map(([label, value], index) => ({
+            id: `policy-meta-${index}`,
+            cells: { detail: label, value: value.trim() },
+          })),
+        }]
+      : [];
+  const topicResourceSection: ArticleSection[] =
+    form.contentType === "Topic Page" && topicResourceRows.length > 0
+      ? [{
+          id: "topic-resource-links",
+          type: "resourceLinks",
+          title: "Resource links",
+          links: topicResourceRows.map((resource) => ({
+            id: resource.id,
+            label: resource.label,
+            url: resource.url,
+            description: resource.description,
+          })),
+        }]
+      : [];
+  const finalArticleSections: ArticleSection[] = [
+    ...policyAtAGlanceSection,
+    ...requiredStructuredSections,
+    ...form.customSections.map(articleSectionFromCustom),
+    ...topicResourceSection,
+  ];
+  const finalArticleTaxonomy: ArticleTaxonomy = {
+    knowledgeBaseId: form.knowledgeBase,
+    sector: form.sector,
+    countries: derivedCountries,
+    writtenLanguage: effectiveWrittenLanguage,
+    languagesRequired: selectedMarketLanguageCodes,
+    audiences: form.audience,
+    contentType: form.contentType,
+    topics: generatedSearch.keywords,
+    businessTerms: generatedSearch.keywords,
+    systems: generatedSearch.keywords.filter((keyword) =>
+      /\b(workday|servicenow|sap|mypepsico|speak up|airlinc|image vision)\b/i.test(keyword),
+    ),
+    processes: generatedSearch.questions.map((question) =>
+      question.replace(/\?$/, ""),
+    ),
+  };
+  const finalArticleRelationships: ArticleRelationship[] = [
+    ...(replacesArticle
+      ? [{
+          targetArticleId: replacesArticle.id,
+          relationshipType: "replaces" as const,
+          confidence: replacesArticle.score,
+          reason: "Selected as the article this draft replaces.",
+        }]
+      : []),
+    ...similarMatches
+      .filter((match) => match.id !== replacesArticle?.id && match.score >= 0.35)
+      .slice(0, 3)
+      .map((match) => ({
+        targetArticleId: match.id,
+        relationshipType: "relatedTo" as const,
+        confidence: match.score,
+        reason: "Similar title, summary, country, or topic detected during creation.",
+      })),
+  ];
   const articleBodyCharacterCount = finalArticleBody.replace(/^#\s+.+\n+/, "").length;
   const lengthStatus = articleLengthStatus(articleBodyCharacterCount);
   const lengthToneColor =
@@ -1877,6 +2107,34 @@ export default function NewRequest() {
       : lengthStatus.tone === "warning"
         ? t.ember
         : t.errorInk;
+  const articlePlainText = finalArticleBody
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/!\[[^\]]*]\([^)]+\)/g, " ")
+    .replace(/\[[^\]]+]\([^)]+\)/g, " ")
+    .replace(/[#>*_`|~-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const articleParagraphs = finalArticleBody
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.replace(/^#+\s*/, "").trim())
+    .filter((paragraph) => paragraph && !paragraph.startsWith("|"));
+  const longestSentenceWords = articlePlainText
+    .split(/[.!?]+/)
+    .map((sentence) => sentence.trim().split(/\s+/).filter(Boolean).length)
+    .reduce((max, count) => Math.max(max, count), 0);
+  const longestParagraphCharacters = articleParagraphs
+    .map((paragraph) => paragraph.length)
+    .reduce((max, count) => Math.max(max, count), 0);
+  const hasAnswerFirstSummary =
+    form.summary.trim().length >= 70 ||
+    articleParagraphs.some((paragraph) => paragraph.length >= 70);
+  const hasReadableSentences =
+    longestSentenceWords === 0 || longestSentenceWords <= 35;
+  const hasScannableParagraphs =
+    longestParagraphCharacters === 0 || longestParagraphCharacters <= 650;
+  const hasDescriptiveLinks =
+    !/\[(click here|here|link|read more|more)\]\(/i.test(finalArticleBody);
+  const mediaHasAltText = !/!\[\s*]\(/.test(finalArticleBody);
   const reviewAccordionSx = {
     bgcolor: "#FFFFFF",
     border: 0,
@@ -1884,36 +2142,66 @@ export default function NewRequest() {
     borderBottom: `1px solid ${t.border}`,
     boxShadow: "none",
     "&:before": { display: "none" },
-    "&.Mui-expanded": { m: 0 },
+    "&.Mui-expanded": {
+      m: 0,
+      bgcolor: "#FFFFFF",
+    },
     "& .MuiAccordionSummary-root": {
       minHeight: 58,
       px: { xs: 1.5, md: 2 },
-      py: 0.25,
+      py: 0.35,
+      transition: "background-color 160ms ease",
+      "&:hover": {
+        bgcolor: t.surfaceContainerLow,
+      },
+      "&.Mui-focusVisible": {
+        bgcolor: t.pepsiBlueSubtle,
+      },
     },
     "& .MuiAccordionSummary-root.Mui-expanded": {
       minHeight: 58,
+      bgcolor: "#FFFFFF",
     },
     "& .MuiAccordionSummary-content": {
-      my: 1,
+      my: 0.85,
     },
     "& .MuiAccordionSummary-content.Mui-expanded": {
-      my: 1,
+      my: 0.85,
     },
     "& .MuiAccordionDetails-root": {
       px: { xs: 1.5, md: 2 },
-      pt: 0,
+      pt: 1.25,
       pb: 2,
+      borderTop: `1px solid ${t.border}`,
     },
     "& .MuiAccordionSummary-expandIconWrapper": {
       color: t.granite,
+      width: 28,
+      height: 28,
+      borderRadius: "50%",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      transition: "transform 180ms ease, background-color 160ms ease",
+    },
+    "& .MuiAccordionSummary-root:hover .MuiAccordionSummary-expandIconWrapper": {
+      bgcolor: "#FFFFFF",
     },
   };
   const publishingFields = [
     { label: "Knowledge base", value: selectedKnowledgeBase.name },
-    { label: "Detected draft language", value: displayLanguage(detectedDraftLanguage) },
+    { label: "Source language", value: displayLanguage(effectiveWrittenLanguage) },
+    {
+      label: "Translations needed",
+      value: selectedMarketLanguageCodes
+        .filter((code) => code !== effectiveWrittenLanguage)
+        .map(displayLanguage)
+        .join(", ") || "None inferred",
+    },
     { label: "Country", value: selectedMarketLabelsWithLanguages.join(", ") },
     { label: "Sector", value: selectedSectorLabel },
-    { label: "Who can read it", value: form.audience.join(", ") },
+    { label: "Employee audience", value: form.audience.join(", ") },
+    { label: "Access groups", value: effectiveCanRead.join(", ") },
   ];
   const templateSpecificChecks =
     form.contentType === "FAQ"
@@ -1949,12 +2237,24 @@ export default function NewRequest() {
             ];
   const askpepChecks = [
     {
-      label: "Article body has enough text for employees and askpep",
+      label: "Article has enough typed text for employees and Ask Pep",
       done: articleBodyCharacterCount >= 500,
     },
     {
-      label: "Scope and reader access are complete",
-      done: selectedMarketLabels.length > 0 && !!selectedSectorLabel && form.audience.length > 0,
+      label: "The first summary gives employees the answer or purpose quickly",
+      done: hasAnswerFirstSummary,
+    },
+    {
+      label: "Audience, country, sector, and access groups are complete",
+      done:
+        selectedMarketLabels.length > 0 &&
+        !!selectedSectorLabel &&
+        form.audience.length > 0 &&
+        effectiveCanRead.length > 0,
+    },
+    {
+      label: "Source language is confirmed or can be detected from the draft",
+      done: !!effectiveWrittenLanguage && effectiveWrittenLanguage !== "und",
     },
     {
       label: "Important guidance is typed in the article, not only in an attachment",
@@ -1971,6 +2271,22 @@ export default function NewRequest() {
     {
       label: "Search words and employee question are generated",
       done: generatedSearch.keywords.length > 0 && generatedSearch.questions.length > 0,
+    },
+    {
+      label: "Sentences are short enough for plain-language reading",
+      done: hasReadableSentences,
+    },
+    {
+      label: "Paragraphs are scannable and not overloaded",
+      done: hasScannableParagraphs,
+    },
+    {
+      label: "Links use descriptive text instead of “click here”",
+      done: hasDescriptiveLinks,
+    },
+    {
+      label: "Images have alt text when used",
+      done: mediaHasAltText,
     },
     ...templateSpecificChecks,
   ];
@@ -2000,15 +2316,14 @@ export default function NewRequest() {
   const parseKnowledgeSteps = (value: string) =>
     value
       .split("\n")
-      .map((line) => line.replace(/^\s*(?:\d+\.|-)\s*/, "").trim())
-      .filter(Boolean);
+      .map((line) => line.replace(/^\s*(?:\d+\.|-)\s*/, ""))
+      .filter((line) => line.trim().length > 0);
   const formatKnowledgeSteps = (steps: string[]) =>
     steps
       .map((step, index) => {
-        const text = step.trim();
-        return text ? `${index + 1}. ${text}` : "";
+        return step.trim() ? `${index + 1}. ${step}` : "";
       })
-      .filter(Boolean)
+      .filter((line) => line.trim().length > 0)
       .join("\n");
   const knowledgeStepsForEditor = (value: string) => {
     const steps = parseKnowledgeSteps(value);
@@ -2194,26 +2509,16 @@ export default function NewRequest() {
   ) => {
     const context = getToolbarEditContext(targetOverride);
     const inlineOnlyKinds = ["bold", "italic", "underline", "strike", "code", "link"];
-    const actionText =
-      context.isSelection || !inlineOnlyKinds.includes(kind)
-        ? context.isSelection
-          ? context.text
-          : context.current
-        : "";
-    if (!actionText.trim() && !["bold", "italic", "link"].includes(kind)) return;
+    if (!context.isSelection && inlineOnlyKinds.includes(kind)) return;
+    const actionText = context.isSelection ? context.text : context.current;
+    if (!actionText.trim()) return;
     if (
       !context.isSelection &&
       ["underline", "strike", "code"].includes(kind)
     ) {
       return;
     }
-    const text =
-      actionText.trim() ||
-      (kind === "bold"
-        ? "bold text"
-        : kind === "italic"
-          ? "italic text"
-          : "link text");
+    const text = actionText.trim();
     const lines = text
       .split(/\n+/)
       .map((line) => line.trim())
@@ -2689,42 +2994,53 @@ export default function NewRequest() {
       !!activeInlineEditorTarget &&
       sameSelectionTarget(activeInlineEditorTarget, target);
     if (!isActive) return null;
+    if (target.type === "faqQuestion") return null;
+    const context = getToolbarEditContext(target);
+    const hasSelection = context.isSelection && !!context.text.trim();
     const hasText = !!getSelectionTargetValue(target).trim();
     return (
       <Box
         data-inline-editor-tools="true"
         onMouseDown={(event) => event.preventDefault()}
         sx={{
-          width: options?.inline ? "auto" : "100%",
+          position: "absolute",
+          right: 12,
+          bottom: 12,
+          zIndex: 5,
+          width: "auto",
           display: "flex",
           justifyContent: "flex-end",
           alignItems: "center",
-          mb: options?.inline ? 0 : 0.75,
+          mt: 0,
+          mb: 0,
           flexShrink: 0,
+          pointerEvents: "auto",
         }}
       >
         <Stack
           direction="row"
-          spacing={0.25}
+          spacing={0.15}
           alignItems="center"
           flexWrap="wrap"
           useFlexGap
           sx={{
             display: "inline-flex",
-            px: 0.5,
-            py: 0.35,
-            borderRadius: "8px",
-            bgcolor: t.surfaceContainerLow,
-            border: `1px solid ${t.articleDivider}`,
-            boxShadow: "0 1px 2px rgba(15, 23, 42, 0.04)",
+            px: 0,
+            py: 0,
+            borderRadius: 0,
+            bgcolor: "transparent",
+            border: 0,
+            boxShadow: "none",
           }}
         >
           <Button
             size="small"
             title="Bold selected text"
+            disabled={!hasSelection}
             onMouseDown={(event) => {
               event.preventDefault();
               event.stopPropagation();
+              if (!hasSelection) return;
               formatSelectedText("bold", target);
             }}
             sx={{
@@ -2734,7 +3050,8 @@ export default function NewRequest() {
               p: 0,
               color: t.ink,
               borderRadius: 1,
-              "&:hover": { bgcolor: "#FFFFFF" },
+              "&:hover": { bgcolor: t.surfaceContainerLow },
+              "&.Mui-disabled": { color: t.granite, opacity: 0.45 },
             }}
           >
             <FormatBoldIcon sx={{ fontSize: 16 }} />
@@ -2742,9 +3059,11 @@ export default function NewRequest() {
           <Button
             size="small"
             title="Italic selected text"
+            disabled={!hasSelection}
             onMouseDown={(event) => {
               event.preventDefault();
               event.stopPropagation();
+              if (!hasSelection) return;
               formatSelectedText("italic", target);
             }}
             sx={{
@@ -2754,7 +3073,8 @@ export default function NewRequest() {
               p: 0,
               color: t.ink,
               borderRadius: 1,
-              "&:hover": { bgcolor: "#FFFFFF" },
+              "&:hover": { bgcolor: t.surfaceContainerLow },
+              "&.Mui-disabled": { color: t.granite, opacity: 0.45 },
             }}
           >
             <FormatItalicIcon sx={{ fontSize: 16 }} />
@@ -2762,9 +3082,11 @@ export default function NewRequest() {
           <Button
             size="small"
             title="Bulleted list"
+            disabled={!hasText}
             onMouseDown={(event) => {
               event.preventDefault();
               event.stopPropagation();
+              if (!hasText) return;
               formatSelectedText("bullet", target);
             }}
             sx={{
@@ -2774,7 +3096,8 @@ export default function NewRequest() {
               p: 0,
               color: t.ink,
               borderRadius: 1,
-              "&:hover": { bgcolor: "#FFFFFF" },
+              "&:hover": { bgcolor: t.surfaceContainerLow },
+              "&.Mui-disabled": { color: t.granite, opacity: 0.45 },
             }}
           >
             <FormatListBulletedIcon sx={{ fontSize: 16 }} />
@@ -2782,9 +3105,11 @@ export default function NewRequest() {
           <Button
             size="small"
             title="Numbered list"
+            disabled={!hasText}
             onMouseDown={(event) => {
               event.preventDefault();
               event.stopPropagation();
+              if (!hasText) return;
               formatSelectedText("numbered", target);
             }}
             sx={{
@@ -2794,7 +3119,8 @@ export default function NewRequest() {
               p: 0,
               color: t.ink,
               borderRadius: 1,
-              "&:hover": { bgcolor: "#FFFFFF" },
+              "&:hover": { bgcolor: t.surfaceContainerLow },
+              "&.Mui-disabled": { color: t.granite, opacity: 0.45 },
             }}
           >
             <FormatListNumberedIcon sx={{ fontSize: 16 }} />
@@ -2813,14 +3139,14 @@ export default function NewRequest() {
               minHeight: 28,
               px: 1.1,
               borderRadius: "8px",
-              borderColor: t.articleDivider,
+              borderColor: "transparent",
               color: t.pepsiBlueStrong,
               fontSize: "0.6875rem",
               fontWeight: 750,
               textTransform: "none",
-              bgcolor: "#FFFFFF",
+              bgcolor: "transparent",
               "&:hover": {
-                borderColor: t.pepsiBlue,
+                borderColor: t.articleDivider,
                 bgcolor: t.pepsiBlueSubtle,
               },
               "&.Mui-disabled": { color: t.granite },
@@ -2949,7 +3275,7 @@ export default function NewRequest() {
     },
     "& .MuiFilledInput-inputMultiline": {
       pt: 3.05,
-      pb: 1,
+      pb: 5.25,
     },
     "& .MuiInputBase-input::placeholder": {
       color: t.granite,
@@ -2992,6 +3318,20 @@ export default function NewRequest() {
       lineHeight: 1.35,
     },
   } as const;
+  const dateSelectorInputSx = {
+    "& input[type='date']": {
+      color: t.ink,
+      cursor: "pointer",
+    },
+    "& input[type='date']::-webkit-calendar-picker-indicator": {
+      cursor: "pointer",
+      opacity: 0.72,
+      filter: "contrast(0.7)",
+    },
+    "& .MuiInputBase-root:hover input[type='date']::-webkit-calendar-picker-indicator": {
+      opacity: 1,
+    },
+  } as const;
   const quietSecondaryButtonSx = {
     alignSelf: "flex-start",
     minHeight: 28,
@@ -3014,11 +3354,89 @@ export default function NewRequest() {
   } as const;
 
   const renderStructuredReviewEditor = (field: ArticleSectionField) => {
+    const renderReviewTextEditor = (
+      value: string,
+      onChange: (value: string) => void,
+      options?: {
+        title?: string;
+        titlePlaceholder?: string;
+        onTitleChange?: (value: string) => void;
+        bodyLabel?: string;
+        bodyPlaceholder?: string;
+        minRows?: number;
+      },
+    ) => {
+      const target: SelectionTarget = { type: "section", key: field.key };
+      const isActive =
+        !!activeInlineEditorTarget &&
+        sameSelectionTarget(activeInlineEditorTarget, target);
+      return (
+        <Stack spacing={1.25}>
+          {options?.onTitleChange && (
+            <EditableSectionTitle
+              value={options.title ?? ""}
+              placeholder={options.titlePlaceholder ?? "Section title"}
+              onChange={options.onTitleChange}
+            />
+          )}
+          <TextField
+            autoFocus
+            fullWidth
+            variant="filled"
+            label={options?.bodyLabel ?? "Body"}
+            multiline
+            minRows={options?.minRows ?? field.minRows ?? 4}
+            placeholder={options?.bodyPlaceholder ?? field.placeholder}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            helperText={`${value.length.toLocaleString()} characters`}
+            InputLabelProps={{ shrink: true }}
+            InputProps={{
+              disableUnderline: true,
+              endAdornment: renderInlineEditorTools(target),
+            }}
+            inputProps={editorSelectionProps(target)}
+            FormHelperTextProps={{
+              sx: {
+                mx: 0,
+                textAlign: "right",
+                fontSize: "0.6875rem",
+                color: t.granite,
+              },
+            }}
+            sx={{
+              ...compactLabeledInputSx,
+              "& .MuiInputBase-root": {
+                ...compactLabeledInputSx["& .MuiInputBase-root"],
+                fontSize: "0.875rem",
+                position: "relative",
+              },
+              ...(isActive
+                ? {
+                    "& .MuiFormHelperText-root": {
+                      mt: 0.85,
+                    },
+                  }
+                : {}),
+            }}
+          />
+        </Stack>
+      );
+    };
+
     if (field.faqItemId) {
       const itemIndex = form.faqItems.findIndex((item) => item.id === field.faqItemId);
       const faqItem = form.faqItems[itemIndex];
       if (!faqItem) return undefined;
       const isLastFaqItem = field.faqItemId === form.faqItems[form.faqItems.length - 1]?.id;
+      const answerTarget: SelectionTarget = {
+        type: "section",
+        key: field.key,
+        faqItemId: field.faqItemId,
+      };
+      const isAnswerActive =
+        !!activeInlineEditorTarget &&
+        sameSelectionTarget(activeInlineEditorTarget, answerTarget);
 
       return (
         <Stack spacing={1.25}>
@@ -3054,12 +3472,38 @@ export default function NewRequest() {
             minRows={5}
             placeholder="Start with the answer, then add timing, scope, exceptions, or next steps."
             value={faqItem.answer}
+            helperText={`${faqItem.answer.length.toLocaleString()} characters`}
             onChange={(event) =>
               updateFaqItem(field.faqItemId!, { answer: event.target.value })
             }
             InputLabelProps={{ shrink: true }}
-            InputProps={{ disableUnderline: true }}
-            sx={compactLabeledInputSx}
+            InputProps={{
+              disableUnderline: true,
+              endAdornment: renderInlineEditorTools(answerTarget),
+            }}
+            inputProps={editorSelectionProps(answerTarget)}
+            FormHelperTextProps={{
+              sx: {
+                mx: 0,
+                textAlign: "right",
+                fontSize: "0.6875rem",
+                color: t.granite,
+              },
+            }}
+            sx={{
+              ...compactLabeledInputSx,
+              "& .MuiInputBase-root": {
+                ...compactLabeledInputSx["& .MuiInputBase-root"],
+                position: "relative",
+              },
+              ...(isAnswerActive
+                ? {
+                    "& .MuiFormHelperText-root": {
+                      mt: 0.85,
+                    },
+                  }
+                : {}),
+            }}
           />
           <Stack direction="row" spacing={1.5} alignItems="center">
             {isLastFaqItem && (
@@ -3096,9 +3540,142 @@ export default function NewRequest() {
       );
     }
 
-    if (!field.customId) return undefined;
+    if (form.contentType === "Knowledge Article" && field.key === "steps") {
+      const steps = knowledgeStepsForEditor(articleAnswers[field.key] ?? "");
+      return (
+        <Stack
+          spacing={0.5}
+          sx={{
+            py: 0.5,
+          }}
+        >
+          {steps.map((step, stepIndex) => (
+            <Box
+              key={`${field.key}-review-step-${stepIndex}`}
+              sx={{
+                display: "grid",
+                gridTemplateColumns: steps.length > 1 ? "28px 1fr 28px" : "28px 1fr",
+                columnGap: 1,
+                alignItems: "flex-start",
+                py: 0.35,
+                borderBottom:
+                  stepIndex === steps.length - 1
+                    ? "none"
+                    : `1px solid ${t.articleDivider}`,
+              }}
+            >
+              <Box
+                sx={{
+                  minHeight: 32,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  textAlign: "right",
+                  color: t.pepsiBlueStrong,
+                  fontFamily: theme.palette.fonts.articleBody,
+                  fontSize: "0.875rem",
+                  fontWeight: 800,
+                  lineHeight: 1,
+                }}
+              >
+                {stepIndex + 1}.
+              </Box>
+              <TextField
+                autoFocus={stepIndex === 0}
+                fullWidth
+                variant="standard"
+                multiline
+                minRows={1}
+                placeholder={
+                  stepIndex === 0
+                    ? "Start with the first action the employee should take."
+                    : "Add the next action."
+                }
+                value={step}
+                InputProps={{ disableUnderline: true }}
+                onChange={(event) => updateKnowledgeStep(stepIndex, event.target.value)}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  "& .MuiInputBase-root": {
+                    alignItems: "flex-start",
+                  },
+                  "& .MuiInputBase-input": {
+                    fontFamily: theme.palette.fonts.articleBody,
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                    lineHeight: 1.6,
+                    color: t.inkSoft,
+                    px: 0,
+                    py: 0.35,
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: t.granite,
+                    opacity: 0.75,
+                  },
+                }}
+              />
+              {steps.length > 1 && (
+                <IconButton
+                  size="small"
+                  title="Remove step"
+                  onClick={() => removeKnowledgeStep(stepIndex)}
+                  sx={{
+                    mt: 0,
+                    width: 24,
+                    height: 32,
+                    p: 0,
+                    color: t.granite,
+                    opacity: 0.6,
+                    "&:hover": {
+                      opacity: 1,
+                      bgcolor: t.surfaceContainerLow,
+                      color: t.ink,
+                    },
+                  }}
+                >
+                  <CloseIcon sx={{ fontSize: 15 }} />
+                </IconButton>
+              )}
+            </Box>
+          ))}
+          <Button
+            variant="text"
+            onClick={addKnowledgeStep}
+            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+            sx={{ ...quietSecondaryButtonSx, mt: 0.5 }}
+          >
+            Add step
+          </Button>
+        </Stack>
+      );
+    }
+
+    if (!field.customId) {
+      return renderReviewTextEditor(articleAnswers[field.key] ?? "", (value) =>
+        updateTemplateAnswer(field.key, value),
+      );
+    }
     const customSection = form.customSections.find((section) => section.id === field.customId);
-    if (!customSection || customSection.type === "text") return undefined;
+    if (!customSection) return undefined;
+    if (customSection.type === "text" || customSection.type === "callout") {
+      return renderReviewTextEditor(
+        customSection.body,
+        (value) => updateCustomSection(field.customId!, { body: value }),
+        {
+          title: customSection.title,
+          titlePlaceholder:
+            customSection.type === "callout" ? "Callout title" : "Section title",
+          onTitleChange: (value) => updateCustomSection(field.customId!, { title: value }),
+          bodyLabel: customSection.type === "callout" ? "Note" : "Body",
+          bodyPlaceholder:
+            customSection.type === "callout"
+              ? "Add the short note employees should not miss."
+              : field.placeholder,
+          minRows: customSection.type === "callout" ? 3 : field.minRows,
+        },
+      );
+    }
     const tableColumns = getTableColumns(customSection);
 
     return (
@@ -3109,7 +3686,7 @@ export default function NewRequest() {
           onChange={(value) => updateCustomSection(field.customId!, { title: value })}
         />
 
-        {customSection.type === "faq" && (
+        {(customSection.type === "faq" || customSection.type === "accordion") && (
           <Stack spacing={1.25}>
             {customSection.faqItems.map((item, itemIndex) => (
               <Box
@@ -3125,8 +3702,8 @@ export default function NewRequest() {
                   <TextField
                     fullWidth
                     variant="filled"
-                    label="Question"
-                    placeholder={`Question ${itemIndex + 1}`}
+                    label={customSection.type === "accordion" ? "Item title" : "Question"}
+                    placeholder={customSection.type === "accordion" ? `Detail ${itemIndex + 1}` : `Question ${itemIndex + 1}`}
                     value={item.question}
                     onChange={(event) =>
                       updateCustomFaqItem(field.customId!, item.id, {
@@ -3171,7 +3748,7 @@ export default function NewRequest() {
                   label="Answer"
                   multiline
                   minRows={4}
-                  placeholder="Start with the answer, then add timing, scope, exceptions, or next steps."
+                  placeholder={customSection.type === "accordion" ? "Add the expandable detail." : "Start with the answer, then add timing, scope, exceptions, or next steps."}
                   value={item.answer}
                   onChange={(event) =>
                     updateCustomFaqItem(field.customId!, item.id, {
@@ -3190,7 +3767,7 @@ export default function NewRequest() {
               startIcon={<AddIcon sx={{ fontSize: 16 }} />}
               sx={quietSecondaryButtonSx}
             >
-              Add question
+              {customSection.type === "accordion" ? "Add item" : "Add question"}
             </Button>
           </Stack>
         )}
@@ -3223,14 +3800,14 @@ export default function NewRequest() {
                 Add column
               </Button>
             </Stack>
-            <Box sx={{ overflowX: "auto", pb: 0.25 }}>
+            <Box sx={{ overflowX: "auto", mx: -0.25, px: 0.25, pb: 0.75 }}>
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${tableColumns.length}, minmax(180px, 1fr)) 28px`,
-                  gap: 1,
-                  minWidth: Math.max(tableColumns.length * 190 + 36, 396),
-                  mb: 1,
+                  gridTemplateColumns: `repeat(${tableColumns.length}, minmax(172px, 1fr)) 32px`,
+                  gap: 1.25,
+                  minWidth: Math.max(tableColumns.length * 196 + 44, 440),
+                  mb: 1.25,
                 }}
               >
                 {tableColumns.map((column, columnIndex) => (
@@ -3282,18 +3859,18 @@ export default function NewRequest() {
                     )}
                   </Box>
                 ))}
-                <Box sx={{ width: 28, height: 1 }} />
+                <Box sx={{ width: 32, height: 1 }} />
               </Box>
-              <Stack spacing={1}>
+              <Stack spacing={1.25}>
                 {customSection.tableRows.map((row, rowIndex) => (
                   <Box
                     key={row.id}
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: `repeat(${tableColumns.length}, minmax(180px, 1fr)) 28px`,
-                      gap: 1,
-                      alignItems: "flex-start",
-                      minWidth: Math.max(tableColumns.length * 190 + 36, 396),
+                      gridTemplateColumns: `repeat(${tableColumns.length}, minmax(172px, 1fr)) 32px`,
+                      gap: 1.25,
+                      alignItems: "center",
+                      minWidth: Math.max(tableColumns.length * 196 + 44, 440),
                     }}
                   >
                     {tableColumns.map((column, columnIndex) => (
@@ -3322,9 +3899,8 @@ export default function NewRequest() {
                         title="Remove row"
                         onClick={() => removeCustomTableRow(field.customId!, row.id)}
                         sx={{
-                          mt: 1.2,
-                          width: 28,
-                          height: 28,
+                          width: 32,
+                          height: 32,
                           color: t.granite,
                           "&:hover": {
                             bgcolor: t.surfaceContainerLow,
@@ -3335,7 +3911,7 @@ export default function NewRequest() {
                         <CloseIcon sx={{ fontSize: 16 }} />
                       </IconButton>
                     ) : (
-                      <Box sx={{ width: 28, height: 28 }} />
+                      <Box sx={{ width: 32, height: 32 }} />
                     )}
                   </Box>
                 ))}
@@ -3345,7 +3921,7 @@ export default function NewRequest() {
               variant="text"
               onClick={() => addCustomTableRow(field.customId!)}
               startIcon={<AddIcon sx={{ fontSize: 16 }} />}
-              sx={quietSecondaryButtonSx}
+              sx={{ ...quietSecondaryButtonSx, alignSelf: "flex-start" }}
             >
               Add row
             </Button>
@@ -3448,266 +4024,51 @@ export default function NewRequest() {
     );
   };
 
-  const renderStructuredReviewPreview = (field: ArticleSectionField) => {
-    const renderFaqAccordion = (items: CustomFaqItem[]) => {
-      const visibleItems = items.filter(
-        (item) => item.question.trim() || item.answer.trim(),
-      );
-      if (!visibleItems.length) {
-        return (
-          <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
-            Add content for this section.
-          </Typography>
-        );
-      }
-      return (
-        <Stack spacing={1.25} sx={{ my: 1.5 }}>
-          {visibleItems.map((item, index) => (
-            <Accordion
-              key={item.id}
-              defaultExpanded={index === 0}
-              disableGutters
-              elevation={0}
-              sx={{
-                borderRadius: "8px",
-                overflow: "hidden",
-                bgcolor: t.pepsiBlue,
-                p: 0.75,
-                boxShadow: "none",
-                border: 0,
-                "&::before": { display: "none" },
-                "&.Mui-expanded": {
-                  my: 0,
-                },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                sx={{
-                  minHeight: "auto",
-                  bgcolor: t.pepsiBlue,
-                  color: "#FFFFFF",
-                  px: 0.75,
-                  py: 0.6,
-                  borderRadius: "6px",
-                  transition: "background-color 160ms ease",
-                  "&:hover": {
-                    bgcolor: "rgba(255,255,255,0.10)",
-                  },
-                  "&.Mui-focusVisible": {
-                    bgcolor: "rgba(255,255,255,0.14)",
-                  },
-                  "& .MuiAccordionSummary-content": {
-                    my: 0,
-                    minWidth: 0,
-                    alignItems: "center",
-                  },
-                  "& .MuiAccordionSummary-content.Mui-expanded": {
-                    my: 0,
-                  },
-                  "& .MuiAccordionSummary-expandIconWrapper": {
-                    color: "#FFFFFF",
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    transition: "transform 180ms ease, background-color 160ms ease",
-                    "& svg": {
-                      fontSize: 22,
-                    },
-                  },
-                  "&:hover .MuiAccordionSummary-expandIconWrapper": {
-                    bgcolor: "rgba(255,255,255,0.14)",
-                  },
-                  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
-                    transform: "rotate(180deg)",
-                  },
-                }}
-              >
-                <Typography
-                  component="span"
-                  sx={{
-                    color: "inherit",
-                    fontWeight: 500,
-                    fontSize: { xs: "1rem", md: "1.125rem" },
-                    lineHeight: 1.25,
-                  }}
-                >
-                  {item.question.trim() || "Question"}
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails
-                sx={{
-                  bgcolor: "#FFFFFF",
-                  color: t.ink,
-                  borderRadius: "8px",
-                  mt: 0.75,
-                  px: { xs: 1.5, md: 2 },
-                  py: { xs: 1.25, md: 1.6 },
-                  "& > :first-of-type": { mt: 0 },
-                  "& > :last-child": { mb: 0 },
-                }}
-              >
-                {item.answer.trim() ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {item.answer}
-                  </ReactMarkdown>
-                ) : (
-                  <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
-                    Add an answer for this question.
-                  </Typography>
-                )}
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Stack>
-      );
-    };
-
+  const reviewSectionForField = (field: ArticleSectionField): ArticleSection | null => {
     if (field.faqItemId) {
       const faqItem = form.faqItems.find((item) => item.id === field.faqItemId);
-      return faqItem ? renderFaqAccordion([faqItem]) : undefined;
+      if (!faqItem || (!faqItem.question.trim() && !faqItem.answer.trim())) return null;
+      return {
+        id: faqItem.id,
+        type: "faq",
+        title: "",
+        items: [{
+          id: faqItem.id,
+          question: faqItem.question.trim() || "Question",
+          answer: faqItem.answer,
+        }],
+      };
     }
 
     const customSection = field.customId
       ? form.customSections.find((section) => section.id === field.customId)
       : null;
 
-    if (customSection?.type === "faq") {
-      return renderFaqAccordion(customSection.faqItems);
+    if (customSection) {
+      const section = articleSectionFromCustom(customSection);
+      if (section.type === "text" && !section.body.trim()) return null;
+      if (section.type === "faq" && !section.items.some((item) => item.question.trim() || item.answer.trim())) return null;
+      if (section.type === "accordion" && !section.items.some((item) => item.title.trim() || item.body.trim())) return null;
+      if (section.type === "table" && !section.rows.some((row) => section.columns.some((column) => (row.cells[column.id] ?? "").trim()))) return null;
+      if (section.type === "resourceLinks" && !section.links.some((link) => link.label.trim() || link.url.trim() || link.description?.trim())) return null;
+      if (section.type === "callout" && !section.body.trim()) return null;
+      return { ...section, title: "" };
     }
 
-    if (customSection?.type === "table") {
-      const columns = getTableColumns(customSection);
-      const rows = customSection.tableRows.filter((row) =>
-        columns.some((column, columnIndex) =>
-          getTableCellValue(row, column, columnIndex).trim(),
-        ),
-      );
-      if (!rows.length) {
-        return (
-          <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
-            Add content for this section.
-          </Typography>
-        );
-      }
-      return (
-        <Box sx={{ overflowX: "auto", my: 2.25 }}>
-          <Box
-            component="table"
-            sx={{
-              borderCollapse: "collapse",
-              width: "100%",
-              minWidth: Math.max(columns.length * 180, 360),
-              fontSize: "0.8125rem",
-              border: `1px solid ${t.articleDivider}`,
-            }}
-          >
-            <Box component="thead">
-              <Box component="tr">
-                {columns.map((column, index) => (
-                  <Box
-                    key={column.id}
-                    component="th"
-                    sx={{
-                      textAlign: "left",
-                      fontWeight: 600,
-                      color: "#FFFFFF",
-                      fontSize: "0.8125rem",
-                      fontFamily: theme.palette.fonts.articleBody,
-                      py: 1,
-                      px: 1.5,
-                      bgcolor: t.pepsiBlueDeep,
-                    }}
-                  >
-                    {column.header.trim() || `Column ${index + 1}`}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-            <Box component="tbody">
-              {rows.map((row, rowIndex) => (
-                <Box
-                  key={row.id}
-                  component="tr"
-                  sx={{ bgcolor: rowIndex % 2 === 1 ? "#F8FAFC" : "transparent" }}
-                >
-                  {columns.map((column, columnIndex) => (
-                    <Box
-                      key={column.id}
-                      component="td"
-                      sx={{
-                        py: 1.05,
-                        px: 1.5,
-                        borderBottom:
-                          rowIndex === rows.length - 1
-                            ? 0
-                            : `1px solid ${t.articleDivider}`,
-                        verticalAlign: "top",
-                      }}
-                    >
-                      {getTableCellValue(row, column, columnIndex)}
-                    </Box>
-                  ))}
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        </Box>
-      );
-    }
+    const body = articleAnswers[field.key] ?? "";
+    if (!body.trim()) return null;
+    return {
+      id: field.key,
+      type: "text",
+      title: "",
+      body,
+      required: field.required,
+    };
+  };
 
-    if (customSection?.type === "resources") {
-      const resources = customSection.resourceLinks.filter(
-        (resource) =>
-          resource.label.trim() ||
-          resource.url.trim() ||
-          resource.description.trim(),
-      );
-      if (!resources.length) {
-        return (
-          <Typography sx={{ color: t.granite, fontStyle: "italic" }}>
-            Add content for this section.
-          </Typography>
-        );
-      }
-      return (
-        <Stack component="ul" spacing={0.9} sx={{ my: 1.5, pl: 2.5 }}>
-          {resources.map((resource) => (
-            <Box key={resource.id} component="li">
-              {resource.url.trim() ? (
-                <Box
-                  component="a"
-                  href={resource.url}
-                  sx={{
-                    color: t.pepsiBlue,
-                    textDecoration: "underline",
-                    textDecorationColor: "rgba(0, 75, 147, 0.35)",
-                    textUnderlineOffset: "3px",
-                    fontWeight: 600,
-                  }}
-                >
-                  {resource.label.trim() || resource.url.trim()}
-                </Box>
-              ) : (
-                <Box component="span" sx={{ fontWeight: 600 }}>
-                  {resource.label.trim() || "Resource"}
-                </Box>
-              )}
-              {resource.description.trim() && (
-                <Typography component="span" sx={{ color: t.ink, ml: 0.5 }}>
-                  — {resource.description.trim()}
-                </Typography>
-              )}
-            </Box>
-          ))}
-        </Stack>
-      );
-    }
-
-    return undefined;
+  const renderStructuredReviewPreview = (field: ArticleSectionField) => {
+    const section = reviewSectionForField(field);
+    return section ? <StructuredArticleSections sections={[section]} /> : undefined;
   };
 
   const reviewEditableSections = articleSections.map((field) => ({
@@ -3793,6 +4154,22 @@ export default function NewRequest() {
             : "",
         ].filter(Boolean).join("\n\n"),
         finalArticleBody,
+        sections: finalArticleSections,
+        taxonomy: finalArticleTaxonomy,
+        relationships: finalArticleRelationships,
+        visibility: {
+          audiences: form.audience,
+          markets: form.markets,
+          countries: derivedCountries,
+          canRead: effectiveCanRead,
+          cannotRead: cannotReadGroups,
+          security: effectiveCanRead.some((group) => /all employees/i.test(group))
+            ? "all-employees"
+            : "restricted",
+          notes: cannotReadGroups.length
+            ? `Restricted from: ${cannotReadGroups.join(", ")}`
+            : "People outside the selected access groups are excluded.",
+        },
         submittedBy: me,
         approver: selectedApprover,
         countries: derivedCountries,
@@ -4236,26 +4613,47 @@ export default function NewRequest() {
           )}
         </Stack>
 
+        {(isGlobal || form.markets.length > 1) && (
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: "8px",
+              bgcolor: "#FFFFFF",
+              border: `1px solid ${t.border}`,
+            }}
+          >
+            <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink }}>
+              Global and local guidance
+            </Typography>
+            <Typography sx={{ mt: 0.5, fontSize: "0.75rem", color: t.slate, lineHeight: 1.5 }}>
+              Use one article when the answer is mostly the same and only a few details vary by country. Create separate local articles when laws, eligibility, steps, owners, or access rules are meaningfully different.
+            </Typography>
+          </Box>
+        )}
+
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5}>
           {/* ─────────── Audience ─────────── */}
           <Field
-            label="Who can read it"
+            label="Employee audience"
             required
             sx={{ flex: 1 }}
-            hint="Only selected groups can access this article. People outside the selected groups are excluded."
+            hint="Who this article is written for. This helps search, Ask Pep routing, and recommendations."
           >
             <TextField
               select
               fullWidth
               value={form.audience}
-              onChange={(e) =>
-                update(
-                  "audience",
+              onChange={(e) => {
+                const nextAudience =
                   typeof e.target.value === "string"
                     ? e.target.value.split(",")
-                    : (e.target.value as unknown as string[]),
-                )
-              }
+                    : (e.target.value as unknown as string[]);
+                setForm((f) => ({
+                  ...f,
+                  audience: nextAudience,
+                  canRead: f.canRead.length ? f.canRead : nextAudience,
+                }));
+              }}
               SelectProps={{
                 multiple: true,
                 displayEmpty: true,
@@ -4264,7 +4662,7 @@ export default function NewRequest() {
                   if (vals.length === 0) {
                     return (
                       <Typography component="span" sx={{ color: t.granite }}>
-                        Select who can read...
+                        Select employee audience...
                       </Typography>
                     );
                   }
@@ -4284,6 +4682,88 @@ export default function NewRequest() {
                   <Checkbox
                     size="small"
                     checked={form.audience.includes(opt.label)}
+                    sx={{ mr: 1, p: 0.5 }}
+                  />
+                  <ListItemText
+                    primary={opt.label}
+                    primaryTypographyProps={{ fontSize: "0.875rem" }}
+                  />
+                </MenuItem>
+              ))}
+            </TextField>
+          </Field>
+
+          <Field
+            label="Source language"
+            required
+            sx={{ flex: 1 }}
+            hint="Used as the original language for review and translations. Leave auto-detect on if you are not sure."
+          >
+            <TextField
+              select
+              fullWidth
+              value={form.writtenLanguage}
+              onChange={(e) => update("writtenLanguage", e.target.value)}
+              SelectProps={{
+                MenuProps: { PaperProps: { sx: { maxHeight: 360 } } },
+              }}
+            >
+              {WRITTEN_LANGUAGE_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Field>
+        </Stack>
+
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5}>
+          <Field
+            label="Access groups"
+            required
+            sx={{ flex: 1 }}
+            hint="Only these groups can open the article. Everyone outside the selected groups is excluded."
+          >
+            <TextField
+              select
+              fullWidth
+              value={effectiveCanRead}
+              onChange={(e) =>
+                update(
+                  "canRead",
+                  typeof e.target.value === "string"
+                    ? e.target.value.split(",")
+                    : (e.target.value as unknown as string[]),
+                )
+              }
+              SelectProps={{
+                multiple: true,
+                displayEmpty: true,
+                renderValue: (selected) => {
+                  const vals = selected as string[];
+                  if (vals.length === 0) {
+                    return (
+                      <Typography component="span" sx={{ color: t.granite }}>
+                        Select access groups...
+                      </Typography>
+                    );
+                  }
+                  return (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {vals.map((v) => (
+                        <Chip key={v} label={v} size="small" />
+                      ))}
+                    </Box>
+                  );
+                },
+                MenuProps: { PaperProps: { sx: { maxHeight: 360 } } },
+              }}
+            >
+              {audiences.map((opt) => (
+                <MenuItem key={opt.id} value={opt.label} sx={{ py: 0.5 }}>
+                  <Checkbox
+                    size="small"
+                    checked={effectiveCanRead.includes(opt.label)}
                     sx={{ mr: 1, p: 0.5 }}
                   />
                   <ListItemText
@@ -4375,42 +4855,59 @@ export default function NewRequest() {
           alignItems="flex-start"
         >
         <Box sx={{ flex: 1, minWidth: 0, maxWidth: 760 }}>
-          <Box sx={{ mb: 3, position: "relative" }}>
-            {renderInlineEditorTools({ type: "summary", key: "lead" })}
-            <TextField
-              fullWidth
-              variant="filled"
-              label="Summary"
-              multiline
-              minRows={2}
-              InputLabelProps={{ shrink: true }}
-              helperText={
-                <Stack direction="row" justifyContent="space-between" spacing={1}>
-                  <span>Employees see this above the article. One or two sentences is enough.</span>
-                  <span>{form.summary.length.toLocaleString()} characters</span>
-                </Stack>
-              }
-              FormHelperTextProps={{
-                sx: {
-                  mx: 0,
-                  fontSize: "0.6875rem",
-                  color: t.granite,
-                },
-              }}
-              placeholder="Example: Use this FAQ to learn how payroll direct deposit changes work."
-              value={form.summary}
-              onChange={(e) => update("summary", e.target.value)}
-              InputProps={{ disableUnderline: true }}
-              inputProps={editorSelectionProps({ type: "summary", key: "lead" })}
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ position: "relative" }}>
+              <TextField
+                fullWidth
+                variant="filled"
+                label="Summary"
+                multiline
+                minRows={2}
+                InputLabelProps={{ shrink: true }}
+                placeholder="Example: Use this FAQ to learn how payroll direct deposit changes work."
+                value={form.summary}
+                onChange={(e) => update("summary", e.target.value)}
+                InputProps={{
+                  disableUnderline: true,
+                  endAdornment: renderInlineEditorTools({ type: "summary", key: "lead" }),
+                }}
+                inputProps={editorSelectionProps({ type: "summary", key: "lead" })}
+                sx={{
+                  ...compactLabeledInputSx,
+                  "& .MuiInputBase-root": {
+                    ...compactLabeledInputSx["& .MuiInputBase-root"],
+                    fontSize: "0.875rem",
+                    color: t.inkSoft,
+                    position: "relative",
+                  },
+                  ...(activeInlineEditorTarget &&
+                  sameSelectionTarget(activeInlineEditorTarget, { type: "summary", key: "lead" })
+                    ? {
+                        "& .MuiFormHelperText-root": {
+                          mt: 0.85,
+                        },
+                      }
+                    : {}),
+                }}
+              />
+            </Box>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              spacing={1}
               sx={{
-                ...compactLabeledInputSx,
-                "& .MuiInputBase-root": {
-                  ...compactLabeledInputSx["& .MuiInputBase-root"],
-                  fontSize: "0.875rem",
-                  color: t.inkSoft,
-                },
+                mt: 0.5,
+                fontSize: "0.6875rem",
+                color: t.granite,
               }}
-            />
+            >
+              <Box component="span">
+                Employees see this above the article. One or two sentences is enough.
+              </Box>
+              <Box component="span" sx={{ flexShrink: 0 }}>
+                {form.summary.length.toLocaleString()} characters
+              </Box>
+            </Stack>
           </Box>
 
           {form.contentType === "Policy" && (
@@ -4440,25 +4937,33 @@ export default function NewRequest() {
                   ["nextReviewDate", "Next review", "Review date"],
                   ["policyOwner", "Policy owner", "Owner or team"],
                   ["exceptionApprover", "Exception approver", "Approver name"],
-                ].map(([key, label, placeholder]) => (
-                  <TextField
-                    key={key}
-                    fullWidth
-                    variant="filled"
-                    label={label}
-                    placeholder={placeholder}
-                    value={form.policyMeta[key as keyof typeof form.policyMeta]}
-                    onChange={(event) =>
-                      updatePolicyMeta(
-                        key as keyof typeof form.policyMeta,
-                        event.target.value,
-                      )
-                    }
-                    InputLabelProps={{ shrink: true }}
-                    InputProps={{ disableUnderline: true }}
-                    sx={policyMetaInputSx}
-                  />
-                ))}
+                ].map(([key, label, placeholder]) => {
+                  const isDateField = POLICY_DATE_FIELD_KEYS.has(key);
+                  return (
+                    <TextField
+                      key={key}
+                      fullWidth
+                      variant="filled"
+                      type={isDateField ? "date" : "text"}
+                      label={label}
+                      placeholder={isDateField ? undefined : placeholder}
+                      value={form.policyMeta[key as keyof typeof form.policyMeta]}
+                      onChange={(event) =>
+                        updatePolicyMeta(
+                          key as keyof typeof form.policyMeta,
+                          event.target.value,
+                        )
+                      }
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{ disableUnderline: true }}
+                      inputProps={isDateField ? { "aria-label": label } : undefined}
+                      sx={{
+                        ...policyMetaInputSx,
+                        ...(isDateField ? dateSelectorInputSx : {}),
+                      }}
+                    />
+                  );
+                })}
               </Box>
             </Box>
           )}
@@ -4598,11 +5103,6 @@ export default function NewRequest() {
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       {field.faqItemId ? (
                         <Box sx={{ mb: 1.25 }}>
-                          {renderInlineEditorTools({
-                            type: "faqQuestion",
-                            key: field.key,
-                            faqItemId: field.faqItemId,
-                          })}
                           <TextField
                             fullWidth
                             variant="filled"
@@ -4624,7 +5124,9 @@ export default function NewRequest() {
                             onChange={(e) =>
                               updateFaqItem(field.faqItemId!, { question: e.target.value })
                             }
-                            InputProps={{ disableUnderline: true }}
+                            InputProps={{
+                              disableUnderline: true,
+                            }}
                             inputProps={editorSelectionProps({
                               type: "faqQuestion",
                               key: field.key,
@@ -4665,15 +5167,6 @@ export default function NewRequest() {
                           >
                             Remove
                           </Button>
-                          {!isFaq &&
-                            renderInlineEditorTools(
-                              {
-                                type: "section",
-                                key: field.key,
-                                faqItemId: field.faqItemId,
-                              },
-                              { inline: true },
-                            )}
                         </Stack>
                       ) : (
                         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
@@ -4682,24 +5175,9 @@ export default function NewRequest() {
                             placeholder={field.label}
                             onChange={(value) => updateSectionHeading(field.key, value)}
                           />
-                          {!isFaq &&
-                            renderInlineEditorTools(
-                              {
-                                type: "section",
-                                key: field.key,
-                                faqItemId: field.faqItemId,
-                              },
-                              { inline: true },
-                            )}
                         </Stack>
                       )}
-                      {isFaq &&
-                        renderInlineEditorTools({
-                          type: "section",
-                          key: field.key,
-                          faqItemId: field.faqItemId,
-                        })}
-                      {customSection && customSectionKind === "faq" ? (
+                      {customSection && (customSectionKind === "faq" || customSectionKind === "accordion") ? (
                         <Stack spacing={1.25}>
                           {customSection.faqItems.map((item, itemIndex) => (
                             <Box
@@ -4715,8 +5193,12 @@ export default function NewRequest() {
                                 <TextField
                                   fullWidth
                                   variant="filled"
-                                  label="Question"
-                                  placeholder={`Question ${itemIndex + 1}`}
+                                  label={customSectionKind === "accordion" ? "Item title" : "Question"}
+                                  placeholder={
+                                    customSectionKind === "accordion"
+                                      ? `Detail ${itemIndex + 1}`
+                                      : `Question ${itemIndex + 1}`
+                                  }
                                   value={item.question}
                                   onChange={(event) =>
                                     updateCustomFaqItem(field.customId!, item.id, {
@@ -4738,7 +5220,7 @@ export default function NewRequest() {
                                 {customSection.faqItems.length > 1 && (
                                   <IconButton
                                     size="small"
-                                    title="Remove question"
+                                    title={customSectionKind === "accordion" ? "Remove item" : "Remove question"}
                                     onClick={() => removeCustomFaqItem(field.customId!, item.id)}
                                     sx={{
                                       mt: 1.25,
@@ -4758,10 +5240,14 @@ export default function NewRequest() {
                               <TextField
                                 fullWidth
                                 variant="filled"
-                                label="Answer"
+                                label={customSectionKind === "accordion" ? "Detail" : "Answer"}
                                 multiline
                                 minRows={4}
-                                placeholder="Start with the answer, then add timing, scope, exceptions, or next steps."
+                                placeholder={
+                                  customSectionKind === "accordion"
+                                    ? "Add the expandable detail."
+                                    : "Start with the answer, then add timing, scope, exceptions, or next steps."
+                                }
                                 value={item.answer}
                                 onChange={(event) =>
                                   updateCustomFaqItem(field.customId!, item.id, {
@@ -4780,7 +5266,7 @@ export default function NewRequest() {
                             startIcon={<AddIcon sx={{ fontSize: 16 }} />}
                             sx={quietSecondaryButtonSx}
                           >
-                            Add question
+                            {customSectionKind === "accordion" ? "Add item" : "Add question"}
                           </Button>
                         </Stack>
                       ) : customSection && customSectionKind === "table" ? (
@@ -4811,14 +5297,14 @@ export default function NewRequest() {
                               Add column
                             </Button>
                           </Stack>
-                          <Box sx={{ overflowX: "auto", pb: 0.25 }}>
+                          <Box sx={{ overflowX: "auto", mx: -0.25, px: 0.25, pb: 0.75 }}>
                             <Box
                               sx={{
                                 display: "grid",
-                                gridTemplateColumns: `repeat(${tableColumns.length}, minmax(180px, 1fr)) 28px`,
-                                gap: 1,
-                                minWidth: Math.max(tableColumns.length * 190 + 36, 396),
-                                mb: 1,
+                                gridTemplateColumns: `repeat(${tableColumns.length}, minmax(172px, 1fr)) 32px`,
+                                gap: 1.25,
+                                minWidth: Math.max(tableColumns.length * 196 + 44, 440),
+                                mb: 1.25,
                               }}
                             >
                               {tableColumns.map((column, columnIndex) => (
@@ -4872,18 +5358,18 @@ export default function NewRequest() {
                                   )}
                                 </Box>
                               ))}
-                              <Box sx={{ width: 28, height: 1 }} />
+                              <Box sx={{ width: 32, height: 1 }} />
                             </Box>
-                            <Stack spacing={1}>
+                            <Stack spacing={1.25}>
                               {customSection.tableRows.map((row, rowIndex) => (
                                 <Box
                                   key={row.id}
                                   sx={{
                                     display: "grid",
-                                    gridTemplateColumns: `repeat(${tableColumns.length}, minmax(180px, 1fr)) 28px`,
-                                    gap: 1,
-                                    alignItems: "flex-start",
-                                    minWidth: Math.max(tableColumns.length * 190 + 36, 396),
+                                    gridTemplateColumns: `repeat(${tableColumns.length}, minmax(172px, 1fr)) 32px`,
+                                    gap: 1.25,
+                                    alignItems: "center",
+                                    minWidth: Math.max(tableColumns.length * 196 + 44, 440),
                                   }}
                                 >
                                   {tableColumns.map((column, columnIndex) => (
@@ -4916,9 +5402,8 @@ export default function NewRequest() {
                                         removeCustomTableRow(field.customId!, row.id)
                                       }
                                       sx={{
-                                        mt: 1.2,
-                                        width: 28,
-                                        height: 28,
+                                        width: 32,
+                                        height: 32,
                                         color: t.granite,
                                         "&:hover": {
                                           bgcolor: t.surfaceContainerLow,
@@ -4930,7 +5415,7 @@ export default function NewRequest() {
                                     </IconButton>
                                   )}
                                   {customSection.tableRows.length <= 1 && (
-                                    <Box sx={{ width: 28, height: 28 }} />
+                                    <Box sx={{ width: 32, height: 32 }} />
                                   )}
                                 </Box>
                               ))}
@@ -4940,7 +5425,7 @@ export default function NewRequest() {
                             variant="text"
                             onClick={() => addCustomTableRow(field.customId!)}
                             startIcon={<AddIcon sx={{ fontSize: 16 }} />}
-                            sx={quietSecondaryButtonSx}
+                            sx={{ ...quietSecondaryButtonSx, alignSelf: "flex-start" }}
                           >
                             Add row
                           </Button>
@@ -5146,39 +5631,61 @@ export default function NewRequest() {
                           </Button>
                         </Stack>
                       ) : (
-                        <TextField
-                          fullWidth
-                          variant="filled"
-                          label={field.faqItemId ? "Answer" : "Body"}
-                          multiline
-                          minRows={field.minRows ?? 3}
-                          InputLabelProps={{ shrink: true }}
-                          placeholder={field.placeholder}
-                          helperText={`${sectionValue.length.toLocaleString()} characters`}
-                          FormHelperTextProps={{
-                            sx: {
-                              mx: 0,
-                              textAlign: "right",
-                              fontSize: "0.6875rem",
-                              color: t.granite,
-                            },
-                          }}
-                          value={sectionValue}
-                          InputProps={{ disableUnderline: true }}
-                          inputProps={editorSelectionProps({
-                            type: "section",
-                            key: field.key,
-                            faqItemId: field.faqItemId,
-                          })}
-                          onChange={(e) => setSectionValue(field, e.target.value)}
-                          sx={{
-                            ...compactLabeledInputSx,
-                            "& .MuiInputBase-root": {
-                              ...compactLabeledInputSx["& .MuiInputBase-root"],
-                              fontSize: "0.875rem",
-                            },
-                          }}
-                        />
+                        <Box sx={{ position: "relative" }}>
+                          <TextField
+                            fullWidth
+                            variant="filled"
+                            label={field.faqItemId ? "Answer" : "Body"}
+                            multiline
+                            minRows={field.minRows ?? 3}
+                            InputLabelProps={{ shrink: true }}
+                            placeholder={field.placeholder}
+                            helperText={`${sectionValue.length.toLocaleString()} characters`}
+                            FormHelperTextProps={{
+                              sx: {
+                                mx: 0,
+                                textAlign: "right",
+                                fontSize: "0.6875rem",
+                                color: t.granite,
+                              },
+                            }}
+                            value={sectionValue}
+                            InputProps={{
+                              disableUnderline: true,
+                              endAdornment: renderInlineEditorTools({
+                                type: "section",
+                                key: field.key,
+                                faqItemId: field.faqItemId,
+                              }),
+                            }}
+                            inputProps={editorSelectionProps({
+                              type: "section",
+                              key: field.key,
+                              faqItemId: field.faqItemId,
+                            })}
+                            onChange={(e) => setSectionValue(field, e.target.value)}
+                            sx={{
+                              ...compactLabeledInputSx,
+                              "& .MuiInputBase-root": {
+                                ...compactLabeledInputSx["& .MuiInputBase-root"],
+                                fontSize: "0.875rem",
+                                position: "relative",
+                              },
+                              ...(activeInlineEditorTarget &&
+                              sameSelectionTarget(activeInlineEditorTarget, {
+                                type: "section",
+                                key: field.key,
+                                faqItemId: field.faqItemId,
+                              })
+                                ? {
+                                    "& .MuiFormHelperText-root": {
+                                      mt: 0.85,
+                                    },
+                                  }
+                                : {}),
+                            }}
+                          />
+                        </Box>
                       )}
                       {field.faqItemId && (
                         <Stack
@@ -5327,6 +5834,34 @@ export default function NewRequest() {
               <Typography sx={{ mt: 0.4, fontSize: "0.75rem", color: t.granite, lineHeight: 1.45 }}>
                 Add source files and check nearby articles while you draft.
               </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 2,
+                bgcolor: "#FFFFFF",
+                border: `1px solid ${t.border}`,
+              }}
+            >
+              <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: t.ink }}>
+                Employee-readable content
+              </Typography>
+              <Stack component="ul" spacing={0.45} sx={{ m: 0, mt: 0.85, pl: 2 }}>
+                {[
+                  "Keep the answer in the article, not only in an attachment.",
+                  "Use descriptive links, not “click here.”",
+                  "Add alt text or captions when images or videos carry meaning.",
+                ].map((item) => (
+                  <Typography
+                    key={item}
+                    component="li"
+                    sx={{ fontSize: "0.75rem", color: t.slate, lineHeight: 1.45 }}
+                  >
+                    {item}
+                  </Typography>
+                ))}
+              </Stack>
             </Box>
 
             <Box
@@ -5559,10 +6094,11 @@ export default function NewRequest() {
                 {
                   title: "Article details",
                   rows: [
-                    { label: "Draft language", value: displayLanguage(detectedDraftLanguage) },
+                    { label: "Source language", value: displayLanguage(effectiveWrittenLanguage) },
                     { label: "Type", value: form.contentType },
                     { label: "Knowledge base", value: selectedKnowledgeBase.name },
-                    { label: "Who can read it", value: form.audience.join(", ") || "Not selected" },
+                    { label: "Employee audience", value: form.audience.join(", ") || "Not selected" },
+                    { label: "Access groups", value: effectiveCanRead.join(", ") || "Not selected" },
                     { label: "Country", value: selectedMarketLabelsWithLanguages.join(", ") || "Not selected" },
                     { label: "Owner", value: me.name },
                     { label: "Approver", value: selectedApprover.name },
@@ -5607,18 +6143,18 @@ export default function NewRequest() {
               order: 1,
               bgcolor: "#FFFFFF",
               border: `1px solid ${t.border}`,
-              borderRadius: 2.5,
+              borderRadius: "8px",
               overflow: "hidden",
-              boxShadow: "0 8px 24px rgba(0, 46, 93, 0.06)",
+              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
             }}
           >
             <Accordion disableGutters elevation={0} sx={{ ...reviewAccordionSx, order: 0 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
-                  <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
+                  <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink }}>
                     Submission details
                   </Typography>
-                  <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
+                  <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
                     Scope, owner, files, and replacement links.
                   </Typography>
                 </Box>
@@ -5657,10 +6193,10 @@ export default function NewRequest() {
             <Accordion disableGutters elevation={0} sx={{ ...reviewAccordionSx, order: 1 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
-                  <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
+                  <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink }}>
                     How employees will find it
                   </Typography>
-                  <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
+                  <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
                     Auto-generated search text. No expertise needed.
                   </Typography>
                 </Box>
@@ -5718,25 +6254,25 @@ export default function NewRequest() {
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
-                  <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
+                  <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink }}>
                     askpep and publish readiness
                   </Typography>
-                  <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
+                  <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
                     Plain-language checks based on the mypepsico guidelines.
                   </Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
-                <Stack spacing={1.25}>
-                  <Stack direction="row" spacing={1} alignItems="flex-start">
+                <Stack spacing={1}>
+                  <Stack direction="row" spacing={0.85} alignItems="flex-start">
                     <Checkbox
                       checked={form.vaReady}
                       onChange={(e) => update("vaReady", e.target.checked)}
                       size="small"
-                      sx={{ p: 0.25 }}
+                      sx={{ p: 0, mt: 0.1 }}
                     />
                     <Box>
-                      <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
+                      <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink, lineHeight: 1.35 }}>
                         Recommend as ready for askpep after approval
                       </Typography>
                       <Typography sx={{ fontSize: "0.75rem", color: t.granite, lineHeight: 1.45 }}>
@@ -5745,16 +6281,16 @@ export default function NewRequest() {
                     </Box>
                   </Stack>
 
-                  <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: t.surfaceContainerLow }}>
+                  <Box sx={{ p: 1, borderRadius: "8px", bgcolor: t.surfaceContainerLow }}>
                     <Stack direction="row" justifyContent="space-between" spacing={1}>
-                      <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: t.ink }}>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 750, color: t.ink }}>
                         Article length
                       </Typography>
-                      <Typography sx={{ fontSize: "0.8125rem", fontWeight: 800, color: lengthToneColor }}>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: lengthToneColor }}>
                         {articleBodyCharacterCount.toLocaleString()} characters · {lengthStatus.label}
                       </Typography>
                     </Stack>
-                    <Typography sx={{ mt: 0.5, fontSize: "0.75rem", color: t.slate, lineHeight: 1.45 }}>
+                    <Typography sx={{ mt: 0.35, fontSize: "0.6875rem", color: t.slate, lineHeight: 1.4 }}>
                       {lengthStatus.helper}
                     </Typography>
                   </Box>
@@ -5762,16 +6298,16 @@ export default function NewRequest() {
                   {recommendedReviewUpdates.length > 0 && (
                     <Box
                       sx={{
-                        p: 1.25,
-                        borderRadius: 1.5,
+                        p: 1,
+                        borderRadius: "8px",
                         bgcolor: "#FFFFFF",
                         border: `1px solid ${t.articleDivider}`,
                       }}
                     >
-                      <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink }}>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 750, color: t.ink }}>
                         Recommended updates before submitting
                       </Typography>
-                      <Stack component="ul" spacing={0.6} sx={{ m: 0, mt: 0.8, pl: 2 }}>
+                      <Stack component="ul" spacing={0.45} sx={{ m: 0, mt: 0.65, pl: 2 }}>
                         {recommendedReviewUpdates.map((recommendation) => (
                           <Typography
                             key={recommendation}
@@ -5789,9 +6325,9 @@ export default function NewRequest() {
                     <Stack
                       key={item.label}
                       direction="row"
-                      spacing={0.75}
+                      spacing={0.65}
                       alignItems="center"
-                      sx={{ fontSize: "0.8125rem", color: item.done ? t.ink : t.slate }}
+                      sx={{ fontSize: "0.75rem", color: item.done ? t.ink : t.slate }}
                     >
                       <CheckCircleOutlineIcon
                         sx={{ fontSize: 15, color: item.done ? t.successInk : t.granite }}

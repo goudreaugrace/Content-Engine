@@ -4,12 +4,13 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { isValidElement, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { ContentType, Market } from "../lib/api";
+import type { ArticleSection, ContentType, Market } from "../lib/api";
 import { localeFor } from "../lib/market";
 import ArticleReaderActions from "./article-reader-actions";
 
 type Props = {
   body: string;
+  sections?: ArticleSection[];
   market?: Market;
   title?: string;
   lead?: string;
@@ -75,6 +76,7 @@ function textFromChildren(children: ReactNode): string {
  */
 export default function ArticleDocument({
   body,
+  sections: structuredSections,
   market,
   title: titleProp,
   lead,
@@ -107,8 +109,9 @@ export default function ArticleDocument({
   const parsedTitle = body.match(/^#\s+(.+?)\s*$/m)?.[1]?.trim();
   const title = titleProp?.trim() || parsedTitle || "Knowledge article";
   const readerBody = body.replace(/^#\s+.+\n+/, "").trim();
-  const sections =
-    editableSections?.map((section) => section.title).filter(Boolean) ??
+  const tocSections =
+    editableSections?.map((section) => section.title).filter((section): section is string => !!section) ??
+    structuredSections?.map((section) => section.title).filter((section): section is string => !!section) ??
     articleSectionsFromMarkdown(body);
   const isImmersive = presentation === "immersive";
   const isEditable = !!onEdit;
@@ -195,7 +198,7 @@ export default function ArticleDocument({
     <Box
       id="top"
       sx={{
-        bgcolor: t.surface,
+        bgcolor: t.articleDocumentBg,
         border: isImmersive ? `1px solid ${t.articleDivider}` : 0,
         borderRadius: isImmersive ? "8px" : 0,
         overflow: "hidden",
@@ -429,7 +432,7 @@ export default function ArticleDocument({
         )}
       </Box>
 
-      {showContents && sections.length > 1 && (
+      {showContents && tocSections.length > 1 && (
         <Box
           sx={{
             mx: { xs: 2.5, md: isImmersive ? 5 : 4 },
@@ -478,7 +481,7 @@ export default function ArticleDocument({
               },
             }}
           >
-            {sections.map((section) => (
+            {tocSections.map((section) => (
               <li key={section}>
                 <a href={`#${articleAnchorId(section)}`}>{section}</a>
               </li>
@@ -799,6 +802,8 @@ export default function ArticleDocument({
               );
             })}
           </Stack>
+        ) : structuredSections?.length ? (
+          <StructuredArticleSections sections={structuredSections} />
         ) : (
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -818,6 +823,172 @@ export default function ArticleDocument({
         )}
       </Box>
     </Box>
+  );
+}
+
+export function StructuredArticleSections({ sections }: { sections: ArticleSection[] }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+
+  return (
+    <Stack spacing={1.5}>
+      {sections.map((section) => {
+        const heading = section.title?.trim();
+        const headingNode = heading ? (
+          <h2 id={articleAnchorId(heading)}>{heading}</h2>
+        ) : null;
+
+        if (section.type === "text") {
+          return (
+            <Box key={section.id}>
+              {headingNode}
+              {section.body.trim() ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {section.body}
+                </ReactMarkdown>
+              ) : null}
+            </Box>
+          );
+        }
+
+        if (section.type === "faq") {
+          const items = section.items.filter((item) => item.question.trim() || item.answer.trim());
+          return (
+            <Box key={section.id}>
+              {headingNode}
+              {items.map((item, index) => (
+                <Box
+                  key={item.id}
+                  component="details"
+                  open={index === 0}
+                >
+                  <Box component="summary">
+                    {item.question.trim() || "Question"}
+                  </Box>
+                  {item.answer.trim() ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {item.answer}
+                    </ReactMarkdown>
+                  ) : null}
+                </Box>
+              ))}
+            </Box>
+          );
+        }
+
+        if (section.type === "accordion") {
+          const items = section.items.filter((item) => item.title.trim() || item.body.trim());
+          return (
+            <Box key={section.id}>
+              {headingNode}
+              {items.map((item, index) => (
+                <Box key={item.id} component="details" open={index === 0}>
+                  <Box component="summary">
+                    {item.title.trim() || "Details"}
+                  </Box>
+                  {item.body.trim() ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {item.body}
+                    </ReactMarkdown>
+                  ) : null}
+                </Box>
+              ))}
+            </Box>
+          );
+        }
+
+        if (section.type === "table") {
+          const columns = section.columns.length
+            ? section.columns
+            : [{ id: "col-1", header: "Item" }, { id: "col-2", header: "Details" }];
+          const rows = section.rows.filter((row) =>
+            columns.some((column) => (row.cells[column.id] ?? "").trim()),
+          );
+          return (
+            <Box key={section.id}>
+              {headingNode}
+              {rows.length > 0 && (
+                <Box sx={{ overflowX: "auto" }}>
+                  <Box component="table">
+                    <Box component="thead">
+                      <Box component="tr">
+                        {columns.map((column, index) => (
+                          <Box key={column.id} component="th">
+                            {column.header.trim() || `Column ${index + 1}`}
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                    <Box component="tbody">
+                      {rows.map((row) => (
+                        <Box key={row.id} component="tr">
+                          {columns.map((column) => (
+                            <Box key={column.id} component="td">
+                              {row.cells[column.id] ?? ""}
+                            </Box>
+                          ))}
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          );
+        }
+
+        if (section.type === "resourceLinks") {
+          const links = section.links.filter((link) => link.label.trim() || link.url.trim() || link.description?.trim());
+          return (
+            <Box key={section.id}>
+              {headingNode}
+              {links.length > 0 && (
+                <Box component="ul">
+                  {links.map((link) => (
+                    <li key={link.id}>
+                      {link.url.trim() ? (
+                        <a href={link.url}>{link.label.trim() || link.url}</a>
+                      ) : (
+                        <strong>{link.label.trim() || "Resource"}</strong>
+                      )}
+                      {link.description?.trim() ? ` - ${link.description.trim()}` : ""}
+                    </li>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          );
+        }
+
+        return (
+          <Box key={section.id}>
+            <Box
+              sx={{
+                my: 2,
+                p: 2,
+                borderRadius: "8px",
+                border: `1px solid ${section.tone === "warning" ? "rgba(213, 110, 12, 0.35)" : t.articleDivider}`,
+                bgcolor:
+                  section.tone === "success"
+                    ? t.successBg
+                    : section.tone === "warning"
+                      ? "#FFF8E6"
+                      : t.pepsiBlueSubtle,
+              }}
+            >
+              {section.title && (
+                <Typography sx={{ mb: 0.5, fontWeight: 700, color: t.pepsiNavy }}>
+                  {section.title}
+                </Typography>
+              )}
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {section.body}
+              </ReactMarkdown>
+            </Box>
+          </Box>
+        );
+      })}
+    </Stack>
   );
 }
 

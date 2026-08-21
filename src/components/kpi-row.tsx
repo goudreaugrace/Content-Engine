@@ -28,6 +28,7 @@ export function KpiItem({
         {label}
       </Typography>
       <Typography
+        component="div"
         sx={{
           fontSize: "0.9375rem",
           fontWeight: 500,

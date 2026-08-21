@@ -678,6 +678,7 @@ function PublishedBody({ published }: { published: PublishedArticle }) {
         article={
           <ArticleDocument
             body={published.body}
+            sections={published.sections}
             market={published.market}
             title={published.title}
             lead={published.lead}

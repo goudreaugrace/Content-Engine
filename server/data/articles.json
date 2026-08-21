@@ -1,5 +1,265 @@
 [
   {
+    "id": "ka-687d18bc",
+    "jobId": "job-9e07a2fe",
+    "title": "qewrwe",
+    "contentType": "Policy",
+    "knowledgeBase": "mypepsico-general",
+    "market": "US",
+    "countries": [
+      "US",
+      "CA"
+    ],
+    "seo": {
+      "title": "qewrwe — policy overview for employees",
+      "metaDescription": "Policy details: asdfsdfsdf. Written for All employees. Includes context, common pitfalls, and where to get help.",
+      "keywords": [
+        "qewrwe",
+        "asdfsdfsdf"
+      ],
+      "summary": "Policy details: asdfsdfsdf. Written for All employees. Includes context, common pitfalls, and where to get help.",
+      "keyQuestions": [
+        "Who does qewrwe apply to?"
+      ],
+      "entities": [
+        "qewrwe",
+        "asdfsdfsdf"
+      ]
+    },
+    "sections": [
+      {
+        "id": "policy-at-a-glance",
+        "type": "table",
+        "title": "At a glance",
+        "columns": [
+          {
+            "id": "detail",
+            "header": "Detail"
+          },
+          {
+            "id": "value",
+            "header": "Value"
+          }
+        ],
+        "rows": [
+          {
+            "id": "policy-meta-0",
+            "cells": {
+              "detail": "Effective date",
+              "value": "asdf"
+            }
+          },
+          {
+            "id": "policy-meta-1",
+            "cells": {
+              "detail": "Policy owner",
+              "value": "asdf"
+            }
+          }
+        ]
+      },
+      {
+        "id": "description",
+        "type": "text",
+        "title": "Description",
+        "body": "",
+        "required": true
+      },
+      {
+        "id": "whoApplies",
+        "type": "text",
+        "title": "Eligibility and scope",
+        "body": "",
+        "required": true
+      },
+      {
+        "id": "policyDetails",
+        "type": "text",
+        "title": "Policy details",
+        "body": "",
+        "required": true
+      },
+      {
+        "id": "exceptions",
+        "type": "text",
+        "title": "Exceptions",
+        "body": "",
+        "required": true
+      },
+      {
+        "id": "effectiveDate",
+        "type": "text",
+        "title": "Effective date and review",
+        "body": "",
+        "required": true
+      },
+      {
+        "id": "relatedContent",
+        "type": "text",
+        "title": "Related content",
+        "body": "",
+        "required": true
+      }
+    ],
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico-general",
+      "sector": "pfna",
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "All employees"
+      ],
+      "contentType": "Policy",
+      "topics": [
+        "qewrwe",
+        "asdfsdfsdf"
+      ],
+      "businessTerms": [
+        "qewrwe",
+        "asdfsdfsdf"
+      ],
+      "systems": [],
+      "processes": [
+        "Who does qewrwe apply to"
+      ]
+    },
+    "relationships": [],
+    "body": "# qewrwe\n\nasdfsdfsdf\n\n## At a glance\n\n| Detail | Value |\n| --- | --- |\n| Effective date | asdf |\n| Policy owner | asdf |",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "owner": "Jessica Smith",
+    "approvedBy": "Jessica Smith",
+    "submittedAt": "2026-08-21T15:01:12.021Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "lead": "Policy details: asdfsdfsdf. Written for All employees. Includes context, common pitfalls, and where to get help.",
+    "canonicalSlug": "qewrwe",
+    "aliases": [
+      "qewrwe",
+      "asdfsdfsdf",
+      "Who does qewrwe apply to"
+    ],
+    "topics": [
+      "Policy",
+      "qewrwe",
+      "asdfsdfsdf"
+    ],
+    "references": [
+      {
+        "id": "ref-8d1b806e",
+        "title": "Submitted source: qewrwe",
+        "kind": "note",
+        "source": "submission",
+        "excerpt": "## mypepsico publishing controls\n\n- Knowledge base: mypepsico Knowledge\n- Detected draft language: English (en-US)\n- Country: United States · English (en-US)\n- Sector: PepsiCo Foods North America\n- Who can read it: All employees\n\n- Knowledge base id: mypepsico",
+        "addedAt": "2026-08-21T15:01:12.021Z",
+        "addedBy": "Demo User"
+      },
+      {
+        "id": "src-us-fmla",
+        "title": "US Department of Labor — Family and Medical Leave Act (FMLA)",
+        "kind": "url",
+        "url": "https://www.dol.gov/agencies/whd/fmla",
+        "excerpt": "FMLA entitles eligible US employees to take up to 12 weeks of unpaid, job-protected leave per year for specified family and medical reasons. When drafting US leave/benefits content, defer to FMLA thresholds (12 months of service, 1,250 hours) unless a state law is more generous.",
+        "source": "profile",
+        "addedAt": "2026-01-08T14:00:00.000Z",
+        "addedBy": "US HR People Services"
+      },
+      {
+        "id": "src-us-handbook",
+        "title": "PepsiCo US Employee Handbook 2026",
+        "kind": "doc",
+        "filePath": "source-uploads/us/pepsico-us-handbook-2026.pdf",
+        "excerpt": "PepsiCo US 2026 handbook covers PTO structure, holiday schedule, expense reporting, remote-work eligibility, and benefits enrollment windows. Use exact section titles when citing (e.g. \"Section 4.3 — Remote Work\") so employees can trust the reference.",
+        "source": "profile",
+        "addedAt": "2026-01-08T14:05:00.000Z",
+        "addedBy": "US HR People Services"
+      }
+    ],
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees — General audience spanning every function and region. Used when content applies company-wide (policies, holiday announcements, code of conduct refreshes).\nTone: Inclusive and broadly accessible. Plain language; no function-specific jargon. Address the reader directly. Default to the most cautious accessibility level.\nReading context: Mixed devices and environments — desktop in office settings, mobile on the go, kiosks on the plant floor. Assume varied reading time.\nGuidelines: Avoid function-specific shorthand (no 'route', 'POG', 'OEE' without explanation). Reference universal portals and processes (MyPepsiCo, manager, HR). Use the highest-applicable accessibility convention in any conflict."
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    },
+    "approvalResults": [
+      {
+        "id": "canonical-title",
+        "label": "Title or canonical slug needs work",
+        "severity": "error",
+        "reason": "Use a concise, recognizable title and generate a stable canonical slug."
+      },
+      {
+        "id": "lead",
+        "label": "Lead stands alone",
+        "severity": "ok"
+      },
+      {
+        "id": "references",
+        "label": "3 source references attached",
+        "severity": "ok"
+      },
+      {
+        "id": "topic-scope",
+        "label": "Topic scope is tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "owner",
+        "label": "Article owner present",
+        "severity": "ok"
+      },
+      {
+        "id": "visibility",
+        "label": "Audience and country visibility set",
+        "severity": "ok"
+      },
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Who this applies to, Policy, Exceptions, Compliance",
+        "severity": "warning",
+        "reason": "Policy articles work best with: Who this applies to, Policy, Exceptions, Compliance."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (38 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (112 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "2 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false,
+    "version": 2
+  },
+  {
     "id": "ka-fe212531",
     "jobId": "job-486d7f4b",
     "title": "How to refresh a driver login token",

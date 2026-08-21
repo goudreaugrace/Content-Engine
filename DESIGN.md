@@ -1,357 +1,303 @@
 ---
-name: MyPepsiCo Content Agent
-description: Multi-agent governance tool for drafting Knowledge Articles across PepsiCo markets.
+name: MyPepsiCo Content Engine
+description: Design and interaction guidance for the PepsiCo-styled knowledge article product.
 ---
 
-<!-- SEED: re-run /impeccable document once the full visual implementation has stabilized, to capture real tokens and per-component snippets. The MUI theme in src/theme.ts implements this DESIGN.md (white surfaces, Inter typography, Google-clean component styling, PepsiCo blue primary). -->
+# Design System: MyPepsiCo Content Engine
 
-# Design System: MyPepsiCo Content Agent
+This document describes the current product design direction. It should stay aligned with the implementation, not act as a parallel style system.
 
-## 1. Overview
+Source-of-truth rule:
+- Design tokens live in `src/theme.ts`.
+- Article reading surfaces use `ArticleReadingFrame` plus `ArticleDocument`.
+- Editable article surfaces should mirror the same article structure and typography.
+- `PublishedArticle` is the canonical employee-facing article record.
+- Article creation captures structured sections, taxonomy, source language, access groups, source evidence, and graph-ready relationships before publish.
 
-**Creative North Star: "The Clean Workspace"**
+## 1. Product Direction
 
-A bright, white productivity surface in the spirit of Google's products (Workspace, Drive, Cloud Console): white backgrounds, generous whitespace, restrained type, a single confident accent color, and just enough structure to make dense information legible. Nothing decorative competes with the work.
+The product is a structured, self-service knowledge article tool for myPepsiCo content. It should feel like a clean productivity workspace with a PepsiCo article layer, not like a generic admin dashboard.
 
-The product personality is **sharp, honest, useful**. The brand attitude is **quietly ambitious**: the work being done here is governance, but the tool aspires to be the best version of that work, not the safest. Where Google's apps feel effortless and uncluttered, so should this.
+The product shell follows Material and Google-style interaction patterns: clear navigation, restrained controls, white surfaces, compact status indicators, and predictable form behavior.
 
-The system explicitly rejects the **generic SaaS admin / Workday / Oracle HCM** zone: no dense sidebar plus breadcrumb plus tab bar plus dense form on every page, no identical card grids, no decorative gradients, no panel-of-panels density, no dated rounded-corner-and-drop-shadow Bootstrap aesthetic. When a screen feels generic, it has failed.
+The article itself follows the PepsiCo intranet article style: bold blue editorial headings, Poppins body text, compact tables, in-article table of contents, and a quiet right rail for supporting metadata.
 
-**Key Characteristics:**
-- White page and white surfaces; separation comes from thin neutral borders and whitespace, not color blocks
-- Single typeface across the whole system: Inter, at restrained weights (400 for display, 500 for section heads)
-- Hierarchy through weight, size, and color, not font family or heavy bolding
-- PepsiCo blue (`#004B93`) is the single interactive accent: primary buttons, links, active nav, focus states
-- Ember amber is reserved strictly for "needs attention" signals (pending review, unsaved changes, in-flight job)
-- Status communicated by chip plus icon plus text, never color alone
-- Flat by default: borders and whitespace separate surfaces; shadows are reserved for floating elements (menus, dialogs, the article document)
-- Generous, even spacing in the Google manner
-- Responsive motion: short, eased transitions on state change; nothing performative
+## 2. Current Tokens
 
-## 2. Colors
+The actual token values live in `src/theme.ts`. Use those tokens rather than hardcoding new colors.
 
-Clean and neutral. White surfaces, Google-style greys for text and borders, a single blue accent for everything interactive, ember reserved for attention.
+Core colors currently used:
+- App background: `#FFFFFF`
+- Surface: `#FFFFFF`
+- Low container: `#F8FAFC`
+- Container: `#F1F4F8`
+- Hover grey: `#F1F3F4`
+- Border: `#DDE5EC`
+- Strong border: `#B9C6D2`
+- Primary text: `#1F2933`
+- Secondary text: `#5E6B76`
+- Tertiary text: `#6B7785`
+- PepsiCo blue: `#155798`
+- PepsiCo strong blue/navy: `#003B5C` / `#02355A`
+- PepsiCo subtle blue: `#EAF4FB`
+- Attention amber: `#D56E0C`
+- Success: `#188038` on `#E6F4EA`
+- Error: `#C5221F` on `#FCE8E6`
 
-### Primary (interactive)
-
-- **PepsiCo Blue** (`#004B93`): the single interactive accent. Primary buttons, links, active nav pills, focus rings, stepper progress, selected toggles. This is both the brand color and the Google-style "one blue does the interactive work" approach.
-- **PepsiCo Blue Strong** (`#003473`): hover/pressed state for blue elements.
-- **PepsiCo Blue Subtle** (`#E8EFF8`): tinted background for selected states (active nav, selected toggle, primary chips) — the Gmail-selected-label pattern.
-
-### Attention
-
-- **Ember** (`#D56E0C`): amber-orange, reserved strictly for "needs attention" signals — pending-review count dot, unsaved-changes indicator, in-flight job, active trace step. Never used for primary actions (those are blue). Sparing by design.
-
-### Neutral
-
-- **Paper** (`#FFFFFF`): page background. White.
-- **Surface** (`#FFFFFF`): cards, panels. White. Separated from the page by borders and whitespace, not by tone.
-- **Mist** (`#F1F3F4`): hover surfaces, secondary surfaces, table-row hover (Google's hover grey).
-- **Border** (`#DADCE0`): default border and divider. Google's standard line color.
-- **Border-strong** (`#BDC1C6`): hover borders, emphasis dividers.
-- **Granite** (`#80868B`): tertiary text, disabled, captions.
-- **Slate** (`#5F6368`): secondary text, labels, table headers.
-- **Ink** (`#202124`): primary text, headings.
-
-### Semantic status
-
-- **Success** (`#188038` on `#E6F4EA`) — approved.
-- **Error** (`#C5221F` on `#FCE8E6`) — rejected.
-- **Warning / attention** (`#D56E0C` on `#FEEFC3`) — needs review.
-
-These mirror Google's semantic palette and are always paired with an icon and text label.
-
-### Brand band (article documents)
-
-Inside the `<ArticleDocument>` component, PepsiCo Blue also drives the document's branding: the top band, H2 headings, links, table-header underline, and list markers. See section 5.
-
-### Neutral
-
-A near-white scale, faintly tinted toward the ember hue so the palette retains thermal coherence without reading as cream. The page sits barely off-white; surfaces sit one micro-step above the page.
-
-- **Paper** (`#FAFAF8`): Page background. Reads as white at a glance, with a barely-there warm tint that prevents the screen from feeling clinical.
-- **Surface** (`#FDFDFC`): Cards, panels, table containers. One micro-step lighter than Paper — provides subtle elevation against the page without needing shadows.
-- **Mist** (`#F1F0EC`): Hover surfaces, secondary surfaces, alt rows where used.
-- **Border** (`#E6E3DC`): Dividers and borders.
-- **Border-strong** (`#D2CEC3`): Input field outlines, separators that need to register.
-- **Granite** (`#928C80`): Tertiary text, disabled states.
-- **Slate** (`#5E574C`): Secondary text, labels.
-- **Ink** (`#2A251D`): Primary text, headings, contained-button backgrounds.
-
-### Named Rules
-
-**The One Blue Rule.** PepsiCo Blue does all interactive work — buttons, links, active nav, focus, selected states. Don't introduce a second interactive color. One blue keeps the surface calm and the affordances obvious.
-
-**The Ember-Means-Attention Rule.** Ember appears only where something needs the user's attention (pending-review dot, unsaved changes, in-flight job, active trace step). It is never a primary action and never decorative. If ember and blue both want the same element, blue wins unless the element is genuinely an alert.
-
-**The White-Surface Rule.** Page and cards are both white. Separation comes from thin `#DADCE0` borders and whitespace, never from colored fills. No grey card backgrounds, no tinted panels (except the deliberate blue-subtle selected states).
-
-**The Status-Color Rule.** Status (needs review, approved, rejected, in flight, awaiting clarification) is never communicated by color alone. Every status display is a chip plus icon plus label — the accessibility floor and a clarity choice.
+Rules:
+- Blue owns interactive affordances: links, primary actions, selected states, focus states, and article navigation.
+- Amber is only for attention: pending review, unsaved changes, in-flight work, or warning states.
+- Status is never color alone. Use an icon, chip, or text label with the color.
+- Page and card surfaces stay light. Use borders and whitespace before shadows.
 
 ## 3. Typography
 
-**Primary UI face:** Inter across the application chrome. Loaded from Google Fonts (weights 400, 500, 600, 700).
+Product UI:
+- Font: Inter.
+- Used for navigation, forms, filters, admin screens, dashboards, chips, labels, and metadata.
+- Page headings should be restrained, not overly heavy.
 
-**Article title face:** Barlow Semi Condensed for article titles and major article headings.
-
-**Article body face:** Poppins for article body copy, tables, right-rail article utilities, and editable article prose.
-
-**Character:** Inter keeps the product shell Material-clean and familiar. Barlow Semi Condensed gives articles the myPepsiCo editorial identity: compact, bold, and branded without becoming decorative. Poppins keeps long article reading friendly and dense. Hierarchy is a function of role, weight, size, and color.
-
-### Hierarchy
-
-- **Display** (Inter Regular/400, clamp(1.5rem, 3vw, 1.875rem), letter-spacing -0.01em, line-height 1.25): Page-level H1. One per screen. Examples: "Knowledge Articles", "Market Profiles". Light weight at large size, in the Google manner.
-- **Headline** (Inter Medium/500, 1rem to 1.125rem, line-height 1.4): Section titles inside a page. Examples: "Agent trace", "Drafted articles".
-- **Title** (Inter Medium/500, 0.9375rem to 1.0625rem, line-height 1.4): Card titles, dialog titles, the title of an article in a row.
-- **Body** (Inter Regular/400, 0.9375rem, line-height 1.55, max measure 65 to 75ch): Reading prose, descriptions, helper text, dialog body.
-- **Label** (Inter Medium/500, 0.8125rem): Form labels.
-- **Overline** (Inter Semibold/600, 0.6875rem, letter-spacing 0.08em, UPPERCASE, color Slate): Column headers, section labels, small metadata tags above values.
-- **Caption** (Inter Regular/400, 0.75rem, color Slate to Granite): IDs, timestamps, locale codes, durations, agent names. Quieter than body, separated by size and color alone.
-
-### Named Rules
-
-**The Product/Article Split Rule.** Product UI uses Inter. Article reading surfaces use Barlow Semi Condensed for titles/headings and Poppins for body text. Do not introduce additional article fonts.
-
-**The Restrained Weight Rule.** Display headings are Regular (400), not bold. Section heads are Medium (500). Reserve 600/700 for genuine emphasis (the wordmark, a single key number). Heavy bolding everywhere reads as loud and un-Google.
-
-**The Quiet ID Rule.** System-generated identifiers (job IDs, article IDs, locale codes, durations) render at Caption size in Granite color. Present, scannable, never shouting.
-
-**The 65ch Rule.** Body prose maxes out at 65 to 75 character measure. The market editor's long-form fields, the article body view, the rejection-reason dialog: all constrained. No edge-to-edge paragraphs.
-
-## 4. Elevation
-
-Flat by default. Surfaces are separated by thin `#DADCE0` borders and whitespace, not by shadows. A hovered table row or nav item shifts to `#F1F3F4` (Mist). Cards sit on the white page with a border, no shadow at rest. This is the modern, clean Google posture — dividers and borders over heavy Material shadows.
-
-Shadows are reserved for genuinely floating surfaces, using Google-style soft elevation:
-
-- Menus, dropdowns, tooltips, snackbars.
-- Dialogs / modals.
-- The sticky save bar in the market editor when it surfaces.
-- The article document (see exception below).
-
-### Named Rules
-
-**The Flat-By-Default Rule.** Cards, inputs, and buttons are flat at rest. If you're about to add a `box-shadow` to one, stop. Use a border or whitespace.
-
-**The Floating Exception Rule.** Shadows are allowed only on elements temporarily on top of the user's work: menus, tooltips, dialogs, snackbars, the sticky save bar. Anything that lives on the page at rest is flat.
-
-**The Article-Document Exception.** The published article view (`<ArticleDocument>`) carries a subtle ambient shadow because it represents a literal piece of paper laid on the desk. Applies only to that component.
-
-**The Article-Document Exception.** The published article view (`<ArticleDocument>`) is rendered as a literal piece of paper: pure white background (`#FFFFFF`), one subtle border, and an ambient shadow that signals "this is a document laid on your desk." This exception exists because users are reading a finished artifact, not interacting with an interface element. The exception applies only to the article-document component, not to the meta row, header, or any other surface around it.
-
-## 5. Components
-
-A first implementation now lives in `src/theme.ts` and the page-level components. Concrete per-component snippets are out of scope for this seed; re-run `/impeccable document` once the system is stable to capture them in a sidecar.
-
-High-level principles in effect today:
-
-- **Cards** are flat, single-border (`#DADCE0`), no shadow, white surface on a white page, 12px radius. Hover (when interactive) shifts to Mist (`#F1F3F4`), not shadow.
-- **Buttons** are flat, 8px radius, no resting shadow. Primary (contained) is PepsiCo Blue with white text and a faint elevation on hover. Outlined is blue text on a `#DADCE0` border. Text buttons are blue with a faint blue-tint hover.
-- **Inputs** use Border at rest, Border-strong on hover, a 2px PepsiCo Blue ring on focus. No shadow.
-- **Chips** are 24px tall, 8px radius. Outlined chips inherit Border. Status chips use the semantic palette: amber for needs-review, green for approved, red for rejected. Always with an icon and a label.
-- **Nav items** are pill-shaped. The selected item uses a blue-subtle (`#E8EFF8`) background with PepsiCo Blue text and icon — the Gmail-selected-label pattern.
-- **Tables** use uppercase Overline column headers in Slate, no top fill bar. Rows hover to Mist. Cells separated by Border, never stripes.
-- **The sticky save bar** floats with a soft Google-style shadow; the unsaved indicator dot is ember.
-
-## 6. Screenshot-Derived Article Page Pattern
-
-Source analyzed: the myPepsiCo "Early talent hire program" article page screenshot supplied on August 14, 2026.
-
-This screen is not a marketing page and not an admin dashboard. It is a finished knowledge article with a light support rail. The article itself should feel like a stable intranet document: readable, structured, trustworthy, and easy to scan. The supporting controls should help the employee navigate or act without competing with the content.
-
-### Implemented Style Summary
-
-This is the canonical style for all article-reading surfaces in the build: source article previews, review queue previews, new-article review, published admin articles, and non-admin "my articles" views.
-
-- **Material remains the interaction system.** Buttons, chips, menus, accordions, focus states, hover states, and disabled states should remain MUI/Material-driven.
-- **PepsiCo owns the visual article layer.** Article typography, table styling, right-rail rhythm, links, and section headings use the PepsiCo article tokens.
-- **Article shell is shared.** All article routes should render through the shared article-reading frame pattern: main article panel plus sticky right rail.
-- **Article templates control content order.** FAQ, policy, knowledge article, and topic-page templates may change the body anatomy, but the shell, typography, table styling, and right rail stay consistent.
-- **Admin data is secondary.** Publishing status, owner, version, metrics, and lifecycle details can appear around the article, but they should not interrupt the employee-facing article surface.
-
-### Layout
-
-- **Page shell:** full white browser surface with a very light, thin top product bar. The bar contains product name, compact search, language selector, and user avatar.
-- **Content width:** centered article column with a narrow right utility rail. The page breathes around the article; it does not fill edge-to-edge.
-- **Article column:** flexible central column; article content remains the primary visual mass.
-- **Right rail:** approximately 240 to 300px wide in the current implementation. It contains small modules only: tags, table of contents, quick links, language, and compact publishing details.
-- **Gutters:** generous separation between article and rail, roughly 32 to 48px.
-- **Vertical rhythm:** sections are long-form and stacked. Section breaks use whitespace and occasional hairline dividers, not heavy panels.
-- **Sticky affordance:** the right rail can remain sticky while the article scrolls, but it should stay visually quiet.
-
-### Color Extraction
-
-The screenshot uses a PepsiCo blue system with a cool neutral base.
-
-- **Article heading navy:** near `#003B5C` to `#004B73` for the H1. Heavier and darker than link blue.
-- **Interactive blue:** near `#005EA8` to `#0067B1` for links, accordions, table-of-contents entries, and quick-link icons.
-- **Deep table blue:** near `#003F63` for table header bars and accordion rows.
-- **Page background:** `#FFFFFF`.
-- **Article surface:** `#FFFFFF`.
-- **Right rail tile background:** `#FFFFFF` with faint border.
-- **Subtle divider:** near `#E5EAF0`.
-- **Body text:** near `#1F2933`.
-- **Secondary text:** near `#5E6B76`.
-- **Muted metadata:** near `#6B7785`.
-- **Danger/favorite accent:** small red outline heart, used sparingly as a utility affordance, not a primary color.
+Article UI:
+- Article titles and major article headings: Barlow Semi Condensed.
+- Article body, tables, FAQ answers, accordions, and article rail utilities: Poppins.
+- Article headings use PepsiCo navy/blue and should feel editorial, compact, and official.
 
 Rules:
-- Blue owns navigation and expand/collapse controls.
-- Dark navy owns major article identity.
-- Tables and accordions may use deep blue header bars when they are part of the article content, not surrounding admin chrome.
-- Avoid large tinted backgrounds. The screenshot is mostly white.
+- Do not introduce more fonts.
+- Do not use Inter for the finished article body.
+- Keep article body text readable but dense enough for policy and HR content.
+- Keep IDs, timestamps, locale codes, and system details small and quiet.
 
-### Typography
+## 4. Shape, Spacing, And Elevation
 
-The screenshot reads like a corporate intranet article. Type is compact, practical, and information-dense.
+Shape:
+- Default radius is 8px.
+- Use 8px for article panels, right-rail modules, controls, accordions, and section containers.
+- Avoid oversized rounded cards unless the component is intentionally pill-shaped.
 
-- **Top product bar:** Inter, tiny label text, roughly 11 to 12px, medium weight.
-- **Breadcrumb:** Inter, compact, 11 to 12px, blue links with separators.
-- **Article H1:** Barlow Semi Condensed, large, heavy, dark navy, roughly 32 to 42px desktop equivalent. Line-height is tight but not compressed.
-- **Updated metadata row:** 12 to 13px, muted grey, placed directly below the title.
-- **Table of Contents heading:** blue, medium/semibold, roughly 18 to 20px.
-- **Section headings:** Barlow Semi Condensed, blue, semibold/bold, roughly 20 to 22px, with clear whitespace above.
-- **Subsection questions:** Poppins, dark body color, bold/semibold, roughly 14 to 15px.
-- **Body text:** Poppins, compact, roughly 13 to 14px, line-height 1.45 to 1.6.
-- **Table text:** compact, 12 to 13px. Header row is white text on deep blue.
-- **Right rail labels:** Poppins, small, 12 to 13px, semibold.
+Spacing:
+- Prefer whitespace over divider lines.
+- Article sections need enough vertical space to scan, but should not feel like separate cards.
+- Creation forms should keep controls attached to the field or section they modify.
 
-Rules:
-- Article pages can be denser than creation forms because the user is reading, not filling out fields.
-- Headings should use color and weight, not decorative containers.
-- Body paragraphs should stay readable, but not oversized. The screenshot fits a lot before scrolling.
-- Do not use Inter for article body text. Inter remains for application UI and admin/product chrome.
+Elevation:
+- Flat by default.
+- Cards, inputs, article rail modules, and page panels should not have resting shadows.
+- Shadows are reserved for floating surfaces: menus, dialogs, dropdowns, tooltips, and temporary overlays.
+- The article document may use subtle separation because it represents the finished readable artifact.
 
-### Article Anatomy
+## 5. Article Reading Pattern
 
-The article follows a strong knowledge-base sequence:
+All article-reading surfaces should use the same renderer and visual system:
+- Published library article pages.
+- Source/admin article pages.
+- My Articles article pages.
+- Review article preview.
+- New article review preview.
 
-- Breadcrumb path.
-- Utility actions near the top: favorite/subscribe, evaluate translation, view feedback.
+Use:
+- `ArticleReadingFrame` for the article plus right rail layout.
+- `ArticleDocument` for the employee-facing article body.
+
+Article body structure:
+- Top utility actions aligned left: Available Translations, Give Feedback, favorite heart.
 - Title.
-- Last-updated metadata and view count.
-- Table of contents.
-- Primary article sections.
-- Tables for definitions, rates, scopes, and policy comparisons.
-- Question-and-answer prose under each section.
-- Blue accordions for dense supplemental definitions or formulas.
-- Related resources at the end.
+- Updated date and view count where relevant.
+- Lead or summary.
+- Table of Contents inside the article body.
+- Structured sections.
+- Related or additional resources where relevant.
 
-Article content should be structured as the artifact employees read, not as a management page. Metadata can appear, but it should be integrated as small reading context.
+Right rail rules:
+- The right rail is for support metadata only.
+- The right rail can include tags, quick links, language, publishing details, sources, related articles, and governance context.
+- The right rail must not include a duplicate table of contents.
+- Keep right-rail modules compact and quieter than the article opening.
+- Avoid dense article details tables in the default reading view.
 
-### Right Rail
+## 6. Article Section Blocks
 
-The right rail is informational and navigational, not managerial.
+Articles are structured documents, not Markdown-only blobs. The current section block types are:
+- Text section.
+- FAQ section.
+- Table section.
+- Resource links section.
+- Accordion section.
+- Callout section.
 
-- **Tags:** compact chips or small label blocks.
-- **Table of Contents:** small card with jump links. It is the canonical location for contents; do not duplicate the same contents block inside the article body.
-- **Quick Links:** short stacked link buttons with an icon and external-link affordance.
-- **Language:** compact current language/original/translation status.
-- **Publishing details:** compact admin or review details may sit below employee utilities, but should remain small.
-- **No dense article details table** in the default reading view. Detailed admin metadata belongs below, collapsed, or in an admin-only panel.
+Rendering rules:
+- Text sections render as normal article prose with headings.
+- FAQ sections render as article-style questions and answers.
+- Tables render as first-class article content with deep blue headers and compact rows.
+- Resource links render as curated article links, not loose metadata.
+- Accordion sections render as guided expandable content, never raw `<details>` markup.
+- Callouts are reserved for important notes, warnings, or confirmations.
 
-Rules:
-- The rail should never be taller or visually louder than the article opening.
-- Rail cards use faint borders and white fill.
-- Labels are short. Avoid explanatory text inside the rail.
+## 7. Creation And Review Pattern
 
-### Tables
+The creation flow has three steps: Basics, Article, and Review.
 
-Tables are a major part of the visual system.
+Basics captures where the article belongs before anyone writes:
+- Knowledge base.
+- Sector.
+- Country or countries.
+- Employee audience.
+- Access groups.
+- Source language.
+- Content type.
+- Approver.
 
-- Table headers use a deep PepsiCo blue fill with white text.
-- Body rows are white or very light grey alternating rows.
-- Grid lines are faint.
-- Cell padding is compact.
-- Tables are used for definitions, eligibility rules, rate bands, and comparisons.
-- Tables should not be placed inside decorative cards; they are part of the article.
+Audience and access are separate:
+- Audience describes who the article is for and improves findability.
+- Access groups describe who can open the article.
+- People outside selected access groups are excluded.
 
-### Accordions
+Language and translations are separate:
+- Source language is the original language of the draft, used for review and translation handoff.
+- Translation needs are inferred from selected countries and can be adjusted later.
 
-Accordions appear as strong blue horizontal bars within the article body.
+Article step rules:
+- Start from the recommended template for the selected content type.
+- Let authors add flexible section blocks when the template is not enough.
+- Keep text editor controls attached to the active long-form field.
+- Use dedicated editors for FAQ, table, resource, accordion, and callout sections.
 
-- Blue bar background.
-- White title text.
-- Right-aligned chevron.
-- 4 to 8px radius.
-- Compact height, roughly 32 to 40px.
-- Stacked accordions have small vertical gaps.
+Review step rules:
+- The article preview is the dominant object.
+- Submission details, findability, and Ask Pep readiness stay in compact disclosure panels.
+- Recommendations use plain language, not SEO jargon.
+- Review checks should validate typed content, source evidence, access, duplicate review, readable sentences, scannable paragraphs, descriptive links, media accessibility, and article length.
+- Resource links render as clear linked resources, not plain pasted URLs.
+- Accordions render as blue article elements for optional details, formulas, or supplemental explanations.
+- Callouts should be used sparingly for important notes or warnings.
 
-Use accordions for supplemental formulas, long definitions, and optional detail. Do not hide core policy content inside accordions.
+The article template controls the starting structure, but authors can add mixed section types. For example, a policy can include a table and FAQ, and a topic page can include resource links and accordions.
 
-### Buttons And Utilities
+## 7. Creation And Review Editor
 
-- Top article utility buttons are small outlined pills.
-- Primary action color remains blue.
-- Secondary buttons use white fill, blue text, and blue or neutral border.
-- Favorite uses a small heart icon without becoming the dominant action.
-- External-link icons are small and consistent.
+Creation flow:
+- Basics.
+- Article.
+- Review.
 
-### Visual Tone
+Basics should capture where the article belongs:
+- Knowledge base.
+- Sector.
+- Country or countries.
+- Audience.
+- Content type.
+- Approver.
+- Topic, process, system, and destination metadata where available.
 
-This pattern should feel:
+Article step:
+- Should feel like a structured document editor.
+- Templates provide a helpful starting point, not a locked form.
+- Section titles should feel editable through a small inline edit affordance.
+- Add Section is a section-level action.
+- FAQ Add Question belongs inside the FAQ section.
+- Table Add Column belongs with the table header controls.
 
-- official;
-- clear;
-- content-first;
-- PepsiCo branded through blue/navy, not decoration;
-- easy to scan;
-- dense enough for real HR/policy content;
-- light enough that the article remains approachable.
+Text editor rules:
+- Keep common controls only: bold, italic, bulleted list, numbered list, and Improve.
+- Controls should appear only for the active long-form writing field.
+- FAQ questions stay plain text and do not need rich-text controls.
+- Toolbar placement must not obscure the typed content or character count.
+- Toolbar actions must actually modify the active field.
+- Improve actions should be plain-language options, such as Improve writing, Make shorter, Make longer, Make clearer, and Make more employee-facing.
 
-It should not feel:
+Review step:
+- The article preview is the main object.
+- Submission details, findability, and Ask Pep readiness belong near the top but should stay compact.
+- Users should be able to edit sections from review using the same editors as creation.
+- Recommendations should be contextual and plain-language, not SEO jargon.
 
-- like an AI-generated card layout;
-- like a dashboard;
-- like a PDF screenshot pasted into the app;
-- like a marketing landing page;
-- like a generic SaaS admin screen.
+## 8. Tables, Accordions, And Resources
 
-### Translation Into The Build
+Tables:
+- Support editable title, headers, rows, and columns.
+- Add column is right-aligned to the table controls.
+- Add row belongs below the rows.
+- Remove row/column controls should be small icon affordances.
+- Spacing must stay consistent across header cells and body cells.
+- Placeholders must be short enough to avoid overlap.
 
-Use this screenshot as the target pattern for published article reading surfaces:
+Accordions:
+- Use Material expand/collapse behavior.
+- Use a clean chevron micro-interaction.
+- Do not hide core policy requirements inside accordions.
+- Use accordions for supplemental detail, formulas, and optional examples.
 
-- Keep article content in the center and make it feel like the primary document.
-- Keep admin controls outside the article reading surface or collapse them.
-- Use the right rail for tags, contents, and quick links.
-- Use tables and accordions as first-class article content components.
-- Keep top metadata compact: title, updated date, language, views, and useful article actions.
-- Use PepsiCo navy for title and deep blue for table/accordion affordances.
-- Prefer white, borders, and whitespace over large colored containers.
-- Use `ArticleReadingFrame` for all article reading surfaces.
-- Use `ArticleDocument` for non-editable article rendering.
-- Use `EditableArticle` only when reviewers or authors need section-level editing; it must mirror `ArticleDocument` typography and table styles.
-- Keep `ArticleDocument.showContents` off by default; the right rail owns the table of contents.
+Resource links:
+- Capture resource title, URL, and description.
+- Avoid cramped two-column inputs when placeholders are long.
+- Resource links should render as useful article links in preview and final article.
 
-## 7. Do's and Don'ts
+## 9. IA And Governance
 
-### Do:
+The app has three main workspaces:
+- Content Owner Workspace: create, submit, and maintain articles.
+- Admin Governance Workspace: review, approve, monitor health, and manage permissions.
+- Reference Workspace: How It Works and Design & IA.
 
-- **Do** keep page and card backgrounds white (`#FFFFFF`). Separate surfaces with thin `#DADCE0` borders and whitespace.
-- **Do** lead application pages with a single Inter Regular (400) H1 at a large size. Article pages use Barlow Semi Condensed for the article H1.
-- **Do** use PepsiCo Blue for everything interactive: primary buttons, links, active nav, focus rings, selected toggles.
-- **Do** carry status using a chip plus icon plus label. Color is reinforcement, never the only signal.
-- **Do** reserve ember strictly for "needs attention" signals (pending dot, unsaved changes, in-flight job, active trace step). Never for primary actions.
-- **Do** separate surfaces with borders and whitespace, not drop shadows.
-- **Do** keep spacing generous and even, in the Google manner.
-- **Do** render IDs, timestamps, locale codes, and durations at Caption size in Granite. Quiet, scannable, present.
-- **Do** keep prose at 65 to 75 character measure.
-- **Do** treat the agent trace as a first-class surface, not a debug view.
-- **Do** reserve soft shadows for floating elements only: menus, dialogs, tooltips, the sticky save bar, the article document.
+Lifecycle:
+- Create or edit source article.
+- Submit for review.
+- Under review.
+- Publish to canonical `PublishedArticle`.
+- Maintain health, translations, sources, relationships, and review cadence.
 
-### Don't:
+Source-of-truth rules:
+- `Article` is the source/draft/review record.
+- `PublishedArticle` is the live employee-facing article.
+- Published links should use `/library/:publishedArticleId`.
+- Draft, review, and admin source work can use `/articles/:articleId`.
+- If a published page receives a source ID, it should resolve to the canonical published article.
 
-- **Don't** use a generic SaaS admin pattern: dense sidebar + breadcrumb + tab bar + form on every page. The host (ServiceNow) already looks like that; the product should not.
-- **Don't** echo Workday or Oracle HCM: panel-of-panels density, settings-tab labyrinths, dated buttons, drop shadows on every card.
-- **Don't** use grey or tinted backgrounds for cards and pages. White surfaces, neutral borders. The one allowed tint is the blue-subtle selected state.
-- **Don't** use `#000` for text. Headings and body are Ink (`#202124`).
-- **Don't** mix additional typefaces. Inter carries product UI; Barlow Semi Condensed and Poppins carry article reading surfaces.
-- **Don't** bold everything. Display headings are Regular (400); reserve 600/700 for genuine emphasis.
-- **Don't** put resting drop shadows on cards, inputs, or buttons. Shadows are for floating surfaces only.
-- **Don't** use ember for primary actions or decoration. Blue is the action color; ember is the attention signal.
-- **Don't** introduce a second interactive accent color. One blue.
-- **Don't** use a side-stripe border (`border-left` greater than 1px in a color) on cards, list rows, alerts, or callouts.
-- **Don't** apply gradient text via `background-clip: text`.
-- **Don't** build identical card grids: same-sized cards with icon + heading + body, repeated.
-- **Don't** introduce dark mode without an updated scene sentence forcing it.
-- **Don't** add bouncy or elastic motion. Short eased transitions (100 to 200ms) on state change.
+## 10. Taxonomy And Knowledge Graph Direction
+
+The product should capture enough structure to support search, governance, Ask Pep, and future graph queries.
+
+Core taxonomy:
+- Knowledge base.
+- Sector.
+- Countries.
+- Required translations.
+- Audiences.
+- Content type.
+- Topics.
+- Business terms.
+- Systems.
+- Processes.
+
+Relationship types:
+- Canonical.
+- Duplicate of.
+- Replaces.
+- Related to.
+- Parent of.
+- Child of.
+- Requires.
+- Source for.
+
+Future graph queries should answer questions like:
+- Which policies apply to employees in Canada?
+- Which articles mention Workday and payroll?
+- Which articles are duplicates or replacements?
+- Which source documents support this policy?
+- Which articles are missing owner, approver, or review date?
+- Which Ask Pep answers should route to this article?
+- Which topics have no canonical article?
+
+## 11. Documentation Rules
+
+Keep this file current with the app.
+
+When the UI changes, update this document if the change affects:
+- Article visual style.
+- Article renderer rules.
+- Right rail rules.
+- Creation or review editor behavior.
+- Taxonomy, routing, or source-of-truth rules.
+- Shared tokens or typography.
+
+Do not add aspirational design ideas here unless they are explicitly marked as future direction. This document should help a new stakeholder understand the product as it exists today.

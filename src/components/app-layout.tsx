@@ -40,6 +40,7 @@ import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettin
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 
 // M3 navigation drawer / rail widths.
 //  - Expanded (272): drawer with icons + labels + section headers.
@@ -82,6 +83,8 @@ const navItems: NavItem[] = [
   { label: "Audiences", path: "/admin/audiences", icon: <PeopleOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
   { label: "Email Log", path: "/admin/emails", icon: <EmailOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
   { label: "How It Works", path: "/how-it-works", icon: <AccountTreeOutlinedIcon sx={{ fontSize: 20 }} />, section: "Reference" },
+  { label: "Design & IA", path: "/design-ia", icon: <FactCheckOutlinedIcon sx={{ fontSize: 20 }} />, section: "Reference" },
+  { label: "Personas", path: "/personas", icon: <PersonOutlineOutlinedIcon sx={{ fontSize: 20 }} />, section: "Reference" },
 ];
 
 export default function AppLayout() {

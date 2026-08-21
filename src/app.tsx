@@ -11,6 +11,8 @@ import AdminAudienceEditor from "./pages/admin-audience-editor";
 import AdminEmails from "./pages/admin-emails";
 import ReviewQueue from "./pages/review-queue";
 import HowItWorks from "./pages/how-it-works";
+import DesignIAReference from "./pages/design-ia-reference";
+import PersonasReference from "./pages/personas-reference";
 import PublishedLibrary from "./pages/published-library";
 import PublishedArticleDetail from "./pages/published-article-detail";
 import OwnerArticlePerformance from "./pages/owner-article-performance";
@@ -35,6 +37,8 @@ export default function App() {
         <Route path="/admin/emails" element={<AdminEmails />} />
         <Route path="/admin/team-permissions" element={<TeamPermissions />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/design-ia" element={<DesignIAReference />} />
+        <Route path="/personas" element={<PersonasReference />} />
         <Route path="/library" element={<PublishedLibrary />} />
         <Route path="/library/:id" element={<PublishedArticleDetail />} />
         <Route path="/my-articles/:id" element={<OwnerArticlePerformance />} />

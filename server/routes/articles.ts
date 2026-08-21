@@ -89,10 +89,14 @@ articlesRouter.get("/", async (_req, res) => {
  * Note: defined BEFORE the /:id handler below so it doesn't get shadowed.
  */
 articlesRouter.post("/similar", async (req, res) => {
-  const { title, summary, countries } = req.body as {
+  const { title, summary, countries, knowledgeBase, audience, contentType, topics } = req.body as {
     title?: string;
     summary?: string;
     countries?: string[];
+    knowledgeBase?: string;
+    audience?: string[];
+    contentType?: Article["contentType"];
+    topics?: string[];
   };
   if (!title?.trim() && !summary?.trim()) {
     return res.json({ matches: [] });
@@ -106,7 +110,13 @@ articlesRouter.post("/similar", async (req, res) => {
   const matches = findSimilar(
     {
       title: title ?? "",
-      summary: summary ?? "",
+      summary: [
+        summary ?? "",
+        knowledgeBase ?? "",
+        contentType ?? "",
+        ...(audience ?? []),
+        ...(topics ?? []),
+      ].join(" "),
       countries: countries ?? [],
     },
     fullCorpus.map((a) => ({
@@ -115,6 +125,13 @@ articlesRouter.post("/similar", async (req, res) => {
       body: [
         a.lead,
         a.body,
+        a.knowledgeBase,
+        a.contentType,
+        a.taxonomy?.sector,
+        ...(a.taxonomy?.audiences ?? []),
+        ...(a.taxonomy?.businessTerms ?? []),
+        ...(a.taxonomy?.systems ?? []),
+        ...(a.taxonomy?.processes ?? []),
         ...(a.aliases ?? []),
         ...(a.topics ?? []),
         ...(a.references ?? []).map((r) => `${r.title} ${r.excerpt ?? ""}`),
@@ -167,7 +184,7 @@ articlesRouter.patch("/:id/owner", async (req, res) => {
 });
 
 articlesRouter.patch("/:id", async (req, res) => {
-  const { body, title, seo, countries, knowledgeBase, sector, globalJustification } = req.body as {
+  const { body, title, seo, countries, knowledgeBase, sector, globalJustification, sections, taxonomy, relationships } = req.body as {
     body?: string;
     title?: string;
     seo?: Article["seo"];
@@ -175,12 +192,15 @@ articlesRouter.patch("/:id", async (req, res) => {
     knowledgeBase?: Article["knowledgeBase"];
     sector?: string;
     globalJustification?: string;
+    sections?: Article["sections"];
+    taxonomy?: Article["taxonomy"];
+    relationships?: Article["relationships"];
   };
   const article = await loadById<Article>("articles", req.params.id);
   if (!article) return res.status(404).json({ error: "not found" });
 
   // At least one field has to change for the patch to be meaningful.
-  if (body === undefined && title === undefined && seo === undefined && countries === undefined && knowledgeBase === undefined && sector === undefined && globalJustification === undefined) {
+  if (body === undefined && title === undefined && seo === undefined && countries === undefined && knowledgeBase === undefined && sector === undefined && globalJustification === undefined && sections === undefined && taxonomy === undefined && relationships === undefined) {
     return res
       .status(400)
       .json({ error: "Provide at least one editable article field." });
@@ -222,6 +242,9 @@ articlesRouter.patch("/:id", async (req, res) => {
     knowledgeBase: knowledgeBase ?? article.knowledgeBase,
     sector: sector ?? article.sector,
     globalJustification: globalJustification ?? article.globalJustification,
+    sections: sections ?? article.sections,
+    taxonomy: taxonomy ?? article.taxonomy,
+    relationships: relationships ?? article.relationships,
   };
   const normalized = normalizeArticleStandard(updated);
   await upsert("articles", normalized);
@@ -397,6 +420,9 @@ articlesRouter.patch("/:id/review", async (req, res) => {
       nextReviewAt: article.nextReviewAt,
       approvedBy: article.approvedBy ?? reviewedBy,
       body: article.body,
+      sections: article.sections,
+      taxonomy: article.taxonomy,
+      relationships: article.relationships,
       seo: article.seo,
       globalJustification: article.globalJustification,
       translations: article.translations,

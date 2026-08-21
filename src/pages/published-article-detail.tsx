@@ -85,10 +85,23 @@ export default function PublishedArticleDetail() {
       ]);
       setArticle(a);
       setLibrary(lib);
+      setError(null);
     } catch (e: any) {
+      try {
+        const source = await api.getArticle(id);
+        if (source.status === "published" || source.publishedArticleId) {
+          const published = await api.getPublishedArticle(source.publishedArticleId ?? source.id);
+          navigate(`/library/${published.id}${window.location.search}`, { replace: true });
+          return;
+        }
+        navigate(`/articles/${source.id}${window.location.search}`, { replace: true });
+        return;
+      } catch {
+        // Keep the original published-article error below.
+      }
       setError(e?.message ?? String(e));
     }
-  }, [id]);
+  }, [id, navigate]);
 
   useEffect(() => {
     load();
@@ -509,6 +522,7 @@ export default function PublishedArticleDetail() {
           article={
             <ArticleDocument
               body={displayedBody}
+              sections={selectedLocale === primaryLocale ? article.sections : undefined}
               market={article.market}
               title={article.title}
               lead={article.lead}

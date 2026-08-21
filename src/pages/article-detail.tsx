@@ -296,6 +296,12 @@ export default function ArticleDetail() {
     if (!id) return;
     try {
       const a = await api.getArticle(id);
+      if (a.status === "published" && a.publishedArticleId) {
+        navigate(`/library/${a.publishedArticleId}${window.location.search}`, {
+          replace: true,
+        });
+        return;
+      }
       setArticle(a);
       const marketId = MARKET_ID_BY_NAME[a.market];
       if (marketId) {
@@ -1097,12 +1103,11 @@ export default function ArticleDetail() {
             availableLocales={availableLocales}
             article={
               article.status !== "published" &&
+              editMode &&
               (!viewLocale || viewLocale === primaryLocale) ? (
-                // EditableArticle owns the per-section UI. It honors `editMode`
-                // — when off it reads as a clean document with no edit chrome;
-                // when on, every section surfaces its Edit affordance. Compliance
-                // badges + AI fix cards still show regardless (they're guided
-                // actions, not edits the reviewer initiated themselves).
+                // Use the legacy Markdown editor only while an admin is actively
+                // editing. The normal reading state stays on ArticleDocument so
+                // draft/admin and published article views share the same renderer.
                 <EditableArticle
                   articleId={article.id}
                   body={article.body}
@@ -1126,6 +1131,7 @@ export default function ArticleDetail() {
               ) : (
                 <ArticleDocument
                   body={displayedBody}
+                  sections={selectedLocale === primaryLocale ? article.sections : undefined}
                   market={article.market}
                   title={article.title}
                   lead={article.lead}

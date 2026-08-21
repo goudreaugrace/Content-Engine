@@ -7,6 +7,7 @@ import { runConsolidationAgent } from "../agents/consolidation-agent";
 import { demoFindabilityMetrics, metricsSource } from "../lib/metrics-source";
 import { findSimilar } from "../lib/similarity";
 import { recommend, type Recommendation } from "../lib/recommendation";
+import { buildKnowledgeGraph } from "../lib/knowledge-graph";
 import {
   defaultFeedback,
   makeRevision,
@@ -91,6 +92,9 @@ function publishedFromSource(article: Article, reviewer = "Demo Reviewer"): Publ
     nextReviewAt: article.nextReviewAt,
     approvedBy: article.approvedBy || article.reviewer || reviewer,
     body: article.body,
+    sections: article.sections,
+    taxonomy: article.taxonomy,
+    relationships: article.relationships,
     seo: article.seo,
     globalJustification: article.globalJustification,
     translations: article.translations,
@@ -219,6 +223,11 @@ publishedArticlesRouter.get("/", async (_req, res) => {
     (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt),
   );
   res.json(enriched);
+});
+
+publishedArticlesRouter.get("/knowledge-graph", async (_req, res) => {
+  const all = await listPublishedArticles();
+  res.json(buildKnowledgeGraph(all));
 });
 
 /**
@@ -404,7 +413,7 @@ publishedArticlesRouter.post("/:id/consolidate", async (req, res) => {
 });
 
 publishedArticlesRouter.patch("/:id", async (req, res) => {
-  const { body, title, seo, lead, references, relatedArticleIds, aliases, topics, visibility, owner, effectiveAt, nextReviewAt, approvedBy, editor, summary } = req.body as {
+  const { body, title, seo, lead, references, relatedArticleIds, aliases, topics, visibility, owner, effectiveAt, nextReviewAt, approvedBy, sections, taxonomy, relationships, editor, summary } = req.body as {
     body?: string;
     title?: string;
     seo?: PublishedArticle["seo"];
@@ -418,6 +427,9 @@ publishedArticlesRouter.patch("/:id", async (req, res) => {
     effectiveAt?: string;
     nextReviewAt?: string;
     approvedBy?: string;
+    sections?: PublishedArticle["sections"];
+    taxonomy?: PublishedArticle["taxonomy"];
+    relationships?: PublishedArticle["relationships"];
     editor?: string;
     summary?: string;
   };
@@ -443,6 +455,9 @@ publishedArticlesRouter.patch("/:id", async (req, res) => {
           effectiveAt: effectiveAt ?? cur.effectiveAt,
           nextReviewAt: nextReviewAt ?? cur.nextReviewAt,
           approvedBy: approvedBy ?? cur.approvedBy,
+          sections: sections ?? cur.sections,
+          taxonomy: taxonomy ?? cur.taxonomy,
+          relationships: relationships ?? cur.relationships,
           translations: bodyChanged ? markTranslationsStale(cur.translations) : cur.translations,
           version: cur.version + 1,
           revisionHistory: [

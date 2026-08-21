@@ -44,6 +44,7 @@ const tokens = {
   pepsiBlueDeep: "#02355A",
   pepsiNavy: "#02355A",
   articleFrameBg: "#FFFFFF",
+  articleDocumentBg: "#FAFAFA",
   articleRailBg: "#FAFAFA",
   articleDivider: "#E5EAF0",
   pepsiRed: "#E32934",

@@ -22,6 +22,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Menu,
+  Popover,
   useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -36,6 +37,9 @@ import LinkIcon from "@mui/icons-material/Link";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import FormatBoldIcon from "@mui/icons-material/FormatBold";
 import FormatItalicIcon from "@mui/icons-material/FormatItalic";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
@@ -730,7 +734,7 @@ function parseImportedFaqItems(text: string): CustomFaqItem[] {
     if (isQuestion) {
       if (current) items.push(current);
       current = {
-        id: `faq-${Date.now().toString(36)}-${items.length + 1}`,
+        id: `faq-${items.length + 1}`,
         question: withoutPrefix,
         answer: "",
       };
@@ -739,7 +743,7 @@ function parseImportedFaqItems(text: string): CustomFaqItem[] {
     if (/^(a|answer)[:.)]/i.test(line)) {
       if (!current) {
         current = {
-          id: `faq-${Date.now().toString(36)}-${items.length + 1}`,
+          id: `faq-${items.length + 1}`,
           question: `Question ${items.length + 1}`,
           answer: "",
         };
@@ -753,6 +757,20 @@ function parseImportedFaqItems(text: string): CustomFaqItem[] {
   }
   if (current) items.push(current);
   return items.filter((item) => item.question.trim() || item.answer.trim()).slice(0, 8);
+}
+
+function policyFaqItemsFromText(text: string): CustomFaqItem[] {
+  const parsed = parseImportedFaqItems(text);
+  return parsed.length
+    ? parsed
+    : [{ id: "policy-faq-1", question: "", answer: "" }];
+}
+
+function formatPolicyFaqItems(items: CustomFaqItem[]): string {
+  return items
+    .map((item) => [item.question.trim(), item.answer.trim()].filter(Boolean).join("\n"))
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 function firstStepsFromImportedText(text: string): string {
@@ -941,6 +959,264 @@ function EditableSectionTitle({
         <EditOutlinedIcon sx={{ fontSize: 13 }} />
       </IconButton>
     </Stack>
+  );
+}
+
+function dateFromISODate(value: string): Date | null {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+function isoDateFromParts(year: number, month: number, day: number): string {
+  return [
+    year,
+    String(month + 1).padStart(2, "0"),
+    String(day).padStart(2, "0"),
+  ].join("-");
+}
+
+function displayDate(value: string): string {
+  const date = dateFromISODate(value);
+  if (!date) return "";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function MaterialDateField({
+  label,
+  value,
+  placeholder,
+  onChange,
+  sx,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+  sx?: any;
+}) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const mergedSx = sx ?? {};
+  const selectedDate = dateFromISODate(value);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState(
+    selectedDate ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  );
+  const monthStart = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+  const firstDay = monthStart.getDay();
+  const daysInMonth = new Date(
+    visibleMonth.getFullYear(),
+    visibleMonth.getMonth() + 1,
+    0,
+  ).getDate();
+  const cells = [
+    ...Array.from({ length: firstDay }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, index) => index + 1),
+  ];
+  const todayIso = isoDateFromParts(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate(),
+  );
+
+  useEffect(() => {
+    if (selectedDate) {
+      setVisibleMonth(
+        new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
+      );
+    }
+  }, [value]);
+
+  return (
+    <>
+      <TextField
+        fullWidth
+        variant="filled"
+        label={label}
+        placeholder={placeholder}
+        value={displayDate(value)}
+        onClick={(event) => setAnchorEl(event.currentTarget)}
+        InputLabelProps={{ shrink: true }}
+        InputProps={{
+          disableUnderline: true,
+          readOnly: true,
+          endAdornment: (
+            <Box
+              sx={{
+                position: "absolute",
+                right: 14,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 24,
+                height: 24,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: t.pepsiBlueStrong,
+                pointerEvents: "none",
+              }}
+            >
+              <CalendarMonthOutlinedIcon sx={{ fontSize: 18 }} />
+            </Box>
+          ),
+        }}
+        inputProps={{ "aria-label": label }}
+        sx={{
+          ...mergedSx,
+          "& .MuiInputBase-root": {
+            ...(mergedSx as any)["& .MuiInputBase-root"],
+            position: "relative",
+            alignItems: "flex-start",
+            pr: 5,
+          },
+          "& .MuiFilledInput-input": {
+            ...(mergedSx as any)["& .MuiFilledInput-input"],
+            pr: 0,
+          },
+          "& .MuiInputBase-input": {
+            cursor: "pointer",
+          },
+        }}
+      />
+      <Popover
+        open={!!anchorEl}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 0.75,
+              p: 1.25,
+              width: 292,
+              borderRadius: "8px",
+              border: `1px solid ${t.articleDivider}`,
+              boxShadow: "0 16px 32px rgba(0, 33, 71, 0.14)",
+            },
+          },
+        }}
+      >
+        <Stack spacing={1}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <IconButton
+              size="small"
+              onClick={() =>
+                setVisibleMonth(
+                  new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1),
+                )
+              }
+              sx={{ color: t.pepsiBlueStrong }}
+            >
+              <ChevronLeftIcon fontSize="small" />
+            </IconButton>
+            <Typography
+              sx={{
+                fontFamily: theme.palette.fonts.articleBody,
+                fontSize: "0.875rem",
+                fontWeight: 800,
+                color: t.ink,
+              }}
+            >
+              {visibleMonth.toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              })}
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={() =>
+                setVisibleMonth(
+                  new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1),
+                )
+              }
+              sx={{ color: t.pepsiBlueStrong }}
+            >
+              <ChevronRightIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, 1fr)",
+              gap: 0.25,
+            }}
+          >
+            {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
+              <Typography
+                key={`${day}-${index}`}
+                sx={{
+                  py: 0.5,
+                  textAlign: "center",
+                  fontSize: "0.6875rem",
+                  fontWeight: 800,
+                  color: t.granite,
+                }}
+              >
+                {day}
+              </Typography>
+            ))}
+            {cells.map((day, index) => {
+              if (!day) return <Box key={`blank-${index}`} sx={{ height: 34 }} />;
+              const iso = isoDateFromParts(
+                visibleMonth.getFullYear(),
+                visibleMonth.getMonth(),
+                day,
+              );
+              const selected = iso === value;
+              const today = iso === todayIso;
+              return (
+                <Button
+                  key={iso}
+                  variant="text"
+                  onClick={() => {
+                    onChange(iso);
+                    setAnchorEl(null);
+                  }}
+                  sx={{
+                    minWidth: 0,
+                    height: 34,
+                    p: 0,
+                    borderRadius: "999px",
+                    fontSize: "0.8125rem",
+                    fontWeight: selected || today ? 800 : 600,
+                    color: selected ? "#FFFFFF" : t.ink,
+                    bgcolor: selected ? t.pepsiBlueStrong : "transparent",
+                    border: today && !selected ? `1px solid ${t.pepsiBlueStrong}` : "1px solid transparent",
+                    "&:hover": {
+                      bgcolor: selected ? t.pepsiBlueStrong : t.surfaceContainerLow,
+                    },
+                  }}
+                >
+                  {day}
+                </Button>
+              );
+            })}
+          </Box>
+          {value && (
+            <Button
+              variant="text"
+              onClick={() => onChange("")}
+              sx={{
+                alignSelf: "flex-start",
+                px: 0.5,
+                color: t.granite,
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                textTransform: "none",
+              }}
+            >
+              Clear date
+            </Button>
+          )}
+        </Stack>
+      </Popover>
+    </>
   );
 }
 
@@ -1638,6 +1914,37 @@ export default function NewRequest() {
       return [field.key, value];
     }),
   );
+  const policyFaqTemplateItems = policyFaqItemsFromText(
+    form.templateAnswers.policyFaqs ?? "",
+  );
+  const updatePolicyFaqItem = (
+    itemIndex: number,
+    patch: Partial<Pick<CustomFaqItem, "question" | "answer">>,
+  ) => {
+    const nextItems = policyFaqItemsFromText(form.templateAnswers.policyFaqs ?? "").map(
+      (item, index) => (index === itemIndex ? { ...item, ...patch } : item),
+    );
+    updateTemplateAnswer("policyFaqs", formatPolicyFaqItems(nextItems));
+  };
+  const addPolicyFaqItem = () => {
+    const nextItems = [
+      ...policyFaqItemsFromText(form.templateAnswers.policyFaqs ?? ""),
+      {
+        id: `policy-faq-${Date.now().toString(36)}`,
+        question: "",
+        answer: "",
+      },
+    ];
+    updateTemplateAnswer("policyFaqs", formatPolicyFaqItems(nextItems));
+  };
+  const removePolicyFaqItem = (itemIndex: number) => {
+    const current = policyFaqItemsFromText(form.templateAnswers.policyFaqs ?? "");
+    const nextItems =
+      current.length <= 1
+        ? [{ id: "policy-faq-1", question: "", answer: "" }]
+        : current.filter((_, index) => index !== itemIndex);
+    updateTemplateAnswer("policyFaqs", formatPolicyFaqItems(nextItems));
+  };
   const titleRecommendations = [
     !form.title.trim()
       ? "Add a clear title using the words employees would search for."
@@ -2065,6 +2372,10 @@ export default function NewRequest() {
         nextTemplateAnswers.answer =
           nextFaqItems[0]?.answer || sectionByHeading(cleaned, ["answer", "summary"]) || importedSummary;
       } else if (detectedType === "Policy") {
+        const policyFaqSource =
+          sectionByHeading(cleaned, ["calculation faqs", "policy faqs", "faqs", "faq"]) ||
+          "";
+        const policyFaqItems = parseImportedFaqItems(policyFaqSource);
         nextTemplateAnswers.description =
           sectionByHeading(cleaned, ["summary", "introduction", "overview"]) || importedSummary;
         nextTemplateAnswers.whoApplies =
@@ -2075,8 +2386,7 @@ export default function NewRequest() {
           sectionByHeading(cleaned, ["exceptions", "exception approver"]);
         nextTemplateAnswers.localVariations =
           sectionByHeading(cleaned, ["local variations", "country differences", "markets"]);
-        nextTemplateAnswers.policyFaqs =
-          nextFaqItems.map((item) => `${item.question}\n${item.answer}`).join("\n\n");
+        nextTemplateAnswers.policyFaqs = formatPolicyFaqItems(policyFaqItems);
         nextTemplateAnswers.relatedContent =
           sectionByHeading(cleaned, ["related guides and resources", "related content", "resources"]);
       } else if (detectedType === "Topic Page") {
@@ -2388,13 +2698,27 @@ export default function NewRequest() {
             answer: item.answer,
           })),
         }]
-      : requiredArticleSections.map((field) => ({
-          id: field.key,
-          type: "text" as const,
-          title: field.label,
-          body: articleAnswers[field.key] ?? "",
-          required: true,
-        }));
+      : requiredArticleSections.map((field) => {
+          if (form.contentType === "Policy" && field.key === "policyFaqs") {
+            return {
+              id: field.key,
+              type: "faq" as const,
+              title: field.label,
+              items: policyFaqTemplateItems.map((item, index) => ({
+                id: item.id,
+                question: item.question.trim() || `Question ${index + 1}`,
+                answer: item.answer,
+              })),
+            };
+          }
+          return {
+            id: field.key,
+            type: "text" as const,
+            title: field.label,
+            body: articleAnswers[field.key] ?? "",
+            required: true,
+          };
+        });
   const policyAtAGlanceSection: ArticleSection[] =
     form.contentType === "Policy" && policyAtAGlanceRows.length > 0
       ? [{
@@ -3720,6 +4044,108 @@ export default function NewRequest() {
       textUnderlineOffset: "3px",
     },
   } as const;
+  const renderPolicyFaqTemplateEditor = () => (
+    <Stack spacing={3}>
+      {policyFaqTemplateItems.map((item, itemIndex) => (
+        <Box
+          key={`${item.id}-${itemIndex}`}
+          sx={{ position: "relative" }}
+        >
+          <Box sx={{ mb: 1.25 }}>
+            <TextField
+              fullWidth
+              variant="filled"
+              label="Question"
+              multiline
+              minRows={1}
+              placeholder={`Question ${itemIndex + 1}`}
+              value={item.question}
+              helperText={`${item.question.length.toLocaleString()} characters`}
+              onChange={(event) =>
+                updatePolicyFaqItem(itemIndex, { question: event.target.value })
+              }
+              InputLabelProps={{ shrink: true }}
+              InputProps={{ disableUnderline: true }}
+              FormHelperTextProps={{
+                sx: {
+                  mx: 0,
+                  textAlign: "right",
+                  fontSize: "0.6875rem",
+                  color: t.granite,
+                },
+              }}
+              sx={{
+                ...compactLabeledInputSx,
+                "& .MuiInputBase-root": {
+                  ...compactLabeledInputSx["& .MuiInputBase-root"],
+                  fontSize: "1.0625rem",
+                  fontWeight: 650,
+                  color: t.pepsiNavy,
+                },
+              }}
+            />
+          </Box>
+          <TextField
+            fullWidth
+            variant="filled"
+            label="Answer"
+            multiline
+            minRows={4}
+            placeholder="Start with the direct answer, then add scope, timing, exceptions, or next steps."
+            value={item.answer}
+            helperText={`${item.answer.length.toLocaleString()} characters`}
+            onChange={(event) =>
+              updatePolicyFaqItem(itemIndex, { answer: event.target.value })
+            }
+            InputLabelProps={{ shrink: true }}
+            InputProps={{ disableUnderline: true }}
+            FormHelperTextProps={{
+              sx: {
+                mx: 0,
+                textAlign: "right",
+                fontSize: "0.6875rem",
+                color: t.granite,
+              },
+            }}
+            sx={compactLabeledInputSx}
+          />
+          <Stack
+            direction="row"
+            spacing={1.5}
+            alignItems="center"
+            sx={{ mt: 0.5 }}
+          >
+            {itemIndex === policyFaqTemplateItems.length - 1 && (
+              <Button
+                variant="text"
+                onClick={addPolicyFaqItem}
+                startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                sx={quietSecondaryButtonSx}
+              >
+                Add question
+              </Button>
+            )}
+            {policyFaqTemplateItems.length > 1 && (
+              <Button
+                size="small"
+                variant="text"
+                color="inherit"
+                onClick={() => removePolicyFaqItem(itemIndex)}
+                sx={{
+                  px: 0,
+                  fontSize: "0.75rem",
+                  color: t.granite,
+                  textTransform: "none",
+                }}
+              >
+                Remove question
+              </Button>
+            )}
+          </Stack>
+        </Box>
+      ))}
+    </Stack>
+  );
 
   const renderStructuredReviewEditor = (field: ArticleSectionField) => {
     const renderReviewTextEditor = (
@@ -4017,6 +4443,10 @@ export default function NewRequest() {
           </Button>
         </Stack>
       );
+    }
+
+    if (form.contentType === "Policy" && field.key === "policyFaqs") {
+      return renderPolicyFaqTemplateEditor();
     }
 
     if (!field.customId) {
@@ -4405,6 +4835,23 @@ export default function NewRequest() {
           question: faqItem.question.trim() || "Question",
           answer: faqItem.answer,
         }],
+      };
+    }
+
+    if (form.contentType === "Policy" && field.key === "policyFaqs") {
+      const items = policyFaqTemplateItems.filter(
+        (item) => item.question.trim() || item.answer.trim(),
+      );
+      if (!items.length) return null;
+      return {
+        id: field.key,
+        type: "faq",
+        title: "",
+        items: items.map((item, index) => ({
+          id: item.id,
+          question: item.question.trim() || `Question ${index + 1}`,
+          answer: item.answer,
+        })),
       };
     }
 
@@ -5384,14 +5831,28 @@ export default function NewRequest() {
                   ["exceptionApprover", "Exception approver", "Approver name"],
                 ].map(([key, label, placeholder]) => {
                   const isDateField = POLICY_DATE_FIELD_KEYS.has(key);
-                  return (
+                  return isDateField ? (
+                    <MaterialDateField
+                      key={key}
+                      label={label}
+                      placeholder={placeholder}
+                      value={form.policyMeta[key as keyof typeof form.policyMeta]}
+                      onChange={(value) =>
+                        updatePolicyMeta(
+                          key as keyof typeof form.policyMeta,
+                          value,
+                        )
+                      }
+                      sx={policyMetaInputSx}
+                    />
+                  ) : (
                     <TextField
                       key={key}
                       fullWidth
                       variant="filled"
-                      type={isDateField ? "date" : "text"}
+                      type="text"
                       label={label}
-                      placeholder={isDateField ? undefined : placeholder}
+                      placeholder={placeholder}
                       value={form.policyMeta[key as keyof typeof form.policyMeta]}
                       onChange={(event) =>
                         updatePolicyMeta(
@@ -5401,11 +5862,7 @@ export default function NewRequest() {
                       }
                       InputLabelProps={{ shrink: true }}
                       InputProps={{ disableUnderline: true }}
-                      inputProps={isDateField ? { "aria-label": label } : undefined}
-                      sx={{
-                        ...policyMetaInputSx,
-                        ...(isDateField ? dateSelectorInputSx : {}),
-                      }}
+                      sx={policyMetaInputSx}
                     />
                   );
                 })}
@@ -5968,6 +6425,8 @@ export default function NewRequest() {
                             Add resource
                           </Button>
                         </Stack>
+                      ) : form.contentType === "Policy" && field.key === "policyFaqs" ? (
+                        renderPolicyFaqTemplateEditor()
                       ) : form.contentType === "Knowledge Article" && field.key === "steps" ? (
                         <Stack
                           spacing={0.5}

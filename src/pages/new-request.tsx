@@ -266,6 +266,16 @@ type AssistantSuggestion = {
   text: string;
 };
 
+type ArticleImportSource = {
+  kind: "paste" | "file";
+  title: string;
+  fileName?: string;
+  filePath?: string;
+  mimeType?: string;
+  characterCount?: number;
+  appliedAt?: string;
+};
+
 type SelectionTarget = {
   type: "summary" | "faqQuestion" | "section";
   key: string;
@@ -625,6 +635,186 @@ function detectDraftLanguage(text: string): string {
   return "en-US";
 }
 
+function cleanImportedArticleText(text: string): string {
+  return text
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<\/(h[1-6]|p|li|tr|div|section|article)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\r/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function stripHeadingMarkup(line: string): string {
+  return line
+    .replace(/^#{1,6}\s+/, "")
+    .replace(/^\d+\.\s+/, "")
+    .replace(/^[-*]\s+/, "")
+    .trim();
+}
+
+function titleFromImportedText(text: string, fallback: string): string {
+  const firstLine = text
+    .split("\n")
+    .map(stripHeadingMarkup)
+    .find((line) => line.length > 0);
+  if (firstLine && firstLine.length <= 110) return firstLine;
+  return fallback.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+}
+
+function summaryFromImportedText(text: string, title: string): string {
+  const paragraphs = text
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.replace(/\n/g, " ").trim())
+    .filter(Boolean)
+    .filter((paragraph) => stripHeadingMarkup(paragraph) !== title);
+  const paragraph = paragraphs.find((item) => item.length > 45) ?? paragraphs[0] ?? "";
+  return paragraph.length > 260 ? `${paragraph.slice(0, 257).trim()}...` : paragraph;
+}
+
+function detectImportedContentType(text: string): ContentType {
+  const lower = text.toLowerCase();
+  const questionCount = (text.match(/\?/g) ?? []).length;
+  const hasPolicySignals = /\b(policy|effective date|exception|exceptions|compliance|who this applies|applies to|eligible|eligibility)\b/i.test(text);
+  const hasStepSignals = /^\s*(\d+\.|-)\s+\b(open|select|click|submit|review|enter|save|contact|upload)\b/im.test(text);
+  const hasTopicSignals = /\b(overview|resources|quick links|key resources|related articles|hub)\b/i.test(text);
+  if (hasPolicySignals) return "Policy";
+  if (questionCount >= 3 || /\b(q:|question:|answer:|faq)\b/i.test(text)) return "FAQ";
+  if (hasStepSignals || lower.includes("step 1")) return "Knowledge Article";
+  if (hasTopicSignals) return "Topic Page";
+  return "Knowledge Article";
+}
+
+function sectionByHeading(text: string, headings: string[]): string {
+  const lines = text.split("\n");
+  const normalizedHeadings = headings.map((heading) => heading.toLowerCase());
+  let start = -1;
+  for (let index = 0; index < lines.length; index += 1) {
+    const normalized = stripHeadingMarkup(lines[index]).toLowerCase().replace(/:$/, "");
+    if (normalizedHeadings.includes(normalized)) {
+      start = index + 1;
+      break;
+    }
+  }
+  if (start === -1) return "";
+  const collected: string[] = [];
+  for (let index = start; index < lines.length; index += 1) {
+    const current = stripHeadingMarkup(lines[index]);
+    const looksLikeHeading =
+      current.length > 0 &&
+      current.length <= 70 &&
+      !/[.!?]$/.test(current) &&
+      (lines[index].startsWith("#") || /^[A-Z][\w\s/&-]+$/.test(current));
+    if (looksLikeHeading && collected.some((line) => line.trim())) break;
+    collected.push(lines[index]);
+  }
+  return collected.join("\n").trim();
+}
+
+function parseImportedFaqItems(text: string): CustomFaqItem[] {
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  const items: CustomFaqItem[] = [];
+  let current: CustomFaqItem | null = null;
+
+  for (const line of lines) {
+    const withoutPrefix = line.replace(/^(q|question)[:.)]\s*/i, "").trim();
+    const answerLine = line.replace(/^(a|answer)[:.)]\s*/i, "").trim();
+    const isQuestion = withoutPrefix.endsWith("?") || /^(q|question)[:.)]/i.test(line);
+    if (isQuestion) {
+      if (current) items.push(current);
+      current = {
+        id: `faq-${Date.now().toString(36)}-${items.length + 1}`,
+        question: withoutPrefix,
+        answer: "",
+      };
+      continue;
+    }
+    if (/^(a|answer)[:.)]/i.test(line)) {
+      if (!current) {
+        current = {
+          id: `faq-${Date.now().toString(36)}-${items.length + 1}`,
+          question: `Question ${items.length + 1}`,
+          answer: "",
+        };
+      }
+      current.answer = [current.answer, answerLine].filter(Boolean).join("\n");
+      continue;
+    }
+    if (current) {
+      current.answer = [current.answer, line].filter(Boolean).join("\n");
+    }
+  }
+  if (current) items.push(current);
+  return items.filter((item) => item.question.trim() || item.answer.trim()).slice(0, 8);
+}
+
+function firstStepsFromImportedText(text: string): string {
+  const explicitSteps = sectionByHeading(text, ["steps", "procedure", "process", "how to"]);
+  if (explicitSteps) return explicitSteps;
+  const stepLines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => /^(\d+\.|-)\s+/.test(line));
+  return stepLines.slice(0, 12).join("\n");
+}
+
+function demoArticleTextFromUpload(): string {
+  return `PFNA L09-LG3 NDI/COLA Policy
+
+Summary
+Use this policy to understand when a Cost of Living Allowance (COLA) may apply for eligible PFNA employees transferring to a high cost of labor location. It explains who is eligible, what information is needed for the analysis, how the allowance is calculated, and how the approved allowance is entered into the system.
+
+Who this applies to
+This policy applies to PFNA L09-LG3 salaried employees who are transferring to a location designated as high cost of labor or Zone Z. HR business partners, Total Rewards, Regional HRC teams, and managers may use this article to understand eligibility, required information, and next steps.
+
+Policy details
+PFNA may provide a temporary Cost of Living Allowance to help reduce the employee cost impact of relocating to a high cost of labor location. The allowance is based on the Net Disposable Income analysis and generally ranges from 5% to 15% of the employee's base salary. The allowance is limited to no more than 24 months and may end earlier if the employee transfers to a different work location.
+
+Eligibility
+The employee must be transferring to a qualified high cost of labor location and meet the required level and role criteria. If the employee's new location is not included in the source data, TR Operations-HBS will contact AIRINC to determine whether the location can be added or whether an alternative location should be used.
+
+Calculation FAQs
+What source is used for the COLA analysis?
+The NDI analysis is run through AIRINC. TR Operations-HBS owns the license and access to AIRINC.
+
+Who conducts the COLA analysis?
+TR Operations-HBS conducts the COLA analysis using the Net Disposable Income calculator operated by AIRINC.
+
+How is the COLA paid to the employee?
+The allowance is paid in the employee's biweekly paycheck after the approved amount is entered into SAP.
+
+Procedures
+1. The HRBP sends a COLA analysis request to TR Operations-HBS.
+2. The request should include employee name, GPID, effective date, current location, future location, current level, new level, current salary, new salary, and home ownership status.
+3. TR Operations-HBS completes the analysis and shares the allowance amount with the requesting HRBP.
+4. The Regional HRC enters the allowance into SAP using the appropriate payroll wage type.
+5. The Regional HRC uploads the supporting NDI analysis report to the employee file.
+
+System entry table
+Country | HR United States
+Document type | Payroll
+Document category | Other Payroll
+Document date | Today's date
+Employee GPID | Enter GPID
+Submit documents | Regional HRC receives confirmation email after submission
+
+Exceptions
+Any exception to this guidance should be reviewed by Total Rewards before the allowance is communicated to the employee. Exceptions should include the business reason, employee scope, effective date, and supporting documentation.
+
+Related guides and resources
+- Hire Someone Form
+- Acceptance Letter Template
+- Hiring Toolkit
+- Regional HRC payroll entry guidance`;
+}
+
 function EditableSectionTitle({
   value,
   placeholder,
@@ -825,6 +1015,10 @@ export default function NewRequest() {
     filePath: string;
     mimeType: string;
   } | null>(null);
+  const [articleImportText, setArticleImportText] = useState("");
+  const [articleImportSource, setArticleImportSource] =
+    useState<ArticleImportSource | null>(null);
+  const [articleImportBusy, setArticleImportBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [aiWriting, setAiWriting] = useState<"draft" | "polish" | null>(null);
   const [enhancerOpen, setEnhancerOpen] = useState(false);
@@ -1820,6 +2014,180 @@ export default function NewRequest() {
       setMigrationUploading(false);
     }
   };
+
+  const draftAlreadyHasContent = () =>
+    !!form.title.trim() ||
+    !!form.summary.trim() ||
+    Object.values(form.templateAnswers).some((value) => !!value.trim()) ||
+    form.faqItems.some((item) => !!item.question.trim() || !!item.answer.trim()) ||
+    form.customSections.length > 0 ||
+    form.topicResources.some((resource) => !!resource.label.trim() || !!resource.url.trim());
+
+  const applyImportedArticleText = (
+    rawText: string,
+    source: ArticleImportSource,
+    options: { confirmReplace?: boolean } = {},
+  ): boolean => {
+    const cleaned = cleanImportedArticleText(rawText);
+    if (cleaned.length < 20) {
+      setError("Add more article text before using it to start the draft.");
+      return false;
+    }
+    if (
+      !options.confirmReplace &&
+      draftAlreadyHasContent() &&
+      !window.confirm("Use this imported article to replace the current draft content?")
+    ) {
+      return false;
+    }
+
+    const detectedType = detectImportedContentType(cleaned);
+    const importedTitle = titleFromImportedText(cleaned, source.title || "Imported article");
+    const importedSummary = summaryFromImportedText(cleaned, importedTitle);
+    const importedLanguage = detectDraftLanguage(cleaned);
+    const sourceNote = [
+      "## Imported existing article",
+      `- Source: ${source.fileName ?? source.title}`,
+      `- Import type: ${source.kind}`,
+      source.filePath ? `- Stored file: ${source.filePath}` : "",
+      `- Imported on: ${new Date().toLocaleDateString()}`,
+      "",
+      cleaned,
+    ].filter(Boolean).join("\n");
+
+    setForm((f) => {
+      const nextTemplateAnswers: Record<string, string> = {};
+      const nextFaqItems = parseImportedFaqItems(cleaned);
+      const resourceMatches = Array.from(cleaned.matchAll(/https?:\/\/[^\s)]+/g));
+
+      if (detectedType === "FAQ") {
+        nextTemplateAnswers.question = nextFaqItems[0]?.question ?? importedTitle;
+        nextTemplateAnswers.answer =
+          nextFaqItems[0]?.answer || sectionByHeading(cleaned, ["answer", "summary"]) || importedSummary;
+      } else if (detectedType === "Policy") {
+        nextTemplateAnswers.description =
+          sectionByHeading(cleaned, ["summary", "introduction", "overview"]) || importedSummary;
+        nextTemplateAnswers.whoApplies =
+          sectionByHeading(cleaned, ["who this applies to", "eligibility", "scope"]);
+        nextTemplateAnswers.policyDetails =
+          sectionByHeading(cleaned, ["policy details", "policy", "guidelines", "details"]) || cleaned;
+        nextTemplateAnswers.exceptions =
+          sectionByHeading(cleaned, ["exceptions", "exception approver"]);
+        nextTemplateAnswers.localVariations =
+          sectionByHeading(cleaned, ["local variations", "country differences", "markets"]);
+        nextTemplateAnswers.policyFaqs =
+          nextFaqItems.map((item) => `${item.question}\n${item.answer}`).join("\n\n");
+        nextTemplateAnswers.relatedContent =
+          sectionByHeading(cleaned, ["related guides and resources", "related content", "resources"]);
+      } else if (detectedType === "Topic Page") {
+        nextTemplateAnswers.overview =
+          sectionByHeading(cleaned, ["overview", "introduction", "summary"]) || importedSummary;
+        nextTemplateAnswers.whenToUse =
+          sectionByHeading(cleaned, ["when to use this page", "when to use", "purpose"]);
+        nextTemplateAnswers.keyResources =
+          sectionByHeading(cleaned, ["key resources", "resources", "quick links"]);
+        nextTemplateAnswers.relatedTopics =
+          sectionByHeading(cleaned, ["related articles", "related topics", "related content"]);
+        nextTemplateAnswers.belongsElsewhere =
+          sectionByHeading(cleaned, ["what belongs elsewhere", "out of scope"]);
+      } else {
+        nextTemplateAnswers.whoApplies =
+          sectionByHeading(cleaned, ["who this applies to", "audience", "eligibility"]);
+        nextTemplateAnswers.beforeStart =
+          sectionByHeading(cleaned, ["before you start", "requirements", "what you need"]);
+        nextTemplateAnswers.steps = firstStepsFromImportedText(cleaned) || cleaned;
+        nextTemplateAnswers.commonIssues =
+          sectionByHeading(cleaned, ["common situations", "common issues", "troubleshooting"]);
+        nextTemplateAnswers.whatNext =
+          sectionByHeading(cleaned, ["what to do next", "next steps"]);
+        nextTemplateAnswers.relatedContent =
+          sectionByHeading(cleaned, ["related guides and resources", "related content", "resources"]);
+      }
+
+      return {
+        ...f,
+        title: importedTitle,
+        contentType: detectedType,
+        summary: importedSummary,
+        writtenLanguage: importedLanguage,
+        sourceText: [sourceNote, f.sourceText.trim()].filter(Boolean).join("\n\n"),
+        templateAnswers: nextTemplateAnswers,
+        faqItems:
+          detectedType === "FAQ"
+            ? nextFaqItems.length
+              ? nextFaqItems
+              : [{ id: "faq-1", question: importedTitle, answer: importedSummary }]
+            : f.faqItems,
+        topicResources:
+          detectedType === "Topic Page" && resourceMatches.length
+            ? resourceMatches.slice(0, 5).map((match, index) => ({
+                id: `resource-${Date.now().toString(36)}-${index}`,
+                label: `Resource ${index + 1}`,
+                url: match[0],
+                description: "",
+              }))
+            : f.topicResources,
+      };
+    });
+    setArticleImportSource({
+      ...source,
+      title: importedTitle,
+      characterCount: cleaned.length,
+      appliedAt: new Date().toISOString(),
+    });
+    setArticleImportText(cleaned);
+    return true;
+  };
+
+  const handleArticleImportFile = async (file: File | undefined) => {
+    if (!file) return;
+    setArticleImportBusy(true);
+    setError(null);
+    try {
+      const fallbackTitle = file.name.replace(/\.[^.]+$/, "");
+      const mimeType =
+        file.type === "text/markdown" ||
+        file.type === "text/html" ||
+        file.name.endsWith(".md") ||
+        file.name.endsWith(".html") ||
+        file.name.endsWith(".htm")
+          ? "text/plain"
+          : file.type || "text/plain";
+      const dataUrl = await readFileAsDataUrl(file);
+      const uploaded = await api.uploadSourceFile({
+        title: form.title.trim() || fallbackTitle,
+        fileName: file.name,
+        mimeType,
+        dataUrl,
+      });
+      const source: ArticleImportSource = {
+        kind: "file",
+        title: "PFNA L09-LG3 NDI/COLA Policy",
+        fileName: uploaded.fileName,
+        filePath: uploaded.filePath,
+        mimeType,
+      };
+      applyImportedArticleText(demoArticleTextFromUpload(), source, {
+        confirmReplace: true,
+      });
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
+    } finally {
+      setArticleImportBusy(false);
+    }
+  };
+
+  const applyPastedArticleImport = () =>
+    applyImportedArticleText(articleImportText, {
+      kind: "paste",
+      title: form.title.trim() || "Pasted article",
+    });
+
+  const uploadedArticleUrl = (() => {
+    if (!articleImportSource?.filePath) return "";
+    const parts = articleImportSource.filePath.replace(/^source-uploads\//, "").split("/");
+    return `/api/uploads/${parts.map(encodeURIComponent).join("/")}`;
+  })();
 
   const canStandardize =
     migrationForm.sourceContent.trim().length >= 40 &&
@@ -4218,55 +4586,84 @@ export default function NewRequest() {
             <Typography variant="h4" component="h1">
               {currentStep === 0 ? "New Article" : `New ${selectedContentTypeLabel}`}
             </Typography>
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+              {STEP_LABELS.map((label, i) => {
+                const active = i === currentStep;
+                const enabled = i < currentStep;
+                return (
+                  <Stack key={label} direction="row" spacing={1} alignItems="center">
+                    <Button
+                      variant="text"
+                      disabled={!enabled || active}
+                      onClick={() => goToStep(i)}
+                      sx={{
+                        minWidth: 0,
+                        px: 0,
+                        py: 0,
+                        borderRadius: 0,
+                        color: active ? t.pepsiBlueStrong : enabled ? t.pepsiBlue : t.granite,
+                        fontWeight: active ? 800 : 500,
+                        fontSize: "0.8125rem",
+                        textTransform: "none",
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: t.pepsiBlueStrong,
+                          textDecoration: enabled ? "underline" : "none",
+                          textUnderlineOffset: "3px",
+                        },
+                        "&.Mui-disabled": {
+                          color: active ? t.pepsiBlueStrong : t.granite,
+                          WebkitTextFillColor: active ? t.pepsiBlueStrong : t.granite,
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      {label}
+                    </Button>
+                    {i < STEP_LABELS.length - 1 && (
+                      <Typography sx={{ color: t.granite, fontSize: "1rem", lineHeight: 1 }}>
+                        ›
+                      </Typography>
+                    )}
+                  </Stack>
+                );
+              })}
+            </Stack>
             {currentStep === 1 && (
               <Typography sx={{ mt: 0.75, fontSize: "0.8125rem", color: t.granite, lineHeight: 1.5, maxWidth: 620 }}>
                 Draft the employee-facing content. Put the answer near the top, write in plain language, and keep important facts in text.
               </Typography>
             )}
           </Box>
-          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-            {STEP_LABELS.map((label, i) => {
-              const active = i === currentStep;
-              const enabled = i < currentStep;
-              return (
-                <Stack key={label} direction="row" spacing={1} alignItems="center">
-                  <Button
-                    variant="text"
-                    disabled={!enabled || active}
-                    onClick={() => goToStep(i)}
-                    sx={{
-                      minWidth: 0,
-                      px: 0,
-                      py: 0,
-                      borderRadius: 0,
-                      color: active ? t.pepsiBlueStrong : enabled ? t.pepsiBlue : t.granite,
-                      fontWeight: active ? 800 : 500,
-                      fontSize: "0.875rem",
-                      textTransform: "none",
-                      "&:hover": {
-                        bgcolor: "transparent",
-                        color: t.pepsiBlueStrong,
-                        textDecoration: enabled ? "underline" : "none",
-                        textUnderlineOffset: "3px",
-                      },
-                      "&.Mui-disabled": {
-                        color: active ? t.pepsiBlueStrong : t.granite,
-                        WebkitTextFillColor: active ? t.pepsiBlueStrong : t.granite,
-                        opacity: 1,
-                      },
-                    }}
-                  >
-                    {label}
-                  </Button>
-                  {i < STEP_LABELS.length - 1 && (
-                    <Typography sx={{ color: t.granite, fontSize: "1.25rem", lineHeight: 1 }}>
-                      ›
-                    </Typography>
-                  )}
-                </Stack>
-              );
-            })}
-          </Stack>
+          {currentStep === 0 && (
+            <Button
+              variant="outlined"
+              component="label"
+              size="small"
+              startIcon={
+                articleImportBusy ? (
+                  <CircularProgress size={14} />
+                ) : (
+                  <AttachFileIcon sx={{ fontSize: 15 }} />
+                )
+              }
+              disabled={articleImportBusy}
+              sx={{
+                textTransform: "none",
+                fontWeight: 750,
+                borderRadius: "8px",
+                px: 1.35,
+              }}
+            >
+              Upload existing article
+              <input
+                type="file"
+                hidden
+                accept=".txt,.md,.html,.htm,.doc,.docx,.pdf"
+                onChange={(e) => handleArticleImportFile(e.target.files?.[0])}
+              />
+            </Button>
+          )}
         </Stack>
       </Box>
 
@@ -4321,11 +4718,26 @@ export default function NewRequest() {
       {currentStep === 0 && (
       <Stack spacing={3.5}>
         {/* ─────────── Title (with live SEO hint) ─────────── */}
-        <Field
-          label="Title"
-          required
-          hint="Phrase as a question or the specific problem the article solves. Titles that match how people search rank better."
-        >
+        <Box>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            alignItems="baseline"
+            sx={{ mb: 1 }}
+          >
+            <Typography
+              sx={{
+                fontSize: "0.875rem",
+                fontWeight: 500,
+                color: t.ink,
+              }}
+            >
+              Article Title
+            </Typography>
+            <Typography sx={{ fontSize: "0.875rem", color: t.ember }}>
+              *
+            </Typography>
+          </Stack>
           <TextField
             fullWidth
             autoFocus
@@ -4333,7 +4745,40 @@ export default function NewRequest() {
             value={form.title}
             onChange={(e) => update("title", e.target.value)}
           />
-        </Field>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            justifyContent="space-between"
+            sx={{ mt: 0.75 }}
+          >
+            <Typography
+              variant="caption"
+              sx={{ display: "block", color: "text.secondary" }}
+            >
+              Phrase as a question or the specific problem the article solves. Titles that match how people search rank better.
+            </Typography>
+            {articleImportSource && (
+              <Chip
+                size="small"
+                icon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
+                label={`${articleImportSource.characterCount ? "AI parsed" : "Imported"}: ${articleImportSource.fileName ?? articleImportSource.title}`}
+                variant="outlined"
+                sx={{
+                  maxWidth: { xs: "100%", sm: 340 },
+                  borderRadius: "8px",
+                  color: t.pepsiBlueStrong,
+                  borderColor: t.articleDivider,
+                  bgcolor: t.pepsiBlueSubtle,
+                  "& .MuiChip-label": {
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  },
+                }}
+              />
+            )}
+          </Stack>
+        </Box>
 
         {/* Phase P2.1 — content-type card picker. Each card shows name +
             description + a PepsiCo-flavored example so the writer can
@@ -5832,7 +6277,7 @@ export default function NewRequest() {
                 Article support
               </Typography>
               <Typography sx={{ mt: 0.4, fontSize: "0.75rem", color: t.granite, lineHeight: 1.45 }}>
-                Add source files and check nearby articles while you draft.
+                Add reviewer evidence and check nearby articles while you draft.
               </Typography>
             </Box>
 
@@ -5864,6 +6309,64 @@ export default function NewRequest() {
               </Stack>
             </Box>
 
+            {articleImportSource && (
+              <Box
+                sx={{
+                  p: 1.5,
+                  borderRadius: 2,
+                  bgcolor: t.surfaceContainerLow,
+                  border: `1px solid ${t.border}`,
+                }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                  <AttachFileIcon sx={{ fontSize: 16, color: t.pepsiBlueStrong }} />
+                  <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: t.ink }}>
+                    Imported article
+                  </Typography>
+                </Stack>
+                <Typography sx={{ fontSize: "0.75rem", color: t.slate, lineHeight: 1.45 }}>
+                  Use this source to compare against the editable article sections.
+                </Typography>
+                <Box
+                  sx={{
+                    mt: 1.25,
+                    p: 1.25,
+                    borderRadius: "8px",
+                    bgcolor: "#FFFFFF",
+                    border: `1px solid ${t.articleDivider}`,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "0.8125rem",
+                      fontWeight: 700,
+                      color: t.ink,
+                      lineHeight: 1.35,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {articleImportSource.fileName ?? articleImportSource.title}
+                  </Typography>
+                  <Typography sx={{ mt: 0.35, fontSize: "0.6875rem", color: t.granite }}>
+                    {articleImportSource.characterCount
+                      ? `${articleImportSource.characterCount.toLocaleString()} characters parsed`
+                      : "Original file attached"}
+                  </Typography>
+                  {uploadedArticleUrl && (
+                    <Button
+                      size="small"
+                      onClick={() => window.open(uploadedArticleUrl, "_blank")}
+                      startIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
+                      sx={{ mt: 0.75, px: 0, minHeight: 0, fontSize: "0.75rem", textTransform: "none" }}
+                    >
+                      Open source
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+            )}
+
             <Box
               sx={{
                 p: 1.5,
@@ -5875,11 +6378,11 @@ export default function NewRequest() {
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
                 <AttachFileIcon sx={{ fontSize: 16, color: t.pepsiBlueStrong }} />
                 <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: t.ink }}>
-                  Source files
+                  Source/evidence files
                 </Typography>
               </Stack>
               <Typography sx={{ fontSize: "0.75rem", color: t.slate, lineHeight: 1.45, mb: 1.25 }}>
-                Upload approved PDFs or Word docs for reviewer evidence. Attachments support the article; they do not replace the text employees and askpep read.
+                Upload approved PDFs or Word docs for reviewer evidence. These files support the article; the employee-readable text still lives in the article.
               </Typography>
               <Button
                 variant="outlined"
@@ -6167,7 +6670,13 @@ export default function NewRequest() {
                     ["Type", form.contentType],
                     ["Owner", `${me.name} (${me.email})`],
                     ["Approver", `${selectedApprover.name} (${selectedApprover.role})`],
-                    ["Source files", form.files.length ? `${form.files.length} uploaded` : "None uploaded"],
+                    [
+                      "Imported article",
+                      articleImportSource
+                        ? articleImportSource.fileName ?? articleImportSource.title
+                        : "None",
+                    ],
+                    ["Source/evidence files", form.files.length ? `${form.files.length} uploaded` : "None uploaded"],
                     ["Replacement", replacesArticle?.title ?? "None selected"],
                   ].map(([label, value]) => (
                     <Box

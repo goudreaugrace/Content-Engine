@@ -101,6 +101,11 @@ export default function AppLayout() {
     }
   }, [location.pathname, navigate, personaMode]);
 
+  const handlePersonaModeChange = (next: PersonaMode) => {
+    setPersonaMode(next);
+    navigate("/?tab=my-articles");
+  };
+
   const [messageUnreadCount, setMessageUnreadCount] = useState(() =>
     getUnreadMessageCount(personaMode),
   );
@@ -260,7 +265,7 @@ export default function AppLayout() {
       <PersonaSwitcher
         compact={compact}
         mode={personaMode}
-        onChange={setPersonaMode}
+        onChange={handlePersonaModeChange}
       />
 
       <List sx={{ flex: 1, px: compact ? 0.5 : 1, py: 0 }}>

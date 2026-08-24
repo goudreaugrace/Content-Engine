@@ -1,5 +1,6 @@
-import { Box, Button, Chip, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Chip, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { isValidElement, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
@@ -117,6 +118,7 @@ export default function ArticleDocument({
   const isEditable = !!onEdit;
   const editableTitle = titleProp ?? title;
   const editableLead = lead ?? "";
+  const faqSectionBg = "#3680CE";
 
   const editButton = (key: string) =>
     isEditable ? (
@@ -198,12 +200,12 @@ export default function ArticleDocument({
     <Box
       id="top"
       sx={{
-        bgcolor: t.articleDocumentBg,
-        border: isImmersive ? `1px solid ${t.articleDivider}` : 0,
+        bgcolor: isImmersive ? t.articleRailBg : t.articleDocumentBg,
+        border: 0,
         borderRadius: isImmersive ? "8px" : 0,
         overflow: "hidden",
         maxWidth: isImmersive ? "none" : 960,
-        boxShadow: isImmersive ? "0 1px 3px rgba(15, 23, 42, 0.05)" : "none",
+        boxShadow: "none",
       }}
     >
       {isImmersive && showMasthead && <Box sx={{ height: 6, bgcolor: t.pepsiBlueDeep }} />}
@@ -638,13 +640,13 @@ export default function ArticleDocument({
             maxWidth: "none",
             borderRadius: "8px",
             overflow: "hidden",
-            bgcolor: t.pepsiBlue,
+            bgcolor: faqSectionBg,
             p: 0.75,
           },
           "& summary": {
             cursor: "pointer",
             listStyle: "none",
-            bgcolor: t.pepsiBlue,
+            bgcolor: faqSectionBg,
             color: "#FFFFFF",
             fontWeight: 500,
             fontSize: { xs: "1rem", md: "1.125rem" },
@@ -669,7 +671,7 @@ export default function ArticleDocument({
           },
           "& details[open]": {
             border: 0,
-            bgcolor: t.pepsiBlue,
+            bgcolor: faqSectionBg,
           },
           "& details[open] summary": {
             mb: 0.75,
@@ -829,6 +831,7 @@ export default function ArticleDocument({
 export function StructuredArticleSections({ sections }: { sections: ArticleSection[] }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const faqSectionBg = "#3680CE";
 
   return (
     <Stack spacing={1.5}>
@@ -857,20 +860,56 @@ export function StructuredArticleSections({ sections }: { sections: ArticleSecti
             <Box key={section.id}>
               {headingNode}
               {items.map((item, index) => (
-                <Box
+                <Accordion
                   key={item.id}
-                  component="details"
-                  open={index === 0}
+                  defaultExpanded={index === 0}
+                  disableGutters
+                  elevation={0}
+                  sx={{
+                    mb: 1.25,
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    bgcolor: faqSectionBg,
+                    color: "#FFFFFF",
+                    "&:before": { display: "none" },
+                    "&.Mui-expanded": { mb: 1.25 },
+                  }}
                 >
-                  <Box component="summary">
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon sx={{ color: "#FFFFFF", fontSize: 24 }} />}
+                    sx={{
+                      minHeight: 48,
+                      px: 1.5,
+                      py: 0.5,
+                      "&.Mui-expanded": { minHeight: 48 },
+                      "& .MuiAccordionSummary-content": {
+                        my: 0.75,
+                        alignItems: "center",
+                      },
+                      "& .MuiAccordionSummary-content.Mui-expanded": { my: 0.75 },
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: theme.palette.fonts.articleBody, fontSize: "1rem", fontWeight: 600, color: "#FFFFFF" }}>
                     {item.question.trim() || "Question"}
-                  </Box>
+                    </Typography>
+                  </AccordionSummary>
                   {item.answer.trim() ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {item.answer}
-                    </ReactMarkdown>
+                    <AccordionDetails
+                      sx={{
+                        m: 0.75,
+                        mt: 0,
+                        p: 1.75,
+                        borderRadius: "8px",
+                        bgcolor: "#FFFFFF",
+                        color: t.ink,
+                      }}
+                    >
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {item.answer}
+                      </ReactMarkdown>
+                    </AccordionDetails>
                   ) : null}
-                </Box>
+                </Accordion>
               ))}
             </Box>
           );
@@ -882,16 +921,56 @@ export function StructuredArticleSections({ sections }: { sections: ArticleSecti
             <Box key={section.id}>
               {headingNode}
               {items.map((item, index) => (
-                <Box key={item.id} component="details" open={index === 0}>
-                  <Box component="summary">
-                    {item.title.trim() || "Details"}
-                  </Box>
+                <Accordion
+                  key={item.id}
+                  defaultExpanded={index === 0}
+                  disableGutters
+                  elevation={0}
+                  sx={{
+                    mb: 1.25,
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    bgcolor: faqSectionBg,
+                    color: "#FFFFFF",
+                    "&:before": { display: "none" },
+                    "&.Mui-expanded": { mb: 1.25 },
+                  }}
+                >
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon sx={{ color: "#FFFFFF", fontSize: 24 }} />}
+                    sx={{
+                      minHeight: 48,
+                      px: 1.5,
+                      py: 0.5,
+                      "&.Mui-expanded": { minHeight: 48 },
+                      "& .MuiAccordionSummary-content": {
+                        my: 0.75,
+                        alignItems: "center",
+                      },
+                      "& .MuiAccordionSummary-content.Mui-expanded": { my: 0.75 },
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: theme.palette.fonts.articleBody, fontSize: "1rem", fontWeight: 600, color: "#FFFFFF" }}>
+                      {item.title.trim() || "Details"}
+                    </Typography>
+                  </AccordionSummary>
                   {item.body.trim() ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {item.body}
-                    </ReactMarkdown>
+                    <AccordionDetails
+                      sx={{
+                        m: 0.75,
+                        mt: 0,
+                        p: 1.75,
+                        borderRadius: "8px",
+                        bgcolor: "#FFFFFF",
+                        color: t.ink,
+                      }}
+                    >
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {item.body}
+                      </ReactMarkdown>
+                    </AccordionDetails>
                   ) : null}
-                </Box>
+                </Accordion>
               ))}
             </Box>
           );

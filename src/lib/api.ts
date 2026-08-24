@@ -887,6 +887,7 @@ export const api = {
       fileName: string;
       filePath: string;
       mimeType: string;
+      extractedText?: string;
     }>(`/api/uploads`, {
       method: "POST",
       body: JSON.stringify(input),

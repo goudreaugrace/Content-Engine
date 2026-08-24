@@ -1,6 +1,6 @@
 import { Box, Button, Chip, Stack, Typography, useTheme } from "@mui/material";
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import { type ReactNode } from "react";
 import ArticleReviewFrame, { type DetailCard } from "./article-review-frame";
 
@@ -80,6 +80,10 @@ function ArticleSideRail({
         borderRadius: "8px",
         bgcolor: t.articleRailBg,
         border: 0,
+        fontFamily: theme.palette.fonts.articleBody,
+        "& *": {
+          fontFamily: theme.palette.fonts.articleBody,
+        },
       }}
     >
       <Typography
@@ -139,8 +143,8 @@ function ArticleSideRail({
                 variant="outlined"
                 onClick={link.onClick}
                 disabled={link.disabled}
-                startIcon={<FolderOutlinedIcon sx={{ fontSize: 22 }} />}
-                endIcon={<KeyboardArrowRightIcon sx={{ fontSize: 16 }} />}
+                startIcon={<DescriptionRoundedIcon sx={{ fontSize: 24 }} />}
+                endIcon={<OpenInNewRoundedIcon sx={{ fontSize: 17 }} />}
                 sx={{
                   justifyContent: "space-between",
                   minHeight: 48,
@@ -148,20 +152,35 @@ function ArticleSideRail({
                   py: 1,
                   borderRadius: "8px",
                   borderColor: t.articleDivider,
+                  bgcolor: "#FFFFFF",
                   color: t.pepsiBlue,
                   fontFamily: theme.palette.fonts.articleBody,
-                  fontSize: "0.8125rem",
-                  fontWeight: 500,
+                  fontSize: "0.875rem",
+                  fontWeight: 700,
                   lineHeight: 1.25,
                   textAlign: "left",
                   whiteSpace: "normal",
                   textTransform: "none",
-                  "& .MuiButton-startIcon": { color: t.pepsiNavy, mr: 1 },
-                  "& .MuiButton-endIcon": { color: t.pepsiNavy, ml: 0.75 },
+                  "& .MuiButton-startIcon": {
+                    color: "#6EA8E5",
+                    mr: 1.125,
+                  },
+                  "& .MuiButton-endIcon": {
+                    color: t.pepsiBlue,
+                    ml: 0.75,
+                  },
                   "& .MuiButton-icon": { flexShrink: 0 },
                   "&:hover": {
-                    bgcolor: t.pepsiBlueSubtle,
-                    borderColor: t.pepsiNavy,
+                    bgcolor: "#F7FBFF",
+                    borderColor: t.pepsiBlue,
+                    color: t.pepsiBlueStrong,
+                    boxShadow: "0 2px 6px rgba(0, 85, 150, 0.12)",
+                    "& .MuiButton-startIcon": {
+                      color: "#5B9DDD",
+                    },
+                    "& .MuiButton-endIcon": {
+                      color: t.pepsiBlueStrong,
+                    },
                   },
                 }}
               >

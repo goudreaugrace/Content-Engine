@@ -112,6 +112,10 @@ export default function ArticleReviewFrame({
                   bgcolor: t.articleRailBg,
                   border: 0,
                   boxShadow: "none",
+                  fontFamily: theme.palette.fonts.articleBody,
+                  "& *": {
+                    fontFamily: theme.palette.fonts.articleBody,
+                  },
                 }}
               >
                 <Typography sx={{ fontFamily: theme.palette.fonts.articleBody, fontSize: "1rem", fontWeight: 700, color: t.ink, mb: 1.5 }}>

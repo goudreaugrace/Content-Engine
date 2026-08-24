@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
+import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -24,6 +26,7 @@ export const uploadsRouter = Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, "..", "data");
 const UPLOAD_DIR = path.join(DATA_DIR, "source-uploads");
+const execFileAsync = promisify(execFile);
 
 async function ensureUploadDir(id: string) {
   const dir = path.join(UPLOAD_DIR, id);
@@ -41,6 +44,40 @@ const ALLOWED_MIME = new Set([
 function kindFromMime(mime: string): "pdf" | "doc" {
   if (mime === "application/pdf") return "pdf";
   return "doc";
+}
+
+function cleanDocxXml(xml: string) {
+  return xml
+    .replace(/<w:tab\/>/g, "\t")
+    .replace(/<\/w:p>/g, "\n")
+    .replace(/<\/w:tr>/g, "\n")
+    .replace(/<\/w:tc>/g, "\t")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&apos;/g, "'")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function extractUploadedText(filePath: string, mimeType: string) {
+  try {
+    if (mimeType === "text/plain") {
+      return (await fs.readFile(filePath, "utf8")).trim();
+    }
+    if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      const { stdout } = await execFileAsync("unzip", ["-p", filePath, "word/document.xml"], {
+        maxBuffer: 8 * 1024 * 1024,
+      });
+      return cleanDocxXml(stdout);
+    }
+  } catch {
+    return "";
+  }
+  return "";
 }
 
 uploadsRouter.post("/", async (req, res) => {
@@ -76,6 +113,7 @@ uploadsRouter.post("/", async (req, res) => {
     // Server-relative path we persist on the profile — the GET route
     // below serves files from here.
     const publicPath = `source-uploads/${id}/${safeName}`;
+    const extractedText = await extractUploadedText(filePath, mimeType);
 
     res.json({
       id,
@@ -84,6 +122,7 @@ uploadsRouter.post("/", async (req, res) => {
       fileName: safeName,
       filePath: publicPath,
       mimeType,
+      extractedText,
     });
   } catch (e: any) {
     res.status(500).json({ error: e?.message ?? "upload failed" });

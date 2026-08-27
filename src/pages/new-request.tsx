@@ -37,6 +37,7 @@ import LinkIcon from "@mui/icons-material/Link";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -127,29 +128,19 @@ type StepIndex = 0 | 1 | 2;
 
 const knowledgeBases = [
   {
-    id: "mypepsico-general",
-    name: "mypepsico Knowledge",
+    id: "pep-km",
+    name: "Pep KM KB",
+    description: "Knowledge management articles maintained for enterprise support teams.",
+  },
+  {
+    id: "mypepsico",
+    name: "myPepsiCo KB",
     description: "General employee-facing articles and FAQs.",
   },
   {
-    id: "hr-people",
-    name: "HR and People",
-    description: "Benefits, leave, payroll, workplace policies, and manager guidance.",
-  },
-  {
-    id: "it-service",
-    name: "IT Service Desk",
-    description: "Access, devices, applications, security, and technical how-to articles.",
-  },
-  {
-    id: "data-analytics",
-    name: "Data and Analytics",
-    description: "Dashboards, reporting tools, metrics, and data governance guidance.",
-  },
-  {
-    id: "sales-frontline",
-    name: "Sales and Frontline",
-    description: "Field, warehouse, merchandising, route, and customer-facing guidance.",
+    id: "pfp",
+    name: "PFP KB",
+    description: "PFP-specific articles, policies, and operational guidance.",
   },
 ] as const;
 
@@ -587,16 +578,18 @@ const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
   "Topic Page": ["Overview", "When to use this page", "Key resources"],
 };
 
+const MIN_ARTICLE_CHARACTER_COUNT = 500;
+
 function articleLengthStatus(characterCount: number): {
   label: string;
   tone: "success" | "warning" | "error";
   helper: string;
 } {
-  if (characterCount < 500) {
+  if (characterCount < MIN_ARTICLE_CHARACTER_COUNT) {
     return {
       label: "Too thin",
       tone: "error",
-      helper: "mypepsico guidance says articles under 500 characters usually do not answer enough on their own.",
+      helper: "Articles under 500 characters cannot be submitted because they usually do not answer enough on their own.",
     };
   }
   if (characterCount <= 6000) {
@@ -1236,7 +1229,7 @@ export default function NewRequest() {
   const [form, setForm] = useState({
     title: "",
     contentType: "FAQ" as ContentType,
-    knowledgeBase: "mypepsico-general",
+    knowledgeBase: "mypepsico",
     // Sector is the corporate tier above market. Sector is single-select
     // and drives the market picker (cascade). Default PFNA matches the
     // default US market so the wizard opens with a valid state.
@@ -1271,6 +1264,7 @@ export default function NewRequest() {
     seoTitle: "",
     metaDescription: "",
     keywords: [] as string[],
+    keyQuestions: [] as string[],
     globalJustification: "",
   });
   const [migrationForm, setMigrationForm] = useState({
@@ -1301,6 +1295,9 @@ export default function NewRequest() {
   const [enhancerTarget, setEnhancerTarget] = useState("article");
   const [enhancerPrompt, setEnhancerPrompt] = useState("");
   const [reviewEditKey, setReviewEditKey] = useState<string | null>(null);
+  const [reviewFindabilityEdit, setReviewFindabilityEdit] = useState<
+    "title" | "description" | "keywords" | "questions" | null
+  >(null);
   const [activeEditorTarget, setActiveEditorTarget] = useState<SelectionTarget>({
     type: "summary",
     key: "lead",
@@ -2188,46 +2185,23 @@ export default function NewRequest() {
     keywords: suggestKeywords(seoSuggestionInput),
     questions: suggestKeyQuestions(seoSuggestionInput),
   };
+  const effectiveSearch = {
+    title: form.seoTitle.trim() || generatedSearch.title,
+    description: form.metaDescription.trim() || generatedSearch.description,
+    keywords: form.keywords.length > 0 ? form.keywords : generatedSearch.keywords,
+    questions: form.keyQuestions.length > 0 ? form.keyQuestions : generatedSearch.questions,
+  };
+  const updateDelimitedList = (field: "keywords" | "keyQuestions", value: string) => {
+    update(
+      field,
+      value
+        .split(/[,;\n]/)
+        .map((item) => item.trim())
+        .filter(Boolean),
+    );
+  };
 
-  // ───────────── Per-step validation ─────────────
-  // Each step has its own gate so the Next button is only enabled when the
-  // current step's required fields are valid. The Submit button on the last
-  // step requires ALL steps to be valid (defense against a previously-valid
-  // step being mutated via the back nav and breaking).
   const setupCanRead = form.canRead.length > 0 ? form.canRead : form.audience;
-  const step0Valid =
-    !!form.title.trim() &&
-    !!form.knowledgeBase.trim() &&
-    form.markets.length > 0 &&
-    (!isGlobal || form.globalJustification.trim().length >= 10) &&
-    form.audience.length > 0 &&
-    setupCanRead.length > 0 &&
-    derivedCountries.length > 0;
-
-  const step1Valid =
-    !!(form.summary.trim() || form.sourceText.trim() || templateHasContent);
-
-  const step2Valid = true;
-
-  const stepValid = [step0Valid, step1Valid, step2Valid];
-  const canAdvance = stepValid[currentStep];
-  const canSubmit = step0Valid && step1Valid;
-  const goNext = () => {
-    if (currentStep < 2) setCurrentStep((s) => (s + 1) as StepIndex);
-  };
-  const goBack = () => {
-    if (currentStep > 0) setCurrentStep((s) => (s - 1) as StepIndex);
-  };
-  /**
-   * Stepper click handler. Lets the user jump back to completed work, while
-   * keeping forward movement on the primary Next / Submit controls.
-   */
-  const goToStep = (target: number) => {
-    if (target === currentStep) return;
-    if (target < currentStep) {
-      setCurrentStep(target as StepIndex);
-    }
-  };
 
   // ───────────── Sector change handler ─────────────
   // Sector is the cascade parent. Switching sector resets `markets` to
@@ -2763,12 +2737,12 @@ export default function NewRequest() {
     languagesRequired: selectedMarketLanguageCodes,
     audiences: form.audience,
     contentType: form.contentType,
-    topics: generatedSearch.keywords,
-    businessTerms: generatedSearch.keywords,
-    systems: generatedSearch.keywords.filter((keyword) =>
+    topics: effectiveSearch.keywords,
+    businessTerms: effectiveSearch.keywords,
+    systems: effectiveSearch.keywords.filter((keyword) =>
       /\b(workday|servicenow|sap|mypepsico|speak up|airlinc|image vision)\b/i.test(keyword),
     ),
-    processes: generatedSearch.questions.map((question) =>
+    processes: effectiveSearch.questions.map((question) =>
       question.replace(/\?$/, ""),
     ),
   };
@@ -2799,6 +2773,46 @@ export default function NewRequest() {
       : lengthStatus.tone === "warning"
         ? t.ember
         : t.errorInk;
+  const articleMeetsMinimumLength =
+    articleBodyCharacterCount >= MIN_ARTICLE_CHARACTER_COUNT;
+
+  // ───────────── Per-step validation ─────────────
+  // Each step has its own gate so the Next button is only enabled when the
+  // current step's required fields are valid. The Submit button on the last
+  // step requires ALL steps to be valid plus the minimum publishable length.
+  const step0Valid =
+    !!form.title.trim() &&
+    !!form.knowledgeBase.trim() &&
+    form.markets.length > 0 &&
+    (!isGlobal || form.globalJustification.trim().length >= 10) &&
+    form.audience.length > 0 &&
+    setupCanRead.length > 0 &&
+    derivedCountries.length > 0;
+
+  const step1Valid =
+    !!(form.summary.trim() || form.sourceText.trim() || templateHasContent);
+
+  const step2Valid = true;
+
+  const stepValid = [step0Valid, step1Valid, step2Valid];
+  const canAdvance = stepValid[currentStep];
+  const canSubmit = step0Valid && step1Valid && articleMeetsMinimumLength;
+  const goNext = () => {
+    if (currentStep < 2) setCurrentStep((s) => (s + 1) as StepIndex);
+  };
+  const goBack = () => {
+    if (currentStep > 0) setCurrentStep((s) => (s - 1) as StepIndex);
+  };
+  /**
+   * Stepper click handler. Lets the user jump back to completed work, while
+   * keeping forward movement on the primary Next / Submit controls.
+   */
+  const goToStep = (target: number) => {
+    if (target === currentStep) return;
+    if (target < currentStep) {
+      setCurrentStep(target as StepIndex);
+    }
+  };
   const articlePlainText = finalArticleBody
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/!\[[^\]]*]\([^)]+\)/g, " ")
@@ -2844,7 +2858,7 @@ export default function NewRequest() {
       py: 0.35,
       transition: "background-color 160ms ease",
       "&:hover": {
-        bgcolor: t.surfaceContainerLow,
+        bgcolor: "#FFFFFF",
       },
       "&.Mui-focusVisible": {
         bgcolor: t.pepsiBlueSubtle,
@@ -2877,8 +2891,159 @@ export default function NewRequest() {
       transition: "transform 180ms ease, background-color 160ms ease",
     },
     "& .MuiAccordionSummary-root:hover .MuiAccordionSummary-expandIconWrapper": {
-      bgcolor: "#FFFFFF",
+      bgcolor: "transparent",
     },
+  };
+  const findabilityRows: Array<{
+    key: "title" | "description" | "keywords" | "questions";
+    label: string;
+    value: string;
+    editValue: string;
+    helper: string;
+    multiline?: boolean;
+    editable?: boolean;
+    onChange: (value: string) => void;
+  }> = [
+    {
+      key: "title",
+      label: "Findability title",
+      value: effectiveSearch.title || "Generated after the title and summary are filled.",
+      editValue: effectiveSearch.title,
+      helper: "Use the words an employee would search.",
+      editable: false,
+      onChange: (value) => update("seoTitle", value),
+    },
+    {
+      key: "description",
+      label: "Short search summary",
+      value: effectiveSearch.description || "Generated after the summary is filled.",
+      editValue: effectiveSearch.description,
+      helper: "A short plain-language summary for search and askpep routing.",
+      multiline: true,
+      editable: false,
+      onChange: (value) => update("metaDescription", value),
+    },
+    {
+      key: "keywords",
+      label: "Search terms",
+      value: effectiveSearch.keywords.length
+        ? effectiveSearch.keywords.join(", ")
+        : "Generated after the article has enough detail.",
+      editValue: effectiveSearch.keywords.join(", "),
+      helper: "Separate terms with commas.",
+      onChange: (value) => updateDelimitedList("keywords", value),
+    },
+    {
+      key: "questions",
+      label: "Likely employee questions",
+      value: effectiveSearch.questions.length
+        ? effectiveSearch.questions.join(" ")
+        : "Generated after the article has enough detail.",
+      editValue: effectiveSearch.questions.join("\n"),
+      helper: "Use one question per line.",
+      multiline: true,
+      onChange: (value) => updateDelimitedList("keyQuestions", value),
+    },
+  ];
+  const renderFindabilityRow = (row: (typeof findabilityRows)[number]) => {
+    const isEditing = reviewFindabilityEdit === row.key;
+    const canEdit = row.editable !== false;
+    return (
+      <Box
+        key={row.key}
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr auto", sm: "156px 1fr auto" },
+          gap: { xs: 0.75, sm: 1.5 },
+          alignItems: "start",
+          py: 1,
+          borderBottom: `1px solid ${t.articleDivider}`,
+          "&:last-of-type": { borderBottom: 0 },
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "0.75rem",
+            fontWeight: 750,
+            color: t.granite,
+            lineHeight: 1.45,
+          }}
+        >
+          {row.label}
+        </Typography>
+        <Box sx={{ minWidth: 0 }}>
+          {isEditing ? (
+            <>
+              <TextField
+                autoFocus
+                fullWidth
+                multiline={row.multiline}
+                minRows={row.multiline ? 2 : 1}
+                variant="standard"
+                value={row.editValue}
+                onChange={(event) => row.onChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (!row.multiline && event.key === "Enter") {
+                    event.preventDefault();
+                    setReviewFindabilityEdit(null);
+                  }
+                }}
+                InputProps={{ disableUnderline: true }}
+                sx={{
+                  "& .MuiInputBase-input": {
+                    p: 0,
+                    fontFamily: theme.palette.fonts.articleBody,
+                    fontSize: "0.875rem",
+                    fontWeight: 550,
+                    lineHeight: 1.5,
+                    color: t.ink,
+                  },
+                }}
+              />
+              <Typography sx={{ mt: 0.45, fontSize: "0.6875rem", color: t.granite }}>
+                {row.helper}
+              </Typography>
+            </>
+          ) : (
+            <Typography
+              sx={{
+                fontSize: "0.875rem",
+                fontWeight: 550,
+                color: t.ink,
+                lineHeight: 1.5,
+                overflowWrap: "anywhere",
+              }}
+            >
+              {row.value}
+            </Typography>
+          )}
+        </Box>
+        {canEdit ? (
+          <IconButton
+            size="small"
+            aria-label={isEditing ? `Save ${row.label}` : `Edit ${row.label}`}
+            onClick={() => setReviewFindabilityEdit(isEditing ? null : row.key)}
+            sx={{
+              mt: -0.25,
+              width: 28,
+              height: 28,
+              color: t.pepsiBlueStrong,
+              "&:hover": {
+                bgcolor: t.pepsiBlueSubtle,
+              },
+            }}
+          >
+            {isEditing ? (
+              <CheckCircleOutlineIcon sx={{ fontSize: 17 }} />
+            ) : (
+              <EditOutlinedIcon sx={{ fontSize: 17 }} />
+            )}
+          </IconButton>
+        ) : (
+          <Box sx={{ width: 28, height: 28 }} />
+        )}
+      </Box>
+    );
   };
   const publishingFields = [
     { label: "Knowledge base", value: selectedKnowledgeBase.name },
@@ -2930,7 +3095,7 @@ export default function NewRequest() {
   const askpepChecks = [
     {
       label: "Article has enough typed text for employees and Ask Pep",
-      done: articleBodyCharacterCount >= 500,
+      done: articleMeetsMinimumLength,
     },
     {
       label: "The first summary gives employees the answer or purpose quickly",
@@ -2962,7 +3127,7 @@ export default function NewRequest() {
     },
     {
       label: "Search words and employee question are generated",
-      done: generatedSearch.keywords.length > 0 && generatedSearch.questions.length > 0,
+      done: effectiveSearch.keywords.length > 0 && effectiveSearch.questions.length > 0,
     },
     {
       label: "Sentences are short enough for plain-language reading",
@@ -3697,7 +3862,7 @@ export default function NewRequest() {
         sx={{
           position: "absolute",
           right: 12,
-          bottom: 12,
+          bottom: 14,
           zIndex: 5,
           width: "auto",
           display: "flex",
@@ -3903,8 +4068,12 @@ export default function NewRequest() {
       pb: 0.75,
     },
     "& .MuiFilledInput-inputMultiline": {
-      pt: 1.35,
-      pb: 0.75,
+      pt: 2,
+      pb: 4.5,
+    },
+    "& textarea.MuiFilledInput-input": {
+      pt: 2,
+      pb: 4.5,
     },
     "& .MuiFormHelperText-root": {
       mx: 0,
@@ -3921,6 +4090,9 @@ export default function NewRequest() {
       minHeight: 64,
       alignItems: "flex-start",
     },
+    "& .MuiInputBase-root.MuiInputBase-multiline": {
+      minHeight: 148,
+    },
     "& .MuiFilledInput-input": {
       px: 1.5,
       pt: 2.6,
@@ -3929,8 +4101,12 @@ export default function NewRequest() {
       lineHeight: 1.35,
     },
     "& .MuiFilledInput-inputMultiline": {
-      pt: 2.6,
-      pb: 1,
+      pt: 2,
+      pb: 4.5,
+    },
+    "& textarea.MuiFilledInput-input": {
+      pt: 2,
+      pb: 4.5,
     },
     "& .MuiInputBase-input::placeholder": {
       color: t.granite,
@@ -3966,8 +4142,12 @@ export default function NewRequest() {
       lineHeight: 1.35,
     },
     "& .MuiFilledInput-inputMultiline": {
-      pt: 3.05,
-      pb: 5.25,
+      pt: 2,
+      pb: 4.5,
+    },
+    "& textarea.MuiFilledInput-input": {
+      pt: 2,
+      pb: 4.5,
     },
     "& .MuiInputBase-input::placeholder": {
       color: t.granite,
@@ -4929,6 +5109,10 @@ export default function NewRequest() {
 
   // ───────────── Submit ─────────────
   const submit = async () => {
+    if (!articleMeetsMinimumLength) {
+      setError("Articles need at least 500 characters before they can be submitted for approval.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -4989,12 +5173,12 @@ export default function NewRequest() {
         approver: selectedApprover,
         countries: derivedCountries,
         seo: {
-          title: generatedSearch.title,
-          metaDescription: generatedSearch.description,
-          keywords: generatedSearch.keywords,
-          summary: generatedSearch.description,
-          keyQuestions: generatedSearch.questions,
-          entities: generatedSearch.keywords,
+          title: effectiveSearch.title,
+          metaDescription: effectiveSearch.description,
+          keywords: effectiveSearch.keywords,
+          summary: effectiveSearch.description,
+          keyQuestions: effectiveSearch.questions,
+          entities: effectiveSearch.keywords,
         },
         globalJustification: isGlobal
           ? form.globalJustification.trim()
@@ -5364,29 +5548,67 @@ export default function NewRequest() {
               onChange={(e) => handleSectorChange(e.target.value)}
               SelectProps={{
                 MenuProps: { PaperProps: { sx: { maxHeight: 360 } } },
+                renderValue: (selected) => {
+                  const sector = sectorProfiles.find((s) => s.id === selected);
+                  if (!sector) return String(selected).toUpperCase();
+                  return (
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        component="span"
+                        sx={{
+                          display: "block",
+                          fontSize: "0.875rem",
+                          color: t.ink,
+                          fontWeight: 400,
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {sector.id.toUpperCase()}
+                      </Typography>
+                      <Typography
+                        component="span"
+                        noWrap
+                        sx={{
+                          display: "block",
+                          fontSize: "0.6875rem",
+                          color: t.granite,
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        {sector.name}
+                      </Typography>
+                    </Box>
+                  );
+                },
               }}
             >
               {sectorProfiles.map((s) => (
                 <MenuItem key={s.id} value={s.id} sx={{ py: 0.75 }}>
-                  <Stack direction="row" alignItems="center" spacing={1.25}>
-                    {s.id === "global" && (
-                      <PublicIcon sx={{ fontSize: 16, color: t.ember }} />
-                    )}
-                    <Box>
-                      <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
-                        {s.name}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "0.6875rem",
-                          color: t.granite,
-                          fontFamily: theme.palette.fonts.mono,
-                        }}
-                      >
-                        {s.id}
-                      </Typography>
-                    </Box>
-                  </Stack>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      component="span"
+                      sx={{
+                        display: "block",
+                        fontSize: "0.875rem",
+                        color: t.ink,
+                        fontWeight: 400,
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {s.id.toUpperCase()}
+                    </Typography>
+                    <Typography
+                      component="span"
+                      sx={{
+                        display: "block",
+                        fontSize: "0.6875rem",
+                        color: t.granite,
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      {s.name}
+                    </Typography>
+                  </Box>
                 </MenuItem>
               ))}
             </TextField>
@@ -5793,9 +6015,7 @@ export default function NewRequest() {
                 color: t.granite,
               }}
             >
-              <Box component="span">
-                Employees see this above the article. One or two sentences is enough.
-              </Box>
+              <Box component="span" />
               <Box component="span" sx={{ flexShrink: 0 }}>
                 {form.summary.length.toLocaleString()} characters
               </Box>
@@ -7011,7 +7231,7 @@ export default function NewRequest() {
             </Typography>
             <Typography sx={{ mt: 0.5, fontSize: "0.875rem", color: t.slate, maxWidth: "68ch" }}>
               Check the submission details first, then review the employee-facing article.
-              Hover over a section in the article preview to edit it before submitting.
+              Use the Edit control on a section to make changes before submitting.
             </Typography>
           </Box>
 
@@ -7042,6 +7262,7 @@ export default function NewRequest() {
                   localeLabel={displayLanguage(detectedDraftLanguage)}
                   presentation="immersive"
                   showMasthead={false}
+                  showMastheadMeta={false}
                   editableSections={reviewEditableSections}
                   editingKey={reviewEditKey}
                   onEdit={setReviewEditKey}
@@ -7114,10 +7335,10 @@ export default function NewRequest() {
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
                   <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink }}>
-                    Submission details
+                    Basics to confirm
                   </Typography>
                   <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
-                    Scope, owner, files, and replacement links.
+                    {selectedKnowledgeBase.name} · {selectedMarketLabelsWithLanguages.join(", ") || "No country selected"} · Approver: {selectedApprover.name}
                   </Typography>
                 </Box>
               </AccordionSummary>
@@ -7162,56 +7383,15 @@ export default function NewRequest() {
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
                   <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink }}>
-                    How employees will find it
+                    Employee findability
                   </Typography>
                   <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
-                    Auto-generated search text. No expertise needed.
+                    {effectiveSearch.keywords.length} search terms · {effectiveSearch.questions.length} askpep questions
                   </Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
-                <Stack spacing={1.75}>
-                  <Box>
-                    <Typography sx={{ fontSize: "0.75rem", color: t.granite, mb: 0.5 }}>
-                      Search title
-                    </Typography>
-                    <Typography sx={{ fontSize: "0.9375rem", fontWeight: 600, color: t.ink }}>
-                      {generatedSearch.title}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: "0.75rem", color: t.granite, mb: 0.5 }}>
-                      Search description
-                    </Typography>
-                    <Typography sx={{ fontSize: "0.875rem", color: t.slate, lineHeight: 1.6 }}>
-                      {generatedSearch.description}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: "0.75rem", color: t.granite, mb: 0.75 }}>
-                      Search terms
-                    </Typography>
-                    <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
-                      {generatedSearch.keywords.length > 0 ? (
-                        generatedSearch.keywords.map((keyword) => (
-                          <Chip key={keyword} label={keyword} size="small" />
-                        ))
-                      ) : (
-                        <Typography sx={{ fontSize: "0.8125rem", color: t.slate }}>
-                          Search terms will be generated after the title and summary are filled.
-                        </Typography>
-                      )}
-                    </Stack>
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: "0.75rem", color: t.granite, mb: 0.5 }}>
-                      Likely employee question
-                    </Typography>
-                    <Typography sx={{ fontSize: "0.875rem", color: t.ink, lineHeight: 1.5 }}>
-                      {generatedSearch.questions.join(" ")}
-                    </Typography>
-                  </Box>
-                </Stack>
+                <Box>{findabilityRows.map(renderFindabilityRow)}</Box>
               </AccordionDetails>
             </Accordion>
 
@@ -7223,10 +7403,10 @@ export default function NewRequest() {
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box>
                   <Typography sx={{ fontSize: "0.8125rem", fontWeight: 750, color: t.ink }}>
-                    askpep and publish readiness
+                    Publish readiness
                   </Typography>
                   <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
-                    Plain-language checks based on the mypepsico guidelines.
+                    {articleBodyCharacterCount.toLocaleString()} characters · {lengthStatus.label} · {recommendedReviewUpdates.length} recommended updates
                   </Typography>
                 </Box>
               </AccordionSummary>
@@ -7264,29 +7444,54 @@ export default function NewRequest() {
                   </Box>
 
                   {recommendedReviewUpdates.length > 0 && (
-                    <Box
-                      sx={{
-                        p: 1,
-                        borderRadius: "8px",
-                        bgcolor: "#FFFFFF",
-                        border: `1px solid ${t.articleDivider}`,
-                      }}
-                    >
-                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 750, color: t.ink }}>
-                        Recommended updates before submitting
-                      </Typography>
-                      <Stack component="ul" spacing={0.45} sx={{ m: 0, mt: 0.65, pl: 2 }}>
-                        {recommendedReviewUpdates.map((recommendation) => (
-                          <Typography
-                            key={recommendation}
-                            component="li"
-                            sx={{ fontSize: "0.75rem", color: t.slate, lineHeight: 1.45 }}
-                          >
-                            {recommendation}
-                          </Typography>
-                        ))}
-                      </Stack>
-                    </Box>
+                    <Stack spacing={0.75}>
+                      {recommendedReviewUpdates.map((recommendation) => (
+                        <Stack
+                          key={recommendation}
+                          direction="row"
+                          spacing={0.75}
+                          alignItems="flex-start"
+                          sx={{
+                            px: 1.25,
+                            py: 1,
+                            borderRadius: "8px",
+                            bgcolor: "#FFF8E6",
+                            border: "1px solid rgba(197, 123, 0, 0.28)",
+                          }}
+                        >
+                          <ErrorOutlineIcon
+                            sx={{
+                              mt: 0.1,
+                              fontSize: 16,
+                              color: t.ember,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontSize: "0.6875rem",
+                                fontWeight: 800,
+                                color: t.ember,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.04em",
+                              }}
+                            >
+                              Recommended update
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: "0.8125rem",
+                                color: t.slate,
+                                lineHeight: 1.45,
+                              }}
+                            >
+                              {recommendation}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      ))}
+                    </Stack>
                   )}
 
                   {askpepChecks.map((item) => (

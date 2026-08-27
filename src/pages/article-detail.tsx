@@ -1696,7 +1696,7 @@ function ContentOwnerRevisionDetails({ article, onUpdated }: { article: Article;
           <Typography variant="overline" sx={{ color: t.granite, letterSpacing: "0.08em", fontSize: "0.625rem", mb: -1 }}>Publishing details</Typography>
           <TextField required label="Article title" value={title} onChange={(event) => setTitle(event.target.value)} size="small" fullWidth helperText="This is also used as the search and AI discovery title." sx={{ "& .MuiFormLabel-asterisk": { color: "#C62828", fontSize: "1rem", fontWeight: 800 } }} />
           <TextField required select label="Knowledge base" value={knowledgeBase} onChange={(event) => setKnowledgeBase(event.target.value)} size="small" fullWidth helperText="Choose from the knowledge bases you are approved to publish into." sx={{ "& .MuiFormLabel-asterisk": { color: "#C62828", fontSize: "1rem", fontWeight: 800 } }}>
-            <MenuItem value="myPepsiCo KB">myPepsiCo KB</MenuItem><MenuItem value="PFP KB">PFP KB</MenuItem><MenuItem value="PepKM KB">PepKM KB</MenuItem>
+            <MenuItem value="Pep KM KB">Pep KM KB</MenuItem><MenuItem value="myPepsiCo KB">myPepsiCo KB</MenuItem><MenuItem value="PFP KB">PFP KB</MenuItem>
           </TextField>
           <TextField required label="Countries / regions" value={countries} onChange={(event) => setCountries(event.target.value)} size="small" fullWidth helperText="Use comma-separated country codes, for example: US, CA, MX." sx={{ "& .MuiFormLabel-asterisk": { color: "#C62828", fontSize: "1rem", fontWeight: 800 } }} />
           <TextField required select label="Sector" value={sector} onChange={(event) => setSector(event.target.value)} size="small" fullWidth helperText="Only sectors you are approved to publish into are shown." sx={{ "& .MuiFormLabel-asterisk": { color: "#C62828", fontSize: "1rem", fontWeight: 800 } }}>
@@ -1786,9 +1786,9 @@ function PublishingDetailsPanel({ article, editMode, editableOnExpand = false, o
           <Stack spacing={2}>
             <TextField label="Article title" value={title} onChange={(event) => setTitle(event.target.value)} size="small" fullWidth />
             <TextField select label="Knowledge base" value={knowledgeBase} onChange={(event) => setKnowledgeBase(event.target.value)} size="small" fullWidth helperText="Choose from the knowledge bases you are approved to publish into.">
+              <MenuItem value="Pep KM KB">Pep KM KB</MenuItem>
               <MenuItem value="myPepsiCo KB">myPepsiCo KB</MenuItem>
               <MenuItem value="PFP KB">PFP KB</MenuItem>
-              <MenuItem value="PepKM KB">PepKM KB</MenuItem>
             </TextField>
             <TextField label="Countries / regions" value={countries} onChange={(event) => setCountries(event.target.value)} size="small" fullWidth helperText="Use comma-separated country codes, for example: US, CA, MX." />
             <Box>

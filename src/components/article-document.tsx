@@ -120,36 +120,45 @@ export default function ArticleDocument({
   const editableLead = lead ?? "";
   const faqSectionBg = "#3680CE";
 
-  const editButton = (key: string) =>
-    isEditable ? (
+  const editButton = (key: string) => {
+    const isSaving = editingKey === key;
+    return isEditable ? (
       <Button
         size="small"
-        variant="outlined"
+        variant={isSaving ? "contained" : "outlined"}
         className="article-edit-action"
-        onClick={() => onEdit?.(key)}
+        onClick={(event) => {
+          event.stopPropagation();
+          if (isSaving) {
+            onDoneEditing?.();
+            return;
+          }
+          onEdit?.(key);
+        }}
         sx={{
           position: "absolute",
           top: 0,
-          right: 0,
+          right: -8,
           minHeight: 30,
           px: 1.25,
           borderRadius: 999,
-          bgcolor: "#FFFFFF",
-          borderColor: t.border,
-          color: t.pepsiBlueStrong,
+          bgcolor: isSaving ? t.pepsiBlueStrong : "#FFFFFF",
+          borderColor: isSaving ? t.pepsiBlueStrong : t.border,
+          color: isSaving ? "#FFFFFF" : t.pepsiBlueStrong,
           fontSize: "0.75rem",
           fontWeight: 700,
-          opacity: { xs: 1, md: 0 },
+          opacity: isSaving ? 1 : { xs: 1, md: 0 },
           transition: "opacity 140ms, border-color 140ms, background-color 140ms",
           "&:hover": {
-            bgcolor: t.pepsiBlueSubtle,
-            borderColor: t.pepsiBlue,
+            bgcolor: isSaving ? t.pepsiNavy : t.pepsiBlueSubtle,
+            borderColor: isSaving ? t.pepsiNavy : t.pepsiBlue,
           },
         }}
       >
-        Edit
+        {isSaving ? "Save" : "Edit"}
       </Button>
     ) : null;
+  };
 
   const editableBlockSx = {
     position: "relative",
@@ -175,7 +184,7 @@ export default function ArticleDocument({
               maxWidth: isImmersive ? 1040 : 760,
               px: 1.25,
               py: 1,
-              borderRadius: 1.25,
+              borderRadius: "8px",
               bgcolor: "#FFF8E6",
               border: "1px solid rgba(197, 123, 0, 0.28)",
               color: t.ink,
@@ -183,8 +192,8 @@ export default function ArticleDocument({
           >
             <ErrorOutlineIcon sx={{ mt: 0.1, fontSize: 16, color: t.ember, flexShrink: 0 }} />
             <Box>
-              <Typography sx={{ fontSize: "0.6875rem", fontWeight: 800, color: t.ember, textTransform: "uppercase", letterSpacing: 0 }}>
-                Recommended improvement
+              <Typography sx={{ fontSize: "0.6875rem", fontWeight: 800, color: t.ember, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                Recommended update
               </Typography>
               <Typography sx={{ fontSize: "0.8125rem", color: t.slate, lineHeight: 1.45 }}>
                 {item}
@@ -306,6 +315,7 @@ export default function ArticleDocument({
         <Box sx={editableBlockSx}>
           {editingKey === "title" && onTitleChange ? (
             <Stack spacing={1}>
+              {editButton("title")}
               <TextField
                 autoFocus
                 fullWidth
@@ -323,11 +333,6 @@ export default function ArticleDocument({
                   },
                 }}
               />
-              <Box>
-                <Button size="small" variant="contained" onClick={onDoneEditing}>
-                  Done
-                </Button>
-              </Box>
               {recommendationCallouts(titleRecommendations)}
             </Stack>
           ) : (
@@ -382,6 +387,7 @@ export default function ArticleDocument({
           <Box sx={editableBlockSx}>
             {editingKey === "lead" && onLeadChange ? (
               <Stack spacing={1}>
+                {editButton("lead")}
                 <TextField
                   autoFocus
                   fullWidth
@@ -401,11 +407,6 @@ export default function ArticleDocument({
                     },
                   }}
                 />
-                <Box>
-                  <Button size="small" variant="contained" onClick={onDoneEditing}>
-                    Done
-                  </Button>
-                </Box>
                 {recommendationCallouts(leadRecommendations)}
               </Stack>
             ) : (
@@ -657,6 +658,9 @@ export default function ArticleDocument({
             alignItems: "center",
             gap: 1,
             "&::-webkit-details-marker": { display: "none" },
+            "&:hover": {
+              bgcolor: faqSectionBg,
+            },
             "&::after": {
               content: "\"⌄\"",
               marginLeft: "auto",
@@ -732,6 +736,7 @@ export default function ArticleDocument({
                 >
                   {isEditing ? (
                     <Stack spacing={1.25}>
+                      {editButton(section.key)}
                       {section.editor ?? (
                         <>
                           {section.onTitleChange && (
@@ -774,11 +779,6 @@ export default function ArticleDocument({
                         </>
                       )}
                       {recommendationCallouts(section.recommendations)}
-                      <Box>
-                        <Button size="small" variant="contained" onClick={onDoneEditing}>
-                          Done
-                        </Button>
-                      </Box>
                     </Stack>
                   ) : (
                     <>
@@ -878,10 +878,13 @@ export function StructuredArticleSections({ sections }: { sections: ArticleSecti
                   <AccordionSummary
                     expandIcon={<ExpandMoreIcon sx={{ color: "#FFFFFF", fontSize: 24 }} />}
                     sx={{
+                      bgcolor: faqSectionBg,
                       minHeight: 48,
                       px: 1.5,
                       py: 0.5,
-                      "&.Mui-expanded": { minHeight: 48 },
+                      "&:hover": { bgcolor: `${faqSectionBg} !important` },
+                      "&.Mui-focusVisible": { bgcolor: `${faqSectionBg} !important` },
+                      "&.Mui-expanded": { minHeight: 48, bgcolor: `${faqSectionBg} !important` },
                       "& .MuiAccordionSummary-content": {
                         my: 0.75,
                         alignItems: "center",
@@ -939,10 +942,13 @@ export function StructuredArticleSections({ sections }: { sections: ArticleSecti
                   <AccordionSummary
                     expandIcon={<ExpandMoreIcon sx={{ color: "#FFFFFF", fontSize: 24 }} />}
                     sx={{
+                      bgcolor: faqSectionBg,
                       minHeight: 48,
                       px: 1.5,
                       py: 0.5,
-                      "&.Mui-expanded": { minHeight: 48 },
+                      "&:hover": { bgcolor: `${faqSectionBg} !important` },
+                      "&.Mui-focusVisible": { bgcolor: `${faqSectionBg} !important` },
+                      "&.Mui-expanded": { minHeight: 48, bgcolor: `${faqSectionBg} !important` },
                       "& .MuiAccordionSummary-content": {
                         my: 0.75,
                         alignItems: "center",

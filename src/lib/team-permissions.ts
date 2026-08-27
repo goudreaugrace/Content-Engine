@@ -81,9 +81,9 @@ export const SECTOR_OPTIONS = [
 ];
 
 export const KNOWLEDGE_BASE_OPTIONS = [
+  { id: "pepkm", label: "Pep KM KB" },
   { id: "mypepsico", label: "myPepsiCo KB" },
   { id: "pfp", label: "PFP KB" },
-  { id: "pepkm", label: "PepKM KB" },
 ];
 
 // A Team Admin may only delegate permissions they already hold.

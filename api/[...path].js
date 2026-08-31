@@ -484,7 +484,7 @@ function createDemoArticleFromInput(input = {}, overrides = {}) {
     id,
     jobId: overrides.jobId,
     title,
-    contentType: input.contentType || "Knowledge Article",
+    contentType: input.contentType || "How to",
     knowledgeBase: input.knowledgeBase || "myPepsiCo KB",
     sector: Array.isArray(input.sectors) ? input.sectors[0] : input.sector,
     market: marketFromInput(input),

@@ -3,7 +3,7 @@ export type ArticleStatus = "needs-review" | "approved" | "rejected";
 export type Article = {
   id: string;
   title: string;
-  contentType: "FAQ" | "Policy" | "Knowledge Article" | "Topic Page";
+  contentType: "FAQ" | "Business info" | "How to" | "Policy";
   market: "US" | "MX" | "Global";
   submittedBy: { name: string; email: string };
   submittedAt: string; // ISO date
@@ -18,7 +18,7 @@ export const mockArticles: Article[] = [
   {
     id: "ka-001",
     title: "How to submit an expense report",
-    contentType: "Knowledge Article",
+    contentType: "How to",
     market: "US",
     submittedBy: { name: "Sarah Chen", email: "sarah.chen@pepsico.com" },
     submittedAt: "2026-05-12T14:23:00Z",
@@ -27,7 +27,7 @@ export const mockArticles: Article[] = [
   {
     id: "ka-002",
     title: "Cómo solicitar tiempo de vacaciones",
-    contentType: "Knowledge Article",
+    contentType: "How to",
     market: "MX",
     submittedBy: { name: "Carlos Ramírez", email: "carlos.ramirez@pepsico.com" },
     submittedAt: "2026-05-10T09:15:00Z",
@@ -70,7 +70,7 @@ export const mockArticles: Article[] = [
   {
     id: "ka-006",
     title: "Benefits enrollment hub",
-    contentType: "Topic Page",
+    contentType: "Business info",
     market: "US",
     submittedBy: { name: "Sarah Chen", email: "sarah.chen@pepsico.com" },
     submittedAt: "2026-05-15T13:10:00Z",
@@ -79,7 +79,7 @@ export const mockArticles: Article[] = [
   {
     id: "ka-007",
     title: "IT support: VPN troubleshooting",
-    contentType: "Knowledge Article",
+    contentType: "How to",
     market: "Global",
     submittedBy: { name: "Devon Williams", email: "devon.williams@pepsico.com" },
     submittedAt: "2026-05-04T11:05:00Z",
@@ -120,7 +120,7 @@ export const mockArticles: Article[] = [
   {
     id: "ka-011",
     title: "Guía de uso del portal MyPepsiCo",
-    contentType: "Knowledge Article",
+    contentType: "How to",
     market: "MX",
     submittedBy: { name: "Ana Gutiérrez", email: "ana.gutierrez@pepsico.com" },
     submittedAt: "2026-04-28T10:00:00Z",

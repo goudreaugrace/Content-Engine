@@ -46,7 +46,7 @@ const auditItems: AuditItem[] = [
   },
   {
     title: "Creation editor",
-    body: "The creation flow is now a structured document editor: templates start the article, authors can add text, FAQ, table, resource, accordion, and callout sections, and format guidance helps them pick the right article type.",
+    body: "Every item is a knowledge article with one of four types: FAQ, Business info, How to, or Policy. The selected type supplies the starting structure, while authors can still add text, FAQ, table, resource, accordion, and callout sections.",
     status: "strong",
   },
   {
@@ -86,8 +86,8 @@ const iaSections = [
     title: "Content Owner Workspace",
     items: [
       "Create a new article from Basics, Article, and Review.",
-      "Pick the destination, content type, employee audience, access groups, source language, and approver before writing.",
-      "Use content-type templates plus flexible sections: text, FAQ, table, resource links, accordions, and callouts.",
+      "Pick the destination, article type (FAQ, Business info, How to, or Policy), employee audience, access groups, source language, and approver before writing.",
+      "Use article-type templates plus flexible sections: text, FAQ, table, resource links, accordions, and callouts.",
       "Use date selectors for policy timing and structured editors for tables, FAQs, accordions, and resources.",
       "Submit for approval after reviewing the same article format employees will see.",
       "Track personal and team-owned articles from My Articles.",
@@ -146,7 +146,7 @@ const contentObjects = [
 const creationRules = [
   {
     title: "Basics",
-    detail: "Capture destination metadata before writing: knowledge base, sector, country scope, employee audience, access groups, source language, content type, approver, and related taxonomy.",
+    detail: "Capture destination metadata before writing: knowledge base, sector, country scope, employee audience, access groups, source language, article type, approver, and related taxonomy.",
   },
   {
     title: "Article",
@@ -471,7 +471,7 @@ export default function DesignIAReference() {
               {[
                 {
                   title: "Destination taxonomy",
-                  items: ["Knowledge base", "Sector", "Countries", "Audience", "Access groups", "Source language", "Content type", "Topics"],
+                  items: ["Knowledge base", "Sector", "Countries", "Audience", "Access groups", "Source language", "Article type: FAQ · Business info · How to · Policy", "Topics"],
                 },
                 {
                   title: "Article sections",

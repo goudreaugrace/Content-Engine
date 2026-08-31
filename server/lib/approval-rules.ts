@@ -40,8 +40,8 @@ export type ApprovalDecision = {
 const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
   FAQ: ["Question", "Need help"],
   Policy: ["Who this applies to", "Policy", "Exceptions", "Compliance"],
-  "Knowledge Article": ["Before you start", "Steps", "Common", "Need help"],
-  "Topic Page": ["Overview", "Key resources", "Need help"],
+  "How to": ["Before you start", "Steps", "Common", "Need help"],
+  "Business info": ["Overview", "Who this", "Key", "Related", "Need help"],
 };
 
 /** Extract H2 headings from a markdown body. Case-insensitive lookup downstream. */

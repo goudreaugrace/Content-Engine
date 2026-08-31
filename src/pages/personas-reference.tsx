@@ -51,7 +51,7 @@ const pocViews: PocView[] = [
     risks: [
       "May create duplicate content because they do not know the existing knowledge base.",
       "May write process or policy claims from memory without adding source evidence.",
-      "May choose the wrong content type if the product makes templates feel too rigid.",
+      "May choose the wrong article type if the product makes templates feel too rigid.",
       "May abandon the flow if editing feels like a technical form instead of a document editor.",
     ],
     pocImplications: [

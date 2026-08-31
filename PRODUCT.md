@@ -8,7 +8,7 @@ product
 
 Three internal PepsiCo personas, all equally important:
 
-1. **Content owners**: people in HR, IT, Comms, Benefits, and functional teams who write Knowledge Articles and Topic Pages for the MyPepsiCo employee portal. They're not professional editors. They want to go from "I need a policy explainer for my team" to "submitted for review" without learning a CMS. Their moment with this product is sporadic, often interrupted, and motivated by something else they're trying to ship.
+1. **Content owners**: people in HR, IT, Comms, Benefits, and functional teams who write knowledge articles for the MyPepsiCo employee portal. They choose the article type that fits the employee need: FAQ, Business info, How to, or Policy. They're not professional editors. They want to go from "I need a policy explainer for my team" to "submitted for review" without learning a CMS. Their moment with this product is sporadic, often interrupted, and motivated by something else they're trying to ship.
 
 2. **Portal governance reviewers**: a small team running the monthly review cycle. They scan many articles, approve fast, reject with a reason, and need to spot pattern issues (e.g. "this market keeps missing regulatory references"). Their moment is batch-mode, focused, requires speed and signal.
 
@@ -18,7 +18,7 @@ The product sits inside ServiceNow's MyPepsiCo portal and inherits its RBAC.
 
 ## Product Purpose
 
-This is the Content Creation Agent for MyPepsiCo: a multi-agent system that helps content owners draft, validate, and ship Knowledge Articles and Topic Pages, while enforcing PepsiCo's DEEx guidelines, brand voice, and market-specific rules.
+This is the Content Creation Agent for MyPepsiCo: a multi-agent system that helps content owners draft, validate, and publish knowledge articles across FAQ, Business info, How to, and Policy types, while enforcing PepsiCo's DEEx guidelines, brand voice, and market-specific rules.
 
 Success looks like:
 

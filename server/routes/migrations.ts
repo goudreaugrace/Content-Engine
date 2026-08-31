@@ -12,7 +12,7 @@ import { normalizeArticleStandard } from "../lib/article-standard";
 
 export const migrationsRouter = Router();
 
-const CONTENT_TYPES = new Set<ContentType>(["FAQ", "Policy", "Knowledge Article", "Topic Page"]);
+const CONTENT_TYPES = new Set<ContentType>(["FAQ", "Business info", "How to", "Policy"]);
 const MARKET_MAP: Record<string, Market> = {
   us: "US",
   mx: "MX",
@@ -54,7 +54,7 @@ migrationsRouter.post("/standardize", async (req, res) => {
     if (!body.sourceContent?.trim()) {
       return res.status(400).json({ error: "sourceContent is required" });
     }
-    const contentType = body.contentType ?? "Knowledge Article";
+    const contentType = body.contentType ?? "How to";
     if (!CONTENT_TYPES.has(contentType)) {
       return res.status(400).json({ error: "Unsupported contentType" });
     }

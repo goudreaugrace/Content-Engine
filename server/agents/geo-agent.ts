@@ -111,7 +111,7 @@ function extractMockQuestions(body: string, contentType: ContentType): string[] 
     } else if (/before you start|requirements/.test(lower)) {
       out.push("What do I need before starting?");
     } else if (/steps|how to|procedure/.test(lower)) {
-      out.push(`How do I ${contentType === "Knowledge Article" ? "do this" : "complete this"}?`);
+      out.push(`How do I ${contentType === "How to" ? "do this" : "complete this"}?`);
     } else if (/troubleshoot|common situations|common issues/.test(lower)) {
       out.push("What if something goes wrong?");
     } else if (/exception/.test(lower)) {

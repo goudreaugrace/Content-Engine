@@ -263,7 +263,7 @@
     "id": "ka-fe212531",
     "jobId": "job-486d7f4b",
     "title": "How to refresh a driver login token",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "sector": "pfna",
     "market": "US",
     "countries": [
@@ -311,7 +311,7 @@
       "What should employees do next"
     ],
     "topics": [
-      "Knowledge Article",
+      "How to",
       "How to refresh a driver login token",
       "United States",
       "PepsiCo Foods North America",
@@ -430,7 +430,7 @@
     "id": "ka-a1d8c5a3",
     "jobId": "job-20ce4d1b",
     "title": "How to request access to a work application",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "countries": [
       "US",
@@ -473,7 +473,7 @@
         "id": "required-sections",
         "label": "Missing recommended sections: Overview, Troubleshooting",
         "severity": "warning",
-        "reason": "Knowledge Article articles work best with: Overview, Steps, Troubleshooting."
+        "reason": "How to articles work best with: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -662,7 +662,7 @@
     "id": "ka-demo-glb1",
     "jobId": "job-demo-glb1",
     "title": "How to use Speak Up to report an ethics concern",
-    "contentType": "Topic Page",
+    "contentType": "Business info",
     "market": "Global",
     "sector": "global",
     "countries": [],
@@ -759,7 +759,7 @@
     "id": "ka-9d98c278",
     "jobId": "job-4870b75b",
     "title": "How to request access",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "MX",
     "countries": [
       "US",
@@ -801,7 +801,7 @@
         "id": "required-sections",
         "label": "Missing recommended sections: Overview, Steps, Troubleshooting",
         "severity": "warning",
-        "reason": "Knowledge Article articles work best with: Overview, Steps, Troubleshooting."
+        "reason": "How to articles work best with: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -831,7 +831,7 @@
     "id": "ka-2058f693",
     "jobId": "job-4870b75b",
     "title": "How to request access to a work application",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "countries": [
       "US",
@@ -874,7 +874,7 @@
         "id": "required-sections",
         "label": "Missing recommended sections: Overview, Troubleshooting",
         "severity": "warning",
-        "reason": "Knowledge Article articles work best with: Overview, Steps, Troubleshooting."
+        "reason": "How to articles work best with: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -1186,7 +1186,7 @@
     "id": "ka-618766e0",
     "jobId": "job-71a28349",
     "title": "How to update your direct deposit account",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "BR",
     "countries": [
       "US",
@@ -1230,7 +1230,7 @@
         "id": "required-sections",
         "label": "Missing recommended sections: Overview, Troubleshooting",
         "severity": "warning",
-        "reason": "Knowledge Article articles work best with: Overview, Steps, Troubleshooting."
+        "reason": "How to articles work best with: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -1420,7 +1420,7 @@
     "id": "ka-f97f1ba8",
     "jobId": "job-71a28349",
     "title": "How to update your direct deposit account",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "MX",
     "countries": [
       "US",
@@ -1464,7 +1464,7 @@
         "id": "required-sections",
         "label": "Missing recommended sections: Overview, Steps, Troubleshooting",
         "severity": "warning",
-        "reason": "Knowledge Article articles work best with: Overview, Steps, Troubleshooting."
+        "reason": "How to articles work best with: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -1654,7 +1654,7 @@
     "id": "ka-103d3404",
     "jobId": "job-71a28349",
     "title": "How to update your direct deposit account",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "countries": [
       "US",
@@ -1698,7 +1698,7 @@
         "id": "required-sections",
         "label": "Missing recommended sections: Overview, Troubleshooting",
         "severity": "warning",
-        "reason": "Knowledge Article articles work best with: Overview, Steps, Troubleshooting."
+        "reason": "How to articles work best with: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -1774,7 +1774,7 @@
     "id": "ka-7f53e3ba",
     "jobId": "job-b7ac2b33",
     "title": "Onboarding new guys to the team",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "countries": [
       "US"
@@ -1806,7 +1806,7 @@
         "id": "required-sections",
         "label": "Missing recommended sections: Overview, Troubleshooting",
         "severity": "warning",
-        "reason": "Knowledge Article articles work best with: Overview, Steps, Troubleshooting."
+        "reason": "How to articles work best with: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -1838,7 +1838,7 @@
     "id": "ka-aa18fedf",
     "jobId": "job-88668955",
     "title": "How to update your direct deposit account",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "countries": [
       "US",
@@ -1880,7 +1880,7 @@
         "id": "required-sections",
         "label": "Missing recommended sections: Overview, Troubleshooting",
         "severity": "warning",
-        "reason": "Knowledge Article articles work best with: Overview, Steps, Troubleshooting."
+        "reason": "How to articles work best with: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -1954,7 +1954,7 @@
     "id": "ka-b88feaf6",
     "jobId": "job-7a68f9fd",
     "title": "Onboarding new guys to the team",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "countries": [
       "US"
@@ -1987,7 +1987,7 @@
         "id": "required-sections",
         "label": "Missing required sections: Overview, Troubleshooting",
         "severity": "error",
-        "reason": "Knowledge Article articles must include: Overview, Steps, Troubleshooting."
+        "reason": "How to articles must include: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -2012,14 +2012,14 @@
       }
     ],
     "autoApproveCandidate": false,
-    "infoNeeded": "• Missing required sections: Overview, Troubleshooting — Knowledge Article articles must include: Overview, Steps, Troubleshooting.\n• 1 compliance error — Non-inclusive language detected. Use neutral alternatives.",
+    "infoNeeded": "• Missing required sections: Overview, Troubleshooting — How to articles must include: Overview, Steps, Troubleshooting.\n• 1 compliance error — Non-inclusive language detected. Use neutral alternatives.",
     "sector": "pfna"
   },
   {
     "id": "ka-7a359c98",
     "jobId": "job-b6953782",
     "title": "How to update your direct deposit account",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "countries": [
       "US",
@@ -2061,7 +2061,7 @@
         "id": "required-sections",
         "label": "Missing required sections: Overview, Troubleshooting",
         "severity": "error",
-        "reason": "Knowledge Article articles must include: Overview, Steps, Troubleshooting."
+        "reason": "How to articles must include: Overview, Steps, Troubleshooting."
       },
       {
         "id": "seo-title-length",
@@ -2085,7 +2085,7 @@
       }
     ],
     "autoApproveCandidate": false,
-    "infoNeeded": "• Missing required sections: Overview, Troubleshooting — Knowledge Article articles must include: Overview, Steps, Troubleshooting.",
+    "infoNeeded": "• Missing required sections: Overview, Troubleshooting — How to articles must include: Overview, Steps, Troubleshooting.",
     "sector": "pfna",
     "lead": "Use this article when you need to add, replace, or verify the bank account used for payroll direct deposit.",
     "topics": [
@@ -2254,7 +2254,7 @@
     "id": "ka-e9c06de7",
     "jobId": "job-679e8c19",
     "title": "How to refresh a driver login token",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "countries": [
       "US",
@@ -2458,7 +2458,7 @@
     "id": "ka-fec0f30f",
     "jobId": "job-41e167bb",
     "title": "How to request a corporate credit card",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "body": "# How to request a corporate credit card\n\nA corporate credit card may be issued when your role requires approved business spending and your manager confirms the need. The card is for business expenses only and must be used according to travel, expense, and purchasing policies.\n\n## Summary\n\nCorporate card requests are submitted through the expense or service portal and require manager approval. Some roles are automatically eligible; others require a business justification. Do not use a personal card for recurring business expenses if a corporate card is required for your role.\n\n## Who this applies to\n\nThis article applies to U.S. and Canada employees who travel for business, manage approved recurring expenses, or need a card for field/customer activity.\n\nContractors and temporary workers may require a different approval path or may not be eligible, depending on role and local policy.\n\n## Before you start\n\n- Confirm with your manager that a corporate card is required.\n- Review the travel and expense policy for allowable purchases.\n- Make sure your employee profile, cost center, manager, and work location are current.\n- Complete any required cardholder training or policy acknowledgement.\n\n## Steps\n\n1. Open the expense or service portal from MyPepsiCo.\n2. Search for **Corporate card request**.\n3. Confirm your employee details and cost center.\n4. Select the card type that matches your business need.\n5. Enter the business justification, expected spend type, and travel frequency.\n6. Submit the request for manager approval.\n7. Complete any cardholder acknowledgement sent after approval.\n8. Activate the card when it arrives and add it to the approved expense tool if required.\n\n## Common situations\n\n### You need the card for an upcoming trip\n\nSubmit the request as early as possible. If the trip is urgent, ask your manager whether a temporary purchasing or travel exception is available.\n\n### Your manager changed recently\n\nUpdate your employee profile before submitting. Requests routed to the wrong manager may need to be canceled and resubmitted.\n\n### The card arrives with the wrong name or address\n\nDo not activate the card. Open a support case and attach a photo of the mailer without exposing the full card number.\n\n### A charge is declined\n\nCheck whether the merchant type, amount, or country is restricted. If the charge is business-critical, contact card support and notify your manager.\n\n## Need help?\n\nContact the T&E support team for policy questions, card delivery issues, declined transactions, or expense tool setup.",
     "submittedBy": {
@@ -2747,7 +2747,7 @@
   {
     "id": "ka-006",
     "title": "Benefits enrollment hub",
-    "contentType": "Topic Page",
+    "contentType": "Business info",
     "market": "US",
     "body": "# Benefits enrollment hub\n\nBenefits enrollment is the process employees use to choose or update health, insurance, savings, and other eligible programs. This hub gives employees a practical starting point before they open the enrollment tool.\n\n## Overview\n\nMost benefits choices are made when you join PepsiCo, during annual enrollment, or after a qualifying life event. Some benefits can be updated year-round, while others are locked until the next enrollment window unless a life event allows a change.\n\nRead each option carefully before submitting. Benefit elections can affect payroll deductions, dependent coverage, tax treatment, and whether you need to provide documentation.\n\n## Enrollment windows\n\n| When | What you can usually do |\n|---|---|\n| New hire enrollment | Choose eligible benefits after your employee record is active. |\n| Annual enrollment | Review and update coverage for the next plan year. |\n| Qualifying life event | Change eligible coverage after events such as marriage, birth, adoption, divorce, or loss of other coverage. |\n| Year-round updates | Update certain savings, beneficiary, or voluntary programs when allowed by plan rules. |\n\n## Before you start\n\n- Confirm your home address, work location, and dependent information are current.\n- Gather Social Security numbers or local tax identifiers for dependents if required.\n- Review plan costs, coverage levels, provider networks, and payroll deduction impact.\n- Check whether documentation is needed for a dependent or life event.\n- Decide beneficiaries for applicable life insurance or savings programs.\n\n## Key resources\n\n### Health and welfare coverage\n\nReview medical, dental, vision, prescription, disability, and life insurance options in the benefits portal. Compare the full plan details before choosing coverage, especially if you are adding dependents or changing plans.\n\n### Life events\n\nSubmit qualifying life events as soon as possible. The event date drives the deadline and the effective date of the change. If documentation is required, upload it before the case deadline.\n\n### Beneficiaries\n\nKeep beneficiaries current for life insurance, retirement, and savings programs. Beneficiary updates are often separate from health plan enrollment, so confirm each program individually.\n\n### Payroll deductions\n\nReview the per-paycheck cost before submitting elections. If deductions do not look right on your first applicable paycheck, open a payroll or benefits case with a screenshot of your confirmation.\n\n## Common situations\n\n### You missed annual enrollment\n\nContact Benefits support to understand whether any correction window exists. If the window is closed, you may need a qualifying life event before changing locked coverage.\n\n### A dependent is pending verification\n\nUpload the requested documentation by the deadline. Coverage can be delayed or removed if verification is not completed.\n\n### Your life event is not listed\n\nOpen a benefits case and describe the event. The support team can confirm whether plan rules allow a change.\n\n## Need help?\n\nUse the benefits portal or MyPepsiCo support to open a case. Include your employee ID, event date, plan or benefit name, and a copy of your enrollment confirmation if you have one.",
     "submittedBy": {
@@ -2833,7 +2833,7 @@
   {
     "id": "ka-001",
     "title": "How to submit an expense report",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "US",
     "body": "# How to submit an expense report\n\nSubmit business expenses promptly so your manager, Finance, and Travel and Expense teams can review the cost while the trip or purchase is still fresh. A complete report includes a clear business purpose, itemized receipts, accurate expense categories, and any required attendee or customer details.\n\n## Summary\n\nExpense reports should be submitted through the approved expense tool within the required submission window for your market. U.S. employees should submit reports within 30 days of the trip end date or purchase date unless a stricter team rule applies.\n\nUse a corporate card when one has been issued for the expense type. If you paid with personal funds for an approved business expense, submit the reimbursement request in the same tool and select the appropriate payment method.\n\n## Who this applies to\n\nThis article applies to U.S. and Canada employees who travel for business, host approved customer or team meetings, purchase approved supplies, or reconcile corporate card charges.\n\nContractors, temporary workers, and employees outside this market may have a different reimbursement path. Follow local policy when it is stricter than this article.\n\n## Before you start\n\n- Confirm the expense was approved and has a valid business purpose.\n- Gather itemized receipts, not only credit card slips.\n- Confirm the right cost center, project code, or customer activity code.\n- Add attendee names for meals, events, or customer meetings when required.\n- Separate personal purchases from business expenses before submitting.\n\n## Steps\n\n1. Open the expense tool from MyPepsiCo or the Travel and Expense page.\n2. Start a new report and choose the report type that matches the activity.\n3. Add the trip, meeting, or purchase purpose in plain language.\n4. Import corporate card charges or add reimbursable expenses manually.\n5. Attach itemized receipts and match each receipt to the correct expense line.\n6. Choose the right category, date, currency, and payment method for each expense.\n7. Add attendees, customer names, mileage details, or project codes when prompted.\n8. Review policy warnings and correct any missing information.\n9. Submit the report for manager approval.\n10. Watch for approval or correction messages until the report is paid or fully reconciled.\n\n## Common situations\n\n### A receipt is missing\n\nUse the missing receipt process only after you have tried to recover the receipt from the merchant, hotel, airline, or card provider. Add a note explaining what was purchased, why the receipt is unavailable, and who approved the expense.\n\n### A corporate card charge is wrong\n\nDo not delete the charge. Add notes and contact card support if the merchant, amount, or currency appears incorrect. Disputed charges still need to be tracked in the expense tool.\n\n### The report is returned for correction\n\nOpen the returned report, read the approver comments, correct the specific lines, and resubmit. Do not create a duplicate report unless Travel and Expense support asks you to.\n\n### The expense is older than the submission window\n\nSubmit the report with an explanation and notify your manager. Late reports may require additional approval or may not be reimbursable depending on the policy.\n\n## Need help?\n\nContact Travel and Expense support for policy questions, rejected reports, card reconciliation issues, or payment status. Include the report number, expense date, amount, and the approver comment if the report was returned.",
     "submittedBy": {
@@ -2918,7 +2918,7 @@
   {
     "id": "ka-002",
     "title": "Cómo solicitar tiempo de vacaciones",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "MX",
     "body": "## Resumen\n\nSolicite su tiempo de vacaciones a través del portal MyPepsiCo con al menos dos semanas de anticipación. Su gerente directo aprueba la solicitud y Recursos Humanos confirma el balance disponible. Los días aprobados se reflejan automáticamente en su recibo de nómina del siguiente periodo.\n\n## A quién aplica\n\nTodos los colaboradores de tiempo completo en PepsiCo México con al menos seis meses de antigüedad. Los colaboradores de medio tiempo y eventuales siguen un proceso distinto, descrito en el KA **Tiempo libre para colaboradores eventuales**.\n\n## Antes de comenzar\n\n- Revise su saldo de vacaciones en MyPepsiCo en **Mi Perfil > Tiempo Libre**.\n- Confirme que sus pendientes están cubiertos por un colaborador o que su gerente está de acuerdo con cómo se gestionarán.\n- Si planea viajar al extranjero, considere también solicitar el día como **vacaciones**, no como **permiso personal**.\n\n## Pasos\n\n1. Inicie sesión en MyPepsiCo con su cuenta corporativa.\n2. Vaya a **Tiempo Libre > Solicitar Vacaciones**.\n3. Seleccione las fechas en el calendario. Los días feriados oficiales aparecen sombreados y no cuentan contra su saldo.\n4. Agregue una nota breve para su gerente (opcional pero recomendado para tramos de más de cinco días).\n5. Haga clic en **Enviar Solicitud**.\n\nSu gerente recibe una notificación automática y dispone de tres días hábiles para aprobar o pedir modificaciones.\n\n## Reglas importantes\n\n- **Antigüedad y derecho:** según la Ley Federal del Trabajo, usted tiene derecho a 12 días por su primer año, 14 días por su segundo, y así sucesivamente. PepsiCo México otorga días adicionales según su política interna; consulte el documento **Política de vacaciones México 2026**.\n- **Aguinaldo y prima vacacional:** la prima vacacional (25% sobre los días tomados) se paga automáticamente con la nómina del periodo en que ejerza el descanso.\n- **Vacaciones acumuladas:** podrá acumular un máximo de 1.5 veces su saldo anual. El excedente se pierde al cierre del año fiscal.\n- **Periodos restringidos:** durante el cierre de inventario anual (segunda quincena de diciembre) las solicitudes requieren aprobación adicional de su gerente de planta o función.\n\n## Si su gerente no responde\n\nSi pasan tres días hábiles sin respuesta, MyPepsiCo escala automáticamente la solicitud al siguiente nivel de aprobación. Usted recibe una notificación cuando esto ocurre.\n\n## ¿Necesita ayuda?\n\n- Comuníquese con su Business Partner de Recursos Humanos a través de MyPepsiCo en **Contactar a RH**.\n- Para preguntas sobre la Ley Federal del Trabajo, escriba a **rh-asesoria-mx@pepsico.com**.\n\n---\n\n**Última actualización:** 10/05/2026 \n**Propietario:** Recursos Humanos México \n**Vigencia:** Inmediata \n**Próxima revisión:** 01/12/2026",
     "submittedBy": {
@@ -2938,7 +2938,7 @@
     ],
     "seo": {
       "title": "Cómo solicitar tiempo de vacaciones",
-      "metaDescription": "Knowledge Article for MX employees: cómo solicitar tiempo de vacaciones. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
+      "metaDescription": "How-to article for MX employees: cómo solicitar tiempo de vacaciones. Quick steps, common pitfalls, and where to get help when you need it. Bookmark this page for the n",
       "keywords": [
         "solicitar",
         "tiempo",
@@ -3225,7 +3225,7 @@
   {
     "id": "ka-011",
     "title": "Guía de uso del portal MyPepsiCo",
-    "contentType": "Knowledge Article",
+    "contentType": "How to",
     "market": "MX",
     "body": "# Guía de uso del portal MyPepsiCo\n\nMyPepsiCo es el punto de entrada para herramientas, comunicaciones, capacitación, servicios de RH, soporte de TI y recursos para colaboradores. Esta guía ayuda a encontrar información sin depender de enlaces guardados o mensajes antiguos.\n\n## Resumen\n\nUse MyPepsiCo para acceder a servicios de empleado, solicitudes de soporte, noticias internas, aprendizaje, herramientas de trabajo y recursos por país o función. El contenido que ve puede variar por mercado, ubicación, perfil de seguridad, idioma y tipo de colaborador.\n\nSi una herramienta no aparece, puede deberse a permisos, ubicación laboral, rol, país o una sincronización pendiente del perfil.\n\n## A quién aplica\n\nEsta guía aplica a colaboradores de PepsiCo México y a equipos que usan MyPepsiCo como portal principal. Algunos enlaces o nombres de herramientas pueden variar en otros mercados.\n\n## Antes de empezar\n\n- Tenga a la mano su usuario corporativo.\n- Confirme que su método de autenticación multifactor esté activo.\n- Use un navegador actualizado o la aplicación móvil aprobada.\n- Revise que su país, ubicación y gerente estén correctos en el perfil del colaborador.\n\n## Cómo ingresar\n\n1. Abra MyPepsiCo desde un navegador o dispositivo aprobado.\n2. Ingrese con su usuario corporativo.\n3. Complete la autenticación multifactor si se solicita.\n4. Revise la página de inicio para ver accesos rápidos, tareas pendientes y anuncios.\n5. Use la búsqueda para encontrar servicios por palabra clave, no solo por nombre exacto.\n\n## Cómo encontrar recursos\n\n### Solicitudes de RH\n\nBusque temas como beneficios, ausencias, datos personales, documentos laborales, nómina o actualización de información bancaria. Lea el artículo antes de abrir un caso para confirmar requisitos y documentos.\n\n### Soporte de TI\n\nUse MyIT o el enlace de soporte para reportar problemas de contraseña, acceso, equipo, aplicaciones, VPN o dispositivo móvil. Incluya capturas de pantalla y el mensaje de error.\n\n### Aprendizaje\n\nAbra el área de capacitación para ver cursos asignados, recursos recomendados y fechas límite. Complete entrenamientos obligatorios antes de la fecha indicada.\n\n### Comunicaciones y noticias\n\nRevise anuncios de su mercado, función o sitio. Algunos comunicados son visibles solo para audiencias específicas.\n\n## Situaciones comunes\n\n### No encuentro una herramienta\n\nBusque por sinónimos y revise los accesos rápidos. Si sigue sin aparecer, confirme con su gerente si requiere acceso adicional.\n\n### La página aparece en otro idioma\n\nRevise las preferencias de idioma del navegador, la aplicación y el perfil. Algunos contenidos se publican primero en el idioma principal del mercado.\n\n### Una solicitud quedó pendiente\n\nAbra el caso original para ver aprobadores, comentarios y fecha estimada. No cree un duplicado a menos que soporte lo solicite.\n\n## Precisa de ajuda?\n\nAbra un caso de soporte desde MyPepsiCo si no puede ingresar, falta una herramienta o la información de su perfil es incorrecta. Incluya el país, dispositivo, navegador y captura del problema.",
     "submittedBy": {

@@ -16,7 +16,7 @@ import AutoFixHighOutlinedIcon from "@mui/icons-material/AutoFixHighOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { api, currentUser, type ContentType, type Country, type MarketProfile, type SectorProfile } from "../lib/api";
 
-const CONTENT_TYPES: ContentType[] = ["FAQ", "Policy", "Knowledge Article", "Topic Page"];
+const CONTENT_TYPES: ContentType[] = ["FAQ", "Business info", "How to", "Policy"];
 
 export default function MigrationStandardization() {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export default function MigrationStandardization() {
   const [form, setForm] = useState({
     sourceTitle: "",
     sourceContent: "",
-    contentType: "Knowledge Article" as ContentType,
+    contentType: "How to" as ContentType,
     marketId: "us",
     sectorId: "pfna",
     countries: ["US"],
@@ -102,7 +102,7 @@ export default function MigrationStandardization() {
         />
         <TextField
           select
-          label="Content type"
+          label="Article type"
           value={form.contentType}
           onChange={(e) => update("contentType", e.target.value as ContentType)}
           fullWidth

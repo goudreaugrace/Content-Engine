@@ -13,7 +13,7 @@ export type ArticleStatus =
   | "rejected"
   | "published";
 
-export type ContentType = "FAQ" | "Policy" | "Knowledge Article" | "Topic Page";
+export type ContentType = "FAQ" | "Business info" | "How to" | "Policy";
 
 export type Market = "US" | "MX" | "BR" | "UK" | "IN" | "Global";
 

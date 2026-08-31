@@ -52,6 +52,12 @@ import FilterSelect from "../components/filter-select";
 type StatusFilter = "all" | Exclude<ArticleStatus, "published">;
 type TypeFilter = "all" | Article["contentType"];
 type MarketFilter = "all" | Article["market"];
+const ARTICLE_TYPE_ORDER: Article["contentType"][] = [
+  "FAQ",
+  "Business info",
+  "How to",
+  "Policy",
+];
 
 // Status meta for the Pre-published tab. "published" is included so any
 // edge-case article that's still loaded (e.g. mid-transition) renders a
@@ -195,7 +201,7 @@ export default function PrePublishedTab({
   const availableTypes = useMemo(() => {
     const set = new Set<Article["contentType"]>();
     articles.forEach((a) => set.add(a.contentType));
-    return Array.from(set).sort();
+    return ARTICLE_TYPE_ORDER.filter((type) => set.has(type));
   }, [articles]);
   const availableCountries = useMemo(() => {
     const set = new Set<Article["market"]>();

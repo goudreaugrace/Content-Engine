@@ -694,8 +694,8 @@ function alphaHex(hex: string, a: number): string {
 // STEP 3 — AGENTS (radial constellation)
 // ════════════════════════════════════════════════════════════
 const AGENTS = [
-  { id: "basics", name: "Basics", role: "Title, content type, knowledge base, sector, country scope, employee audience, access groups, source language, and approver are captured before writing starts.", color: "blue" },
-  { id: "templates", name: "Templates", role: "Each content type starts with the right structure, but authors can rename sections and add new blocks.", color: "blue" },
+  { id: "basics", name: "Basics", role: "Title, article type, knowledge base, sector, country scope, employee audience, access groups, source language, and approver are captured before writing starts.", color: "blue" },
+  { id: "templates", name: "Article types", role: "Every item is a knowledge article. FAQ, Business info, How to, and Policy each start with the right structure, while authors can still rename sections and add new blocks.", color: "blue" },
   { id: "sources", name: "Sources", role: "The support rail keeps source uploads, attachment reminders, and related article signals visible while the author writes.", color: "neutral" },
   { id: "sections", name: "Sections", role: "Authors can add text, FAQ, table, resource-link, accordion, and callout sections so articles can use the blocks they actually need.", color: "ember" },
   { id: "editor", name: "Text editor", role: "Inline editing keeps writing close to the article while basic formatting and improve actions stay contextual.", color: "neutral" },
@@ -724,7 +724,7 @@ function StepAgents() {
       <StepHeader
         kicker="03"
         title="Article building blocks"
-        sub="The creator is structured, but not locked down. Authors start from a content-type template, then add the section types the article actually needs."
+        sub="The creator is structured, but not locked down. Authors start from an article-type template, then add the section types the article actually needs."
       />
 
       <Stack
@@ -1089,7 +1089,7 @@ function SequenceLaneDiagram() {
 
       {/* Messages */}
       {/* T0: Owner -> Basics */}
-      <Message x1={xOf("owner")} x2={xOf("basics")} y={t0} label="choose content type" />
+      <Message x1={xOf("owner")} x2={xOf("basics")} y={t0} label="choose article type" />
       {/* T1: Basics -> Article */}
       <Message x1={xOf("basics")} x2={xOf("article")} y={t1} label="set KB · scope · approver" color={t.pepsiBlue} />
       {/* T1 return */}

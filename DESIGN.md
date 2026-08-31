@@ -144,7 +144,7 @@ Basics captures where the article belongs before anyone writes:
 - Employee audience.
 - Access groups.
 - Source language.
-- Content type.
+- Article type: FAQ, Business info, How to, or Policy.
 - Approver.
 
 Audience and access are separate:
@@ -157,7 +157,7 @@ Language and translations are separate:
 - Translation needs are inferred from selected countries and can be adjusted later.
 
 Article step rules:
-- Start from the recommended template for the selected content type.
+- Start from the recommended template for the selected article type.
 - Let authors add flexible section blocks when the template is not enough.
 - Keep text editor controls attached to the active long-form field.
 - Use dedicated editors for FAQ, table, resource, accordion, and callout sections.
@@ -171,7 +171,7 @@ Review step rules:
 - Accordions render as blue article elements for optional details, formulas, or supplemental explanations.
 - Callouts should be used sparingly for important notes or warnings.
 
-The article template controls the starting structure, but authors can add mixed section types. For example, a policy can include a table and FAQ, and a topic page can include resource links and accordions.
+The article type controls the starting structure, but authors can add mixed section blocks. For example, a Policy can include a table and FAQ, while a Business info article can include resource links and accordions.
 
 ## 7. Creation And Review Editor
 
@@ -185,7 +185,7 @@ Basics should capture where the article belongs:
 - Sector.
 - Country or countries.
 - Audience.
-- Content type.
+- Article type.
 - Approver.
 - Topic, process, system, and destination metadata where available.
 
@@ -263,7 +263,7 @@ Core taxonomy:
 - Countries.
 - Required translations.
 - Audiences.
-- Content type.
+- Article type.
 - Topics.
 - Business terms.
 - Systems.

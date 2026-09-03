@@ -47,6 +47,7 @@ import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import MicNoneOutlinedIcon from "@mui/icons-material/MicNoneOutlined";
 import {
   api,
   currentUser,
@@ -98,6 +99,20 @@ const contentTypes = [
   },
 ] as const;
 
+const GUIDED_DEMO = {
+  title: "How to update your direct deposit information",
+  prompt:
+    "Create a How to article explaining how employees update their direct deposit information in myPepsiCo.",
+  supportingInfo:
+    "Employees update direct deposit from the payroll area in myPepsiCo. They should have their bank routing number and account number ready. Employees must review the information before submitting it. Processing time can vary by payroll cycle. If the option is unavailable or a change is rejected, employees should use Payroll Help in myPepsiCo and include the error message and submission date.",
+  answers: [
+    "This article is for United States employees who manage their pay information in myPepsiCo. Before starting, employees need access to their account, their bank routing number, their account number, and the percentage or amount they want deposited into each account.",
+    "Open myPepsiCo and go to the payroll area. Select Direct deposit, then choose Add account or Edit beside an existing account. Enter the routing and account numbers, choose the account type, and set the deposit allocation. Review every field, then submit the change and save the confirmation number.",
+    "A confirmation appears after the employee submits the change. The update may take up to one payroll cycle to appear, depending on when it was submitted. Employees should review their next pay statement and keep the confirmation number until the change is complete.",
+    "If the bank information is rejected, check the routing number, account number, and account type before submitting again. If Direct deposit is unavailable or the error continues, open Payroll Help in myPepsiCo, choose Direct deposit support, and include the confirmation number, submission date, and error message. Urgent payroll concerns should follow the escalation path provided by Payroll Help.",
+  ],
+} as const;
+
 const WRITTEN_LANGUAGE_OPTIONS = [
   { value: "auto", label: "Auto-detect from article text" },
   { value: "en-US", label: "English (US)" },
@@ -128,6 +143,7 @@ type StepIndex = 0 | 1 | 2;
 
 type GuidedStage =
   | "start"
+  | "supportingInfo"
   | "contentType"
   | "knowledgeBase"
   | "sector"
@@ -335,6 +351,46 @@ const CONTENT_TEMPLATES: Record<ContentType, TemplateField[]> = {
     { key: "belongsElsewhere", label: "Related procedures and policies", placeholder: "Clarify which detailed procedures or official rules live in separate canonical articles.", minRows: 3 },
   ],
 };
+
+const PEP_READY_SECTION_HEADINGS: Partial<
+  Record<ContentType, Record<string, string>>
+> = {
+  Policy: {
+    description: "What does this policy cover?",
+    whoApplies: "Who does this policy apply to?",
+    policyDetails: "What does the policy require?",
+    exceptions: "What exceptions or support options are available?",
+    localVariations: "When does this take effect and what varies by location?",
+    relatedContent: "Where can I find related information?",
+  },
+  "How to": {
+    whoApplies: "Who should use these steps?",
+    beforeStart: "What do I need before I start?",
+    steps: "What do I need to do?",
+    commonIssues: "What should I do if something goes wrong?",
+    whatNext: "What happens next?",
+    relatedContent: "Where can I get more help?",
+  },
+  "Business info": {
+    overview: "What should I know?",
+    whenToUse: "Who is this information for?",
+    keyResources: "What information do I need?",
+    relatedTopics: "Where can I find more information?",
+    belongsElsewhere: "Where can I find procedures and policies?",
+  },
+};
+
+function formatGuidedSteps(value: string): string {
+  const text = value.trim();
+  if (!text || /^\s*(?:\d+\.|-)\s+/m.test(text)) return text;
+  const actions = text
+    .split(/\n+|(?<=[.!?])\s+/)
+    .map((action) => action.trim())
+    .filter(Boolean);
+  return actions
+    .map((action, index) => `${index + 1}. ${ensureSentence(action)}`)
+    .join("\n");
+}
 
 // ────────────────────────────────────────────────────────────
 // SEO suggestion heuristics
@@ -1393,6 +1449,7 @@ export default function NewRequest() {
   const [currentStep, setCurrentStep] = useState(0);
   const [creationStartMode, setCreationStartMode] = useState<"form" | "guided">("guided");
   const [guidedPrompt, setGuidedPrompt] = useState("");
+  const [guidedDemoMode, setGuidedDemoMode] = useState(false);
   const [guidedStarted, setGuidedStarted] = useState(false);
   const [guidedStage, setGuidedStage] = useState<GuidedStage>("start");
   const [guidedBrief, setGuidedBrief] = useState("");
@@ -1400,6 +1457,10 @@ export default function NewRequest() {
   const [guidedSectors, setGuidedSectors] = useState<string[]>([]);
   const [guidedWritingAnswers, setGuidedWritingAnswers] = useState<string[]>([]);
   const [guidedThinking, setGuidedThinking] = useState(false);
+  const [guidedSourceAdded, setGuidedSourceAdded] = useState(false);
+  const [guidedListening, setGuidedListening] = useState(false);
+  const [guidedVoiceMessage, setGuidedVoiceMessage] = useState("");
+  const guidedSpeechRecognitionRef = useRef<any>(null);
   const guidedBottomRef = useRef<HTMLDivElement | null>(null);
   const [reviewAssistantPrompt, setReviewAssistantPrompt] = useState("");
   const [reviewAssistantExpanded, setReviewAssistantExpanded] = useState(false);
@@ -1457,6 +1518,11 @@ export default function NewRequest() {
     });
     return () => window.cancelAnimationFrame(frame);
   }, [guidedMessages, guidedStage, guidedStarted, guidedThinking]);
+
+  useEffect(
+    () => () => guidedSpeechRecognitionRef.current?.stop?.(),
+    [],
+  );
 
   // Sector-driven derived state.
   const isGlobal = form.sector === "global";
@@ -1869,40 +1935,142 @@ export default function NewRequest() {
     ]);
   };
 
+  const useGuidedDemoPrompt = () => {
+    setGuidedDemoMode(true);
+    setGuidedPrompt(GUIDED_DEMO.prompt);
+    setGuidedVoiceMessage("");
+  };
+
+  const useGuidedDemoSource = () => {
+    setGuidedPrompt(GUIDED_DEMO.supportingInfo);
+    setGuidedVoiceMessage("");
+  };
+
+  const useGuidedDemoAnswer = () => {
+    const answer = GUIDED_DEMO.answers[guidedWritingAnswers.length];
+    if (!answer) return;
+    setGuidedPrompt(answer);
+    setGuidedVoiceMessage("");
+  };
+
+  const toggleGuidedVoiceInput = () => {
+    if (guidedListening) {
+      guidedSpeechRecognitionRef.current?.stop?.();
+      setGuidedListening(false);
+      return;
+    }
+
+    const speechWindow = window as typeof window & {
+      SpeechRecognition?: new () => any;
+      webkitSpeechRecognition?: new () => any;
+    };
+    const SpeechRecognition =
+      speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setGuidedVoiceMessage("Voice input is not available in this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    const startingText = guidedPrompt.trimEnd();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = form.writtenLanguage === "auto" ? "en-US" : form.writtenLanguage;
+    recognition.onresult = (event: any) => {
+      let transcript = "";
+      for (let index = 0; index < event.results.length; index += 1) {
+        transcript += event.results[index]?.[0]?.transcript ?? "";
+      }
+      setGuidedPrompt(
+        [startingText, transcript.trim()].filter(Boolean).join(" "),
+      );
+    };
+    recognition.onerror = (event: any) => {
+      if (event.error !== "aborted") {
+        setGuidedVoiceMessage(
+          event.error === "not-allowed"
+            ? "Allow microphone access to use voice input."
+            : "Voice input could not start. Try again or type your message.",
+        );
+      }
+      setGuidedListening(false);
+      guidedSpeechRecognitionRef.current = null;
+    };
+    recognition.onend = () => {
+      setGuidedListening(false);
+      guidedSpeechRecognitionRef.current = null;
+    };
+
+    try {
+      setGuidedVoiceMessage("");
+      guidedSpeechRecognitionRef.current = recognition;
+      recognition.start();
+      setGuidedListening(true);
+    } catch {
+      setGuidedListening(false);
+      guidedSpeechRecognitionRef.current = null;
+      setGuidedVoiceMessage(
+        "Voice input could not start. Try again or type your message.",
+      );
+    }
+  };
+
   const guidedWritingQuestions = (contentType: ContentType) => {
     if (contentType === "FAQ") {
       return [
-        "What is the direct answer employees need? Start with the answer you would give someone in one conversation.",
-        "What steps, context, or examples would help an employee act on that answer?",
-        "What exceptions, limitations, or support contacts should the article include?",
+        "What is the direct answer employees need, and who does it apply to? Start with the answer you would give someone in one conversation.",
+        "What should an employee do with that answer? Include any steps, requirements, examples, systems, or screens they need.",
+        "What happens after the employee takes action, and how long should they expect it to take?",
+        "What can go wrong, what exceptions apply, and what exact support path should an employee use if they get stuck?",
       ];
     }
     if (contentType === "Policy") {
       return [
         "What is the policy’s main rule, and who does it apply to?",
         "What must employees or managers do to follow the policy? Include the important steps or responsibilities.",
-        "What exceptions, effective dates, local variations, or related resources should be included?",
+        "When does the policy take effect, what happens if it is not followed, and are there local variations?",
+        "What exceptions, approval path, help contact, or related resources should be included?",
       ];
     }
     if (contentType === "Business info") {
       return [
-        "What business information or context should employees understand after reading this article?",
+        "What business information should employees understand, and who is it relevant to?",
         "Which facts, definitions, dates, contacts, systems, or resources should the article include?",
-        "Which related policies, FAQs, or How to articles should employees use for rules or next steps?",
+        "What should employees do with this information, and what happens next?",
+        "Which related policies, FAQs, How to articles, or exact help paths should employees use for more support?",
       ];
     }
     return [
-      "What should an employee have ready before starting this task?",
-      "Walk me through the task step by step, including the decisions an employee may need to make.",
-      "What commonly goes wrong, and what should the employee do next or who should they contact?",
+      "Who needs to complete this task, and what should they have ready before starting?",
+      "Walk me through the task step by step, including the system, screen, and decisions an employee may need to make.",
+      "What happens after the task is completed, and how long should the employee expect it to take?",
+      "What commonly goes wrong, and what exact support path should the employee use if they get stuck?",
     ];
   };
 
   const guidedDetailQuestion = (contentType: ContentType) =>
     guidedWritingQuestions(contentType)[0];
 
+  const continueGuidedSupportingInfo = () => {
+    setGuidedMessages((messages) => [
+      ...messages,
+      guidedMessage(
+        "assistant",
+        guidedSourceAdded || articleImportSource
+          ? "Thanks. I’ll use that information as the basis for the article and ask whenever an important detail is unclear. First, what kind of knowledge article are we creating?"
+          : "That’s okay. I’ll build the article from your answers and ask whenever an important detail is unclear. First, what kind of knowledge article are we creating?",
+      ),
+    ]);
+    setGuidedStage("contentType");
+  };
+
   const applyGuidedWritingDraft = (answers: string[]) => {
-    const [first = "", second = "", third = ""] = answers;
+    const [first = "", second = "", third = "", fourth = ""] = answers;
+    const additionalDetails = answers.slice(4).join("\n\n").trim();
+    const exceptionAndSupport = [fourth, additionalDetails]
+      .filter(Boolean)
+      .join("\n\nAdditional details\n");
     setForm((f) => {
       const summary =
         f.contentType === "FAQ"
@@ -1916,17 +2084,32 @@ export default function NewRequest() {
         "## Guided writing conversation",
         ...answers.map((answer, index) => `### Answer ${index + 1}\n${answer}`),
       ].join("\n\n");
+      const readinessHeadings = PEP_READY_SECTION_HEADINGS[f.contentType] ?? {};
+      const audienceScope = f.audience.length
+        ? f.audience.join(", ")
+        : "the selected employee audience";
+      const marketScope = f.markets.length
+        ? f.markets
+            .map(
+              (marketId) =>
+                marketProfiles.find((market) => market.id === marketId)?.name ??
+                MARKET_LABELS[marketId]?.label ??
+                marketId,
+            )
+            .join(", ")
+        : "the selected markets";
 
       if (f.contentType === "FAQ") {
         const answer = [
           first,
           `What to do next\n${second}`,
-          `Exceptions and support\n${third}`,
-          "If your situation is not covered here, contact the listed support team before taking action so your request can be reviewed correctly.",
+          `What happens next\n${third}`,
+          `Exceptions and support\n${exceptionAndSupport}`,
         ].filter(Boolean).join("\n\n");
         return {
           ...f,
           summary,
+          sectionHeadings: { ...f.sectionHeadings, ...readinessHeadings },
           sourceText: [f.sourceText.trim(), sourceNote].filter(Boolean).join("\n\n"),
           templateAnswers: { ...f.templateAnswers, answer },
           faqItems: [{
@@ -1941,15 +2124,16 @@ export default function NewRequest() {
         return {
           ...f,
           summary,
+          sectionHeadings: { ...f.sectionHeadings, ...readinessHeadings },
           sourceText: [f.sourceText.trim(), sourceNote].filter(Boolean).join("\n\n"),
           templateAnswers: {
             ...f.templateAnswers,
-            description: `${summary}\n\nThe policy should be read together with any applicable local requirements and related procedures.`,
-            whoApplies: `${first}\n\nThe selected employee audiences and markets should use this section to confirm whether the policy applies to their situation.`,
-            policyDetails: `${second}\n\nEmployees and managers are responsible for following the documented process and keeping any required records or approvals.`,
-            exceptions: `${third}\n\nExceptions should be documented and reviewed by the designated approver before a different course of action is taken.`,
-            localVariations: "Local requirements may vary by market. Employees should confirm country-specific guidance when it is available.",
-            relatedContent: "Use the related resources and source documents listed with this article for forms, systems, and supporting procedures.",
+            description: summary,
+            whoApplies: first,
+            policyDetails: second,
+            exceptions: exceptionAndSupport,
+            localVariations: third,
+            relatedContent: "Use the approved support path and related resources identified in this article.",
           },
         };
       }
@@ -1958,14 +2142,15 @@ export default function NewRequest() {
         return {
           ...f,
           summary,
+          sectionHeadings: { ...f.sectionHeadings, ...readinessHeadings },
           sourceText: [f.sourceText.trim(), sourceNote].filter(Boolean).join("\n\n"),
           templateAnswers: {
             ...f.templateAnswers,
-            overview: `${first}\n\nThis article organizes the context and essential facts employees need to understand the topic.`,
-            whenToUse: "Use this information when you need business context, definitions, ownership details, or a clear starting point before taking action.",
-            keyResources: `${second}\n\nEmployees should use the details that match their role, market, and situation.`,
-            relatedTopics: `${third}\n\nRelated articles provide the detailed rules, answers, instructions, and support paths connected to this information.`,
-            belongsElsewhere: "Detailed procedures and official policy language should remain in their canonical How to or Policy articles and be linked from this article.",
+            overview: first,
+            whenToUse: `This information is for ${audienceScope} in ${marketScope}.`,
+            keyResources: second,
+            relatedTopics: exceptionAndSupport,
+            belongsElsewhere: third,
           },
         };
       }
@@ -1973,15 +2158,16 @@ export default function NewRequest() {
       return {
         ...f,
         summary,
+        sectionHeadings: { ...f.sectionHeadings, ...readinessHeadings },
         sourceText: [f.sourceText.trim(), sourceNote].filter(Boolean).join("\n\n"),
         templateAnswers: {
           ...f.templateAnswers,
-          whoApplies: `${f.audience.join(", ") || "Employees completing this task"}. Confirm that the article applies to your market and role before starting.`,
-          beforeStart: `${first}\n\nGather the required information and confirm that you have access to the systems or resources used in the steps below.`,
-          steps: `1. Review the requirements and confirm that you are ready to begin.\n2. ${second}\n3. Check your work before submitting or completing the task.\n4. Save any confirmation, reference number, or documentation you may need later.`,
-          commonIssues: `${third}\n\nIf the issue continues, record the error or unexpected result and contact the appropriate support team with the details.`,
-          whatNext: "Confirm that the task completed successfully. Keep any required documentation and follow up with the owner or approver when necessary.",
-          relatedContent: "Use the related resources listed with this article for system access, policy requirements, and additional support.",
+          whoApplies: `${audienceScope} in ${marketScope}.`,
+          beforeStart: first,
+          steps: formatGuidedSteps(second),
+          commonIssues: exceptionAndSupport,
+          whatNext: third,
+          relatedContent: "Use the approved support path and related resources identified in this article.",
         },
       };
     });
@@ -1989,6 +2175,37 @@ export default function NewRequest() {
 
   const startGuidedDraft = () => {
     const prompt = guidedPrompt.trim();
+    if (guidedStage === "supportingInfo") {
+      if (!prompt || guidedThinking) return;
+      setGuidedBrief((brief) =>
+        [brief.trim(), `Additional confirmed context: ${prompt}`]
+          .filter(Boolean)
+          .join("\n\n"),
+      );
+      setForm((f) => ({
+        ...f,
+        sourceText: [f.sourceText.trim(), prompt].filter(Boolean).join("\n\n"),
+      }));
+      setGuidedSourceAdded(true);
+      setGuidedMessages((messages) => [
+        ...messages,
+        guidedMessage("user", prompt),
+      ]);
+      setGuidedPrompt("");
+      setGuidedThinking(true);
+      window.setTimeout(() => {
+        setGuidedMessages((messages) => [
+          ...messages,
+          guidedMessage(
+            "assistant",
+            "Thanks. I’ll use that as source material for the article. Add anything else that matters, or continue to the publishing questions.",
+          ),
+        ]);
+        setGuidedThinking(false);
+      }, 700);
+      return;
+    }
+
     if (guidedStage === "preview") {
       if (!prompt || guidedThinking) return;
       const looksLikeQuestion =
@@ -1998,7 +2215,7 @@ export default function NewRequest() {
       setGuidedThinking(true);
       window.setTimeout(() => {
         if (looksLikeQuestion) {
-          const answer = `Based on the current draft, ${form.summary.charAt(0).toLowerCase()}${form.summary.slice(1)} The article currently includes the publishing scope, the main employee guidance, the next steps, and support information. I have not changed the draft.`;
+          const answer = `Based on the current draft, ${form.summary.charAt(0).toLowerCase()}${form.summary.slice(1)} The article currently includes the publishing scope, the main employee guidance, the next steps, and support information. I have not changed the draft. Review it below, then confirm that it is correct or tell me what needs to change.`;
           setGuidedMessages((messages) => [...messages, guidedMessage("assistant", answer)]);
         } else {
           const lowerPrompt = prompt.toLowerCase();
@@ -2028,7 +2245,10 @@ export default function NewRequest() {
           });
           setGuidedMessages((messages) => [
             ...messages,
-            guidedMessage("assistant", "I updated the draft. Review the revised article below, or send another change."),
+            guidedMessage(
+              "assistant",
+              "I updated the draft. Review the revised article below. Is this correct, or would you like to add or change anything else?",
+            ),
           ]);
         }
         setGuidedThinking(false);
@@ -2046,7 +2266,9 @@ export default function NewRequest() {
         const explanations = [
           "I’m using this answer to establish the article’s starting point and scope. It helps me write an opening that is specific enough for employees to know immediately whether the article applies to them.",
           "I’m using this answer to build the main instructional content. The details you provide here become the concrete steps, responsibilities, or resources in the article rather than generic filler.",
-          "I’m using this answer to make the article useful when the normal path does not work. It becomes the exceptions, troubleshooting, support, and next-step guidance near the end of the article.",
+          "I’m using this answer to set expectations after the main action. It helps the reader understand timing, confirmation, and what a successful outcome looks like.",
+          "I’m using this answer to make the article useful when the normal path does not work. It becomes the exceptions, troubleshooting, and exact support guidance near the end of the article.",
+          "The readiness check found that the combined answers are still too thin for a dependable article. This last detail helps me improve completeness without inventing information.",
         ];
         setGuidedMessages((messages) => [...messages, guidedMessage("user", prompt)]);
         setGuidedPrompt("");
@@ -2062,6 +2284,7 @@ export default function NewRequest() {
       }
       const nextAnswers = [...guidedWritingAnswers, prompt];
       const questions = guidedWritingQuestions(form.contentType);
+      const answerCharacterCount = nextAnswers.join(" ").trim().length;
       setGuidedWritingAnswers(nextAnswers);
       setGuidedMessages((messages) => [...messages, guidedMessage("user", prompt)]);
       setGuidedPrompt("");
@@ -2072,19 +2295,30 @@ export default function NewRequest() {
             ...messages,
             guidedMessage("assistant", questions[nextAnswers.length]),
           ]);
+        } else if (
+          nextAnswers.length === questions.length &&
+          answerCharacterCount < 320
+        ) {
+          setGuidedMessages((messages) => [
+            ...messages,
+            guidedMessage(
+              "assistant",
+              "I have the basic structure, but I need a little more detail to make the article useful on its own. Add any exact systems or screens, timing, limits, exceptions, or support path you know. If something is still unknown, tell me what the content owner needs to confirm.",
+            ),
+          ]);
         } else {
           applyGuidedWritingDraft(nextAnswers);
           setGuidedMessages((messages) => [
             ...messages,
             guidedMessage(
               "assistant",
-              "I combined your answers into a complete first draft. Read it below as you would any other response. You can ask me a question about it, request a change, or continue to Review when it is ready.",
+              "I drafted the article and applied the Pep readiness standards behind the scenes. I also checked it as a first-time employee for clear actions, scope, timing, exceptions, and support. Review the full draft below. Is this correct, or would you like to add or change anything before moving to Review?",
             ),
           ]);
           setGuidedStage("preview");
         }
         setGuidedThinking(false);
-      }, nextAnswers.length === questions.length ? 1200 : 750);
+      }, nextAnswers.length >= questions.length ? 1200 : 750);
       return;
     }
 
@@ -2095,7 +2329,10 @@ export default function NewRequest() {
     setForm((f) => {
       const detectedType = inferGuidedContentType(openingPrompt, f.contentType);
       const nextTitle =
-        f.title.trim() || titleFromGuidedPrompt(openingPrompt, detectedType);
+        f.title.trim() ||
+        (guidedDemoMode || openingPrompt === GUIDED_DEMO.prompt
+          ? GUIDED_DEMO.title
+          : titleFromGuidedPrompt(openingPrompt, detectedType));
       const nextSummary =
         f.summary.trim() || summaryFromGuidedPrompt(openingPrompt, nextTitle, detectedType);
       const countryLabels = f.markets.map(
@@ -2136,24 +2373,29 @@ export default function NewRequest() {
             : f.faqItems,
       };
     });
+    setGuidedSourceAdded(!!articleImportSource);
+    const supportingInfoQuestion = articleImportSource
+      ? `I found the attached article. Do you have anything else this article should be based on? You can attach another document or paste the important details here.`
+      : "Do you have anything this article should be based on? You can attach a document or paste the important details here.";
     setGuidedMessages([
       guidedMessage("user", openingPrompt),
-      guidedMessage(
-        "assistant",
-        "I can help with that. First, what kind of article are we creating?",
-      ),
+      guidedMessage("assistant", supportingInfoQuestion),
     ]);
     setGuidedPrompt("");
     setGuidedStarted(true);
-    setGuidedStage("contentType");
+    setGuidedStage("supportingInfo");
   };
   const selectGuidedContentType = (value: ContentType) => {
     const sourcePrompt = guidedBrief || guidedPrompt;
     setForm((f) => {
       const nextTitle =
-        f.title.trim() || titleFromGuidedPrompt(sourcePrompt, value);
+        articleImportSource && f.title.trim()
+          ? f.title
+          : titleFromGuidedPrompt(sourcePrompt, value);
       const nextSummary =
-        f.summary.trim() || summaryFromGuidedPrompt(sourcePrompt, nextTitle, value);
+        articleImportSource && f.summary.trim()
+          ? f.summary
+          : summaryFromGuidedPrompt(sourcePrompt, nextTitle, value);
       const countryLabels = f.markets.map(
         (marketId) =>
           marketProfiles.find((p) => p.id === marketId)?.name ??
@@ -3038,6 +3280,17 @@ export default function NewRequest() {
       applyImportedArticleText(demoArticleTextFromUpload(), source, {
         confirmReplace: true,
       });
+      if (guidedStage === "supportingInfo") {
+        setGuidedSourceAdded(true);
+        setGuidedMessages((messages) => [
+          ...messages,
+          guidedMessage("user", `Attached ${uploaded.fileName}`),
+          guidedMessage(
+            "assistant",
+            "I’ll use that document as source material for the article. You can attach or add anything else, or continue to the publishing questions.",
+          ),
+        ]);
+      }
     } catch (e: any) {
       setError(e?.message ?? String(e));
     } finally {
@@ -6121,6 +6374,21 @@ export default function NewRequest() {
                           }}
                         />
                         <IconButton
+                          aria-label={guidedListening ? "Stop voice input" : "Start voice input"}
+                          aria-pressed={guidedListening}
+                          title={guidedListening ? "Stop voice input" : "Use voice input"}
+                          onClick={toggleGuidedVoiceInput}
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            color: guidedListening ? t.pepsiBlueStrong : t.ink,
+                            bgcolor: guidedListening ? t.pepsiBlueSubtle : "transparent",
+                            "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                          }}
+                        >
+                          <MicNoneOutlinedIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                        <IconButton
                           aria-label="Send message"
                           onClick={startGuidedDraft}
                           disabled={!guidedPrompt.trim() && !articleImportSource}
@@ -6137,6 +6405,11 @@ export default function NewRequest() {
                         </IconButton>
                       </Stack>
                     </Box>
+                    {guidedVoiceMessage && (
+                      <Typography sx={{ mt: 1, fontSize: "0.75rem", color: t.slate }}>
+                        {guidedVoiceMessage}
+                      </Typography>
+                    )}
                     {articleImportSource && (
                       <Chip
                         size="small"
@@ -6146,6 +6419,23 @@ export default function NewRequest() {
                         sx={{ mt: 1.5, maxWidth: "100%", borderColor: t.articleDivider }}
                       />
                     )}
+                    <Button
+                      variant="text"
+                      size="small"
+                      onClick={useGuidedDemoPrompt}
+                      sx={{
+                        mt: 1.25,
+                        px: 1.5,
+                        borderRadius: 999,
+                        textTransform: "none",
+                        fontWeight: 650,
+                        color: t.pepsiBlueStrong,
+                        bgcolor: guidedDemoMode ? t.pepsiBlueSubtle : "transparent",
+                        "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                      }}
+                    >
+                      Try a demo example
+                    </Button>
                   </Box>
                 </Box>
                 {false && (
@@ -6441,6 +6731,53 @@ export default function NewRequest() {
                     </Box>
                   ))}
 
+                  {guidedStage === "supportingInfo" && (
+                    <Stack spacing={1.25} alignItems="flex-start">
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {guidedDemoMode && !guidedSourceAdded && (
+                          <Button
+                            variant="outlined"
+                            onClick={useGuidedDemoSource}
+                            disabled={guidedThinking}
+                            sx={{
+                              minHeight: 40,
+                              px: 2,
+                              borderRadius: 999,
+                              textTransform: "none",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Use demo source
+                          </Button>
+                        )}
+                        <Button
+                          variant="contained"
+                          onClick={continueGuidedSupportingInfo}
+                          disabled={guidedThinking}
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: 17 }} />}
+                          sx={{
+                            minHeight: 40,
+                            px: 2.25,
+                            borderRadius: 999,
+                            textTransform: "none",
+                            fontWeight: 700,
+                            color: t.pepsiBlueStrong,
+                            bgcolor: t.pepsiBlueSubtle,
+                            boxShadow: "none",
+                            "&:hover": { bgcolor: "#D8ECFF", boxShadow: "none" },
+                          }}
+                        >
+                          {guidedSourceAdded || articleImportSource
+                            ? "Continue"
+                            : "I don’t have anything to add"}
+                        </Button>
+                      </Stack>
+                      <Typography sx={{ fontSize: "0.75rem", color: t.slate }}>
+                        Add more information in the message box, attach a file, or continue.
+                      </Typography>
+                    </Stack>
+                  )}
+
                   {guidedStage === "contentType" && (
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                       {contentTypes.map((item) => (
@@ -6640,6 +6977,28 @@ export default function NewRequest() {
                     </Button>
                   )}
 
+                  {guidedStage === "details" &&
+                    guidedDemoMode &&
+                    form.contentType === "How to" &&
+                    GUIDED_DEMO.answers[guidedWritingAnswers.length] && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={useGuidedDemoAnswer}
+                        disabled={guidedThinking}
+                        sx={{
+                          alignSelf: "flex-start",
+                          minHeight: 36,
+                          px: 1.75,
+                          borderRadius: 999,
+                          textTransform: "none",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Use demo answer
+                      </Button>
+                    )}
+
                   {guidedStage === "preview" && (
                     <Box>
                       <Divider sx={{ mb: 2.5, borderColor: t.articleDivider }} />
@@ -6664,7 +7023,7 @@ export default function NewRequest() {
                         endIcon={<ArrowForwardIcon sx={{ fontSize: 17 }} />}
                         sx={{ mt: 3, borderRadius: 999, px: 2.5, textTransform: "none", fontWeight: 700, boxShadow: "none" }}
                       >
-                        Continue to Review
+                        Yes, continue to Review
                       </Button>
                     </Box>
                   )}
@@ -6672,7 +7031,10 @@ export default function NewRequest() {
                     <Stack direction="row" spacing={1.25} alignItems="center" sx={{ color: t.slate }}>
                       <CircularProgress size={15} thickness={4} sx={{ color: t.pepsiBlueStrong }} />
                       <Typography sx={{ fontSize: "0.875rem", color: t.slate }}>
-                        Thinking…
+                        {guidedStage === "details" &&
+                        guidedWritingAnswers.length >= guidedWritingQuestions(form.contentType).length
+                          ? "Checking the draft as a first-time reader…"
+                          : "Thinking…"}
                       </Typography>
                     </Stack>
                   )}
@@ -6719,6 +7081,8 @@ export default function NewRequest() {
                       placeholder={
                         guidedThinking
                           ? "Content Agent is thinking"
+                          : guidedStage === "supportingInfo"
+                          ? "Paste or describe supporting information"
                           : guidedStage === "details"
                           ? "Type your answer"
                           : guidedStage === "preview"
@@ -6730,14 +7094,18 @@ export default function NewRequest() {
                       value={guidedPrompt}
                       disabled={
                         guidedThinking ||
-                        (guidedStage !== "details" && guidedStage !== "preview")
+                        (guidedStage !== "supportingInfo" &&
+                          guidedStage !== "details" &&
+                          guidedStage !== "preview")
                       }
                       onChange={(e) => setGuidedPrompt(e.target.value)}
                       onKeyDown={(e) => {
                         if (
                           e.key === "Enter" &&
                           !e.shiftKey &&
-                          (guidedStage === "details" || guidedStage === "preview")
+                          (guidedStage === "supportingInfo" ||
+                            guidedStage === "details" ||
+                            guidedStage === "preview")
                         ) {
                           e.preventDefault();
                           startGuidedDraft();
@@ -6750,11 +7118,34 @@ export default function NewRequest() {
                       }}
                     />
                     <IconButton
+                      aria-label={guidedListening ? "Stop voice input" : "Start voice input"}
+                      aria-pressed={guidedListening}
+                      title={guidedListening ? "Stop voice input" : "Use voice input"}
+                      onClick={toggleGuidedVoiceInput}
+                      disabled={
+                        guidedThinking ||
+                        (guidedStage !== "supportingInfo" &&
+                          guidedStage !== "details" &&
+                          guidedStage !== "preview")
+                      }
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        color: guidedListening ? t.pepsiBlueStrong : t.ink,
+                        bgcolor: guidedListening ? t.pepsiBlueSubtle : "transparent",
+                        "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                      }}
+                    >
+                      <MicNoneOutlinedIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                    <IconButton
                       aria-label="Send message"
                       onClick={startGuidedDraft}
                       disabled={
                         guidedThinking ||
-                        (guidedStage !== "details" && guidedStage !== "preview") ||
+                        (guidedStage !== "supportingInfo" &&
+                          guidedStage !== "details" &&
+                          guidedStage !== "preview") ||
                         !guidedPrompt.trim()
                       }
                       sx={{
@@ -6770,6 +7161,11 @@ export default function NewRequest() {
                     </IconButton>
                   </Stack>
                 </Box>
+                {guidedVoiceMessage && (
+                  <Typography sx={{ mt: 0.75, textAlign: "center", fontSize: "0.6875rem", color: t.slate }}>
+                    {guidedVoiceMessage}
+                  </Typography>
+                )}
                 <Typography sx={{ mt: 0.75, textAlign: "center", fontSize: "0.6875rem", color: t.granite }}>
                   Content Agent can make mistakes. Review important details before publishing.
                 </Typography>
@@ -7388,7 +7784,7 @@ export default function NewRequest() {
                               boxShadow: "none",
                             }}
                           >
-                            Continue to Review
+                            Yes, continue to Review
                           </Button>
                         </Stack>
                       </Box>

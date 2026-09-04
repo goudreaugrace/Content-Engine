@@ -65,14 +65,14 @@ const pocViews: PocView[] = [
   },
   {
     view: "Team Admin View",
-    routeLabel: "All Articles / Team Permissions",
+    routeLabel: "New Article / All Articles / Team Permissions",
     icon: <LibraryBooksOutlinedIcon sx={{ fontSize: 20 }} />,
     persona: "Team Admin",
     archetype: "Operational steward",
     roleDefinition:
-      "A team-level governance user who manages article health, review cycles, ownership, and permissions but should not create new articles directly.",
+      "A team-level governance user who manages article health, review cycles, ownership, and permissions and can create content when needed.",
     job:
-      "Keep the team's content accurate, reviewed, assigned, findable, and appropriately governed.",
+      "Keep the team's content accurate, reviewed, assigned, findable, and appropriately governed, while creating standards-ready content when needed.",
     primaryQuestions: [
       "Which articles need attention?",
       "Who owns this content?",
@@ -83,26 +83,26 @@ const pocViews: PocView[] = [
       "A clear article inventory with status, ownership, aging, review cadence, engagement, and recommendations.",
       "Reliable published and pre-published article routes with no 404 or 405 errors.",
       "Article detail pages that separate governance metadata from the employee-facing article preview.",
-      "Team permission controls that are visible but separate from article creation.",
+      "Direct access to article creation without losing the team-level governance context.",
     ],
     risks: [
       "May confuse source articles, review articles, and published articles if routing or labels are unclear.",
       "May over-focus on metrics if the article health view is too noisy.",
       "May need to explain governance status to business stakeholders quickly.",
-      "May accidentally expect create access if the navigation does not clearly separate admin work from authoring.",
+      "May move between authoring and governance and need a clear handoff between creation, review, and approval.",
     ],
     pocImplications: [
-      "Team Admin should not see New Article as a primary action.",
+      "New Article remains available, while All Articles stays the primary governance workspace.",
       "Article health and lifecycle data should sit above or around the article, not inside the article body.",
       "The right rail should support metadata, quick links, language, publishing details, sources, and related content only.",
       "The table of contents belongs inside the article body, not in the right rail.",
     ],
     success:
-      "A Team Admin can understand content health and take governance action without becoming an article author.",
+      "A Team Admin can create content when needed, understand team content health, and take governance action from one workspace.",
   },
   {
     view: "Super Admin View",
-    routeLabel: "Sectors / Audiences / Email Log",
+    routeLabel: "New Article / Sectors / Audiences / Email Log",
     icon: <ManageAccountsOutlinedIcon sx={{ fontSize: 20 }} />,
     persona: "Super Admin",
     archetype: "Platform operator",
@@ -118,6 +118,7 @@ const pocViews: PocView[] = [
     ],
     needs: [
       "Configuration surfaces for sectors, markets, audiences, team permissions, and email logs.",
+      "Access to the shared article creation experience when platform-level content needs to be authored.",
       "A consistent taxonomy model that uses employee and business language rather than technical labels.",
       "Confidence that content owners cannot bypass required destination and access metadata.",
       "Structured article data that can later produce graph nodes and relationships without a major rebuild.",
@@ -130,6 +131,7 @@ const pocViews: PocView[] = [
     ],
     pocImplications: [
       "Super Admin configuration should shape creation defaults invisibly where possible.",
+      "New Article remains available without displacing standards, governance, and visibility as the primary responsibilities.",
       "PublishedArticle remains the source of truth for employee-facing content.",
       "Relationship fields should support canonical, duplicate, replaces, related, requires, and source-for connections.",
       "Reference pages should explain design, IA, personas, and workflow without becoming admin configuration.",

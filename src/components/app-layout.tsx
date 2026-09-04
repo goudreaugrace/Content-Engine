@@ -16,6 +16,7 @@ import {
   Typography,
   Avatar,
   MenuItem,
+  Stack,
   TextField,
   useTheme,
   alpha,
@@ -35,7 +36,6 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
@@ -66,13 +66,10 @@ type NavItem = {
   badgeCount?: number;
   adminOnly?: boolean;
   teamAdminOnly?: boolean;
-  authorOnly?: boolean;
 };
 
-// "New article" is the Content Owner's primary action. Team Admin and Super
-// Admin manage governance/review and should not create articles directly.
 const navItems: NavItem[] = [
-  { label: "New Article", path: "/new", icon: <AddCircleOutlineIcon sx={{ fontSize: 20 }} />, authorOnly: true },
+  { label: "New Article", path: "/new", icon: <AddCircleOutlineIcon sx={{ fontSize: 20 }} /> },
   // Review Cycle used to be its own top-level page. It now lives as the
   // default "Needs review" tab on the All Articles page, so the sidebar
   // carries a single entry that lands on the merged surface.
@@ -131,7 +128,6 @@ export default function AppLayout() {
   const visibleNavItems = navItems.filter((it) => {
     if (personaMode === "non-admin" && (it.adminOnly || it.teamAdminOnly)) return false;
     if (personaMode === "super-admin" && it.teamAdminOnly) return false;
-    if (it.authorOnly && personaMode !== "non-admin") return false;
     return true;
   });
   const navItemsWithBadges: NavItem[] = visibleNavItems.map((it) =>
@@ -191,72 +187,97 @@ export default function AppLayout() {
   // desktop, `drawerContent(true)` is for collapsed desktop.
   const drawerContent = (compact: boolean) => (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column", bgcolor: t.paper }}>
-      {/* Brand block. Expanded: wordmark + caption on the left, collapse
-          chevron on the right of the same row. Collapsed: just the chevron
-          centered (the page chrome carries enough product identity that the
-          rail doesn't also need a mark). */}
+      {/* Product identity remains visible in both drawer states. In the rail,
+          the compact mark also acts as the familiar expand control. */}
       <Box
         sx={{
           px: compact ? 0 : 2.5,
-          pt: 3,
+          pt: compact ? 2.25 : 3,
           pb: 2,
           display: "flex",
-          alignItems: "flex-start",
+          alignItems: "center",
           justifyContent: compact ? "center" : "space-between",
           gap: 1,
-          minHeight: 56,
+          minHeight: 64,
         }}
       >
-        {!compact && (
-          <Box>
+        {compact ? (
+          <Tooltip title="Expand sidebar" placement="right">
+            <IconButton
+              size="small"
+              onClick={() => setCollapsed(false)}
+              aria-label="Expand sidebar"
+              sx={{
+                position: "relative",
+                width: 40,
+                height: 40,
+                borderRadius: 1,
+                bgcolor: t.pepsiNavy,
+                color: "#FFFFFF",
+                overflow: "hidden",
+                "&:after": {
+                  content: '""',
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: 4,
+                  bgcolor: t.pepsiRed,
+                },
+                "&:hover": { bgcolor: t.pepsiBlueStrong, color: "#FFFFFF" },
+              }}
+            >
+              <Typography component="span" sx={{ fontSize: "1.125rem", fontWeight: 700, lineHeight: 1 }}>
+                P
+              </Typography>
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Stack direction="row" spacing={1.25} alignItems="center">
+            <Box>
             <Typography
               sx={{
-                fontFamily: theme.palette.fonts.serif,
-                fontSize: "1.0625rem",
-                fontWeight: 400,
-                color: t.ink,
+                fontFamily: theme.palette.fonts.sans,
+                fontSize: "1.125rem",
+                fontWeight: 700,
+                color: t.pepsiNavy,
                 lineHeight: 1.1,
-                letterSpacing: "-0.01em",
+                letterSpacing: 0,
               }}
             >
               MyPepsiCo
             </Typography>
             <Typography
               sx={{
-                fontFamily: theme.palette.fonts.mono,
-                fontSize: "0.6875rem",
-                color: t.slate,
-                mt: 0.25,
-                letterSpacing: "0.02em",
+                fontFamily: theme.palette.fonts.sans,
+                fontSize: "0.625rem",
+                fontWeight: 600,
+                color: t.pepsiBlue,
+                mt: 0.35,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
               }}
             >
-              content-agent
+              Content Agent
             </Typography>
           </Box>
+          </Stack>
         )}
-        {/* Collapse toggle. Lives inline with the brand wordmark when
-            expanded; sits alone (centered) when the rail is collapsed.
-            Desktop-only — mobile drawer always opens full-width. */}
-        {!mobileOpen && (
+        {!mobileOpen && !compact && (
           <Tooltip
-            title={compact ? "Expand sidebar" : "Collapse sidebar"}
+            title="Collapse sidebar"
             placement="right"
           >
             <IconButton
               size="small"
               onClick={() => setCollapsed((c) => !c)}
-              aria-label={compact ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label="Collapse sidebar"
               sx={{
                 color: t.slate,
-                mt: compact ? 0 : -0.5,
                 "&:hover": { color: t.ink, bgcolor: alpha(t.ink, 0.04) },
               }}
             >
-              {compact ? (
-                <ChevronRightIcon sx={{ fontSize: 18 }} />
-              ) : (
-                <ChevronLeftIcon sx={{ fontSize: 18 }} />
-              )}
+              <ChevronLeftIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
         )}
@@ -540,7 +561,8 @@ export default function AppLayout() {
         component="main"
         sx={{
           flexGrow: 1,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          width: { xs: "100%", sm: `calc(100% - ${drawerWidth}px)` },
+          minWidth: 0,
           minHeight: "100vh",
           // Page body lives on pure white. The drawer's surfaceContainerLow
           // tint provides the visual separation; no border needed.

@@ -943,27 +943,156 @@ function AgentConstellation({
 function StepSequence() {
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const stages = [
+    {
+      number: "01",
+      title: "Start the article",
+      owner: "Content owner",
+      description:
+        "Start in guided chat, switch to the form, or hand source files to the agent for an autonomous first draft. File-generated drafts stay with the author until they are reviewed and explicitly submitted for approval.",
+      result: "A complete article setup",
+      icon: <RouteOutlinedIcon sx={{ fontSize: 20 }} />,
+    },
+    {
+      number: "02",
+      title: "Build with standards",
+      owner: "Content owner + assistant",
+      description:
+        "The assistant turns the source material and answers into structured content while applying writing, accessibility, and readiness standards behind the scenes.",
+      result: "A consistent, editable draft",
+      icon: <ArticleOutlinedIcon sx={{ fontSize: 20 }} />,
+    },
+    {
+      number: "03",
+      title: "Review and approve",
+      owner: "Content owner + reviewer",
+      description:
+        "Preview what employees will see, confirm the publishing details, resolve recommended updates, and send the article to its approver.",
+      result: "An approved, publish-ready article",
+      icon: <RateReviewOutlinedIcon sx={{ fontSize: 20 }} />,
+    },
+    {
+      number: "04",
+      title: "Publish and govern",
+      owner: "Employees + administrators",
+      description:
+        "Publish one consistent employee view, then track ownership, status, health, and future review needs from the article library.",
+      result: "Trusted content with ongoing governance",
+      icon: <PublicOutlinedIcon sx={{ fontSize: 20 }} />,
+    },
+  ];
   return (
     <Box>
       <StepHeader
         kicker="04"
         title="Review and publish"
-        sub="The article moves from guided setup to editable article preview, then into the published reader without changing format."
+        sub="Four clear stages show who is involved, what happens, and what the product produces."
       />
-      {/* Visual — full width so the diagram has room to breathe. */}
       <Box
         sx={{
           mt: 3,
           mx: "auto",
           maxWidth: 1120,
-          // Allow horizontal scroll on narrow viewports without squishing the SVG.
-          overflowX: "auto",
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(4, minmax(0, 1fr))" },
+          borderTop: `1px solid ${t.border}`,
+          borderBottom: `1px solid ${t.border}`,
         }}
       >
-        <SequenceLaneDiagram />
+        {stages.map((stage, index) => (
+          <Box
+            key={stage.number}
+            sx={{
+              position: "relative",
+              minWidth: 0,
+              px: { xs: 1, sm: 2.5, md: 3 },
+              py: { xs: 3, md: 3.5 },
+              borderTop: {
+                xs: index === 0 ? "none" : `1px solid ${t.border}`,
+                md: "none",
+              },
+              borderLeft: {
+                xs: "none",
+                md: index === 0 ? "none" : `1px solid ${t.border}`,
+              },
+            }}
+          >
+            {index < stages.length - 1 && (
+              <Box
+                sx={{
+                  display: { xs: "none", md: "grid" },
+                  placeItems: "center",
+                  position: "absolute",
+                  zIndex: 1,
+                  top: 39,
+                  right: -13,
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  bgcolor: t.paper,
+                  border: `1px solid ${t.border}`,
+                  color: t.pepsiBlueStrong,
+                }}
+              >
+                <ArrowForwardIcon sx={{ fontSize: 15 }} />
+              </Box>
+            )}
+            <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 2.25 }}>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  flexShrink: 0,
+                  display: "grid",
+                  placeItems: "center",
+                  borderRadius: 1,
+                  bgcolor: t.pepsiBlueSubtle,
+                  color: t.pepsiBlueStrong,
+                }}
+              >
+                {stage.icon}
+              </Box>
+              <Typography
+                sx={{
+                  fontFamily: theme.palette.fonts.mono,
+                  fontSize: "0.6875rem",
+                  letterSpacing: "0.08em",
+                  color: t.granite,
+                }}
+              >
+                STEP {stage.number}
+              </Typography>
+            </Stack>
+            <Typography sx={{ fontSize: "1.0625rem", fontWeight: 700, color: t.ink, mb: 0.5 }}>
+              {stage.title}
+            </Typography>
+            <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: t.pepsiBlueStrong, mb: 1.25 }}>
+              {stage.owner}
+            </Typography>
+            <Typography sx={{ fontSize: "0.8125rem", lineHeight: 1.6, color: t.slate, mb: 2 }}>
+              {stage.description}
+            </Typography>
+            <Box sx={{ pt: 1.5, borderTop: `1px solid ${t.border}` }}>
+              <Typography
+                sx={{
+                  fontFamily: theme.palette.fonts.mono,
+                  fontSize: "0.625rem",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: t.granite,
+                  mb: 0.5,
+                }}
+              >
+                Result
+              </Typography>
+              <Typography sx={{ fontSize: "0.8125rem", fontWeight: 600, lineHeight: 1.45, color: t.ink }}>
+                {stage.result}
+              </Typography>
+            </Box>
+          </Box>
+        ))}
       </Box>
 
-      {/* Supporting notes — secondary, sitting under the diagram. */}
       <Box sx={{ maxWidth: 1120, mx: "auto", mt: { xs: 4, md: 6 } }}>
         <Typography
           variant="overline"
@@ -979,16 +1108,16 @@ function StepSequence() {
           }}
         >
           <Insight
-            title="Same article, two moments"
-            body="Authors review the article in the same visual system employees will see after publish."
+            title="One continuous article"
+            body="The draft, review preview, and published article retain the same content structure."
           />
           <Insight
-            title="Structured, not rigid"
-            body="FAQ blocks, tables, resources, and text sections can be mixed as the content requires."
+            title="Clear responsibility"
+            body="Content owners create and refine the article; reviewers approve it; administrators govern the system."
           />
           <Insight
-            title="Governance stays outside the prose"
-            body="Owner, approver, knowledge base, country scope, access groups, source language, translations, and publish status live as metadata."
+            title="Governance is built in"
+            body="Ownership, scope, access, approval, status, and review history stay connected to the article."
           />
         </Box>
       </Box>
@@ -1011,288 +1140,6 @@ function Insight({ title, body }: { title: string; body: string }) {
         {body}
       </Typography>
     </Box>
-  );
-}
-
-function SequenceLaneDiagram() {
-  const theme = useTheme();
-  const t = theme.palette.tokens;
-  const W = 720;
-  const H = 540;
-  const lanes = [
-    { id: "owner", name: "Owner", x: 80 },
-    { id: "basics", name: "Basics", x: 215 },
-    { id: "article", name: "Article", x: 335 },
-    { id: "support", name: "Support", x: 445 },
-    { id: "reviewer", name: "Reviewer", x: 555 },
-    { id: "published", name: "Published", x: 660 },
-  ];
-  // Vertical positions for messages — generous spacing so labels never collide
-  // with the dashed lane rails or with adjacent message labels.
-  const t0 = 90;
-  const t1 = 150;
-  const t2 = 215;
-  const t3 = 310; // parallel block starts here, with the ParallelBar sitting above
-  const t4 = 385;
-  const t5 = 450;
-  const t6 = 500;
-  const laneTop = 70;
-  const laneBottom = 520;
-
-  const xOf = (id: string) => lanes.find((l) => l.id === id)!.x;
-
-  return (
-    <Box
-      component="svg"
-      viewBox={`0 0 ${W} ${H}`}
-      sx={{
-        width: "100%",
-        minWidth: 720,
-        maxWidth: 1120,
-        height: "auto",
-        display: "block",
-        mx: "auto",
-      }}
-    >
-      {/* Lane headers + rails */}
-      {lanes.map((l) => (
-        <g key={l.id}>
-          <rect
-            x={l.x - 50}
-            y={26}
-            width={100}
-            height={28}
-            rx={4}
-            fill={t.mist}
-          />
-          <text
-            x={l.x}
-            y={45}
-            textAnchor="middle"
-            fontSize="10.5"
-            fontWeight="600"
-            fill={t.ink}
-          >
-            {l.name}
-          </text>
-          <line
-            x1={l.x}
-            y1={laneTop}
-            x2={l.x}
-            y2={laneBottom}
-            stroke={t.border}
-            strokeWidth="1"
-            strokeDasharray="2 4"
-          />
-        </g>
-      ))}
-
-      {/* Messages */}
-      {/* T0: Owner -> Basics */}
-      <Message x1={xOf("owner")} x2={xOf("basics")} y={t0} label="choose article type" />
-      {/* T1: Basics -> Article */}
-      <Message x1={xOf("basics")} x2={xOf("article")} y={t1} label="set KB · scope · approver" color={t.pepsiBlue} />
-      {/* T1 return */}
-      <Message x1={xOf("article")} x2={xOf("basics")} y={t1 + 24} label="ready to write" returnArrow />
-      {/* T2: Article -> Support */}
-      <Message x1={xOf("article")} x2={xOf("support")} y={t2} label="load template" color={t.pepsiBlue} />
-      <Message x1={xOf("support")} x2={xOf("article")} y={t2 + 24} label="sources attached" returnArrow />
-
-      {/* T3: Parallel — writing happens while source support stays visible.
-          The bar sits well above the first message so its label has its own row. */}
-      <ParallelBar
-        y={t3 - 28}
-        x1={xOf("article") - 12}
-        x2={xOf("reviewer") + 12}
-        label="while writing"
-      />
-      <Message x1={xOf("article")} x2={xOf("support")} y={t3} label="add FAQ · table · resources" color={t.ember} />
-      <Message x1={xOf("article")} x2={xOf("reviewer")} y={t3 + 24} label="preview readiness" color={t.ember} />
-
-      {/* T4: Returns from support + reviewer */}
-      <Message x1={xOf("support")} x2={xOf("article")} y={t4} label="related articles" returnArrow />
-      <Message x1={xOf("reviewer")} x2={xOf("article")} y={t4 + 24} label="recommendations" returnArrow />
-
-      {/* T5: Article self-action */}
-      <SelfNote x={xOf("article")} y={t5} text="submit article for review" />
-      {/* T6: notify */}
-      <Message x1={xOf("reviewer")} x2={xOf("published")} y={t6} label="publish employee view" />
-
-      {/* Time labels on the left — single label per timeline row */}
-      {[
-        { y: t0, label: "T+0" },
-        { y: t1 + 12, label: "T+0" },
-        { y: t2 + 12, label: "T+0" },
-        { y: t3 + 12, label: "T+1" },
-        { y: t4 + 12, label: "T+2" },
-        { y: t5, label: "T+2" },
-        { y: t6, label: "T+3" },
-      ].map((m, i) => (
-        <text
-          key={i}
-          x={10}
-          y={m.y + 4}
-          fontSize="9"
-          fontFamily="JetBrains Mono, monospace"
-          fill={t.granite}
-          letterSpacing="0.5"
-        >
-          {m.label}
-        </text>
-      ))}
-    </Box>
-  );
-}
-
-function Message({
-  x1,
-  x2,
-  y,
-  label,
-  color,
-  returnArrow,
-}: {
-  x1: number;
-  x2: number;
-  y: number;
-  label: string;
-  color?: string;
-  returnArrow?: boolean;
-}) {
-  const theme = useTheme();
-  const t = theme.palette.tokens;
-  const c = color ?? t.slate;
-  const arrowSize = 5;
-  const isLeft = x2 < x1;
-  // Estimate label width so we can paint a paper-colored backing behind the
-  // text. Without this, labels render on top of the dashed lane rails and
-  // overlap adjacent message lines, which reads as text "under" elements.
-  const charW = 5.6;
-  const labelW = label.length * charW + 12;
-  const midX = (x1 + x2) / 2;
-  return (
-    <g>
-      <line
-        x1={x1}
-        y1={y}
-        x2={x2 + (isLeft ? arrowSize : -arrowSize)}
-        y2={y}
-        stroke={c}
-        strokeWidth="1.5"
-        strokeDasharray={returnArrow ? "3 3" : "none"}
-      />
-      <polygon
-        points={
-          isLeft
-            ? `${x2 + arrowSize},${y - 3} ${x2},${y} ${x2 + arrowSize},${y + 3}`
-            : `${x2 - arrowSize},${y - 3} ${x2},${y} ${x2 - arrowSize},${y + 3}`
-        }
-        fill={c}
-      />
-      <rect
-        x={midX - labelW / 2}
-        y={y - 14}
-        width={labelW}
-        height={12}
-        rx={2}
-        fill={t.paper}
-      />
-      <text
-        x={midX}
-        y={y - 5}
-        textAnchor="middle"
-        fontSize="9.5"
-        fontFamily={returnArrow ? "JetBrains Mono, monospace" : "Inter, sans-serif"}
-        fill={returnArrow ? t.granite : t.ink}
-        fontStyle={returnArrow ? "italic" : "normal"}
-      >
-        {label}
-      </text>
-    </g>
-  );
-}
-
-function ParallelBar({
-  y,
-  x1,
-  x2,
-  label,
-}: {
-  y: number;
-  x1: number;
-  x2: number;
-  label: string;
-}) {
-  const theme = useTheme();
-  const t = theme.palette.tokens;
-  // Label sits as a pill flush with the LEFT edge of the bar, just above it —
-  // its own row, so it never overlaps the messages that follow underneath.
-  const labelW = label.length * 5.6 + 14;
-  return (
-    <g>
-      <rect
-        x={x1}
-        y={y - 4}
-        width={x2 - x1}
-        height={8}
-        rx={4}
-        fill={alphaHex(t.ember, 0.12)}
-        stroke={alphaHex(t.ember, 0.4)}
-      />
-      <rect
-        x={x1}
-        y={y - 18}
-        width={labelW}
-        height={12}
-        rx={3}
-        fill={alphaHex(t.ember, 0.18)}
-      />
-      <text
-        x={x1 + labelW / 2}
-        y={y - 9}
-        textAnchor="middle"
-        fontSize="9"
-        fontFamily="JetBrains Mono, monospace"
-        fill={t.emberStrong}
-        letterSpacing="0.5"
-        fontWeight="600"
-      >
-        {label}
-      </text>
-    </g>
-  );
-}
-
-function SelfNote({ x, y, text }: { x: number; y: number; text: string }) {
-  const theme = useTheme();
-  const t = theme.palette.tokens;
-  // The note's text would otherwise cross intake / router / country dashed rails.
-  // Paint a paper-colored backing behind the text so the rails read as broken
-  // and the text stays legible.
-  const textW = text.length * 5.6 + 16;
-  return (
-    <g>
-      <rect
-        x={x - 6}
-        y={y - 8}
-        width={12}
-        height={16}
-        rx={2}
-        fill={t.pepsiBlueSubtle}
-        stroke={alphaHex(t.pepsiBlue, 0.3)}
-      />
-      <rect
-        x={x + 12}
-        y={y - 7}
-        width={textW}
-        height={14}
-        rx={3}
-        fill={t.paper}
-      />
-      <text x={x + 20} y={y + 4} fontSize="10" fill={t.pepsiBlueStrong} fontWeight="500">
-        {text}
-      </text>
-    </g>
   );
 }
 
@@ -1510,30 +1357,24 @@ function StepReady() {
   const t = theme.palette.tokens;
   const navigate = useNavigate();
   const [personaMode] = usePersonaMode();
-  const canCreateArticle = personaMode === "non-admin";
 
-  // Author first — that's the most common path into this product, and
-  // ordering matters: it sets the "primary" suggestion in the eye scan.
+  const creatorRole =
+    personaMode === "super-admin"
+      ? "If you're a super admin"
+      : personaMode === "admin"
+        ? "If you're a team admin"
+        : "If you're a content owner";
+
   const ctas = [
-    canCreateArticle
-      ? {
-          icon: <ArticleOutlinedIcon />,
-          role: "If you're a content owner",
-          label: "Start a new article",
-          sub: "Start with basics, write from a template, review the employee-facing preview, and submit for approval.",
-          to: "/new",
-          cta: "New article",
-          primary: true,
-        }
-      : {
-          icon: <ArticleOutlinedIcon />,
-          role: personaMode === "super-admin" ? "If you're a super admin" : "If you're a team admin",
-          label: personaMode === "super-admin" ? "Open all articles" : "Open your review workspace",
-          sub: "Manage review, governance, and published content without creating articles directly.",
-          to: "/",
-          cta: "Open articles",
-          primary: true,
-        },
+    {
+      icon: <ArticleOutlinedIcon />,
+      role: creatorRole,
+      label: "Start a new article",
+      sub: "Start with chat, create from source files, or switch to the structured form, then review and submit.",
+      to: "/new",
+      cta: "New article",
+      primary: true,
+    },
     {
       icon: <RateReviewOutlinedIcon />,
       role: "If you're a reviewer",

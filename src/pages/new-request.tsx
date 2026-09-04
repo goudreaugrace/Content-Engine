@@ -48,6 +48,8 @@ import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MicNoneOutlinedIcon from "@mui/icons-material/MicNoneOutlined";
+import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
+import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import {
   api,
   currentUser,
@@ -64,7 +66,6 @@ import {
 } from "../lib/api";
 import ArticleDocument, { StructuredArticleSections } from "../components/article-document";
 import ArticleReadingFrame from "../components/article-reading-frame";
-import { usePersonaMode } from "../lib/persona";
 
 // ────────────────────────────────────────────────────────────
 // Static reference data
@@ -159,6 +160,79 @@ type GuidedMessage = {
   role: "assistant" | "user";
   content: string;
 };
+
+const HANDS_OFF_ACCEPT = [
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".ppt",
+  ".pptx",
+  ".xls",
+  ".xlsx",
+  ".csv",
+  ".txt",
+  ".md",
+].join(",");
+
+function handsOffMimeType(file: File): string {
+  if (file.type) return file.type;
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  return {
+    pdf: "application/pdf",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ppt: "application/vnd.ms-powerpoint",
+    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    xls: "application/vnd.ms-excel",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    csv: "text/csv",
+    md: "text/markdown",
+    txt: "text/plain",
+  }[extension ?? ""] ?? "application/octet-stream";
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+type HandsOffArticleInput = {
+  id: string;
+  files: File[];
+  progress: 0 | 1 | 2 | 3;
+  error?: string;
+};
+
+function createHandsOffArticleInput(): HandsOffArticleInput {
+  return {
+    id: `hands-off-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    files: [],
+    progress: 0,
+  };
+}
+
+const HANDS_OFF_DEMO_COPY = [
+  {
+    title: "How to prepare for a temporary workplace change",
+    summary:
+      "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+  },
+  {
+    title: "How to submit a business travel request",
+    summary:
+      "Use this guide to prepare a business travel request, collect the required details, and send it to the right team for review.",
+  },
+  {
+    title: "How to request workplace equipment",
+    summary:
+      "Use this guide to request workplace equipment, provide the necessary information, and understand what happens after submission.",
+  },
+  {
+    title: "How to prepare for a manager change",
+    summary:
+      "Use this guide to prepare for a manager change, confirm the affected employee information, and route the request for review.",
+  },
+] as const;
 
 const knowledgeBases = [
   {
@@ -1345,7 +1419,6 @@ export default function NewRequest() {
   const navigate = useNavigate();
   const theme = useTheme();
   const t = theme.palette.tokens;
-  const [personaMode] = usePersonaMode();
   const me = currentUser();
   const manager =
     demoPeople.find((person) => person.email === me.email)?.manager ??
@@ -1447,7 +1520,11 @@ export default function NewRequest() {
   const [showAllCountries, setShowAllCountries] = useState(false);
   // Wizard step index (0-based). Stepper labels live in STEP_LABELS below.
   const [currentStep, setCurrentStep] = useState(0);
-  const [creationStartMode, setCreationStartMode] = useState<"form" | "guided">("guided");
+  const [creationStartMode, setCreationStartMode] = useState<"form" | "guided" | "hands-off">("guided");
+  const [handsOffArticles, setHandsOffArticles] = useState<HandsOffArticleInput[]>(() => [
+    createHandsOffArticleInput(),
+  ]);
+  const [handsOffSubmitting, setHandsOffSubmitting] = useState(false);
   const [guidedPrompt, setGuidedPrompt] = useState("");
   const [guidedDemoMode, setGuidedDemoMode] = useState(false);
   const [guidedStarted, setGuidedStarted] = useState(false);
@@ -1485,12 +1562,6 @@ export default function NewRequest() {
 
   const [marketProfiles, setMarketProfiles] = useState<MarketProfile[]>([]);
   const [sectorProfiles, setSectorProfiles] = useState<SectorProfile[]>([]);
-
-  useEffect(() => {
-    if (personaMode !== "non-admin") {
-      navigate("/", { replace: true });
-    }
-  }, [navigate, personaMode]);
 
   useEffect(() => {
     api
@@ -3087,6 +3158,67 @@ export default function NewRequest() {
       reader.onerror = () => reject(reader.error ?? new Error("Unable to read file"));
       reader.readAsDataURL(file);
     });
+
+  const addHandsOffFiles = (articleId: string, files: FileList | File[]) => {
+    const next = Array.from(files);
+    setHandsOffArticles((current) =>
+      current.map((article) => {
+        if (article.id !== articleId) return article;
+        const seen = new Set(
+          article.files.map((file) => `${file.name}:${file.size}:${file.lastModified}`),
+        );
+        return {
+          ...article,
+          error: undefined,
+          files: [
+            ...article.files,
+            ...next.filter((file) => {
+              const key = `${file.name}:${file.size}:${file.lastModified}`;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            }),
+          ],
+        };
+      }),
+    );
+  };
+
+  const removeHandsOffFile = (articleId: string, file: File) => {
+    const key = `${file.name}:${file.size}:${file.lastModified}`;
+    setHandsOffArticles((current) =>
+      current.map((article) =>
+        article.id === articleId
+          ? {
+              ...article,
+              files: article.files.filter(
+                (item) => `${item.name}:${item.size}:${item.lastModified}` !== key,
+              ),
+            }
+          : article,
+      ),
+    );
+  };
+
+  const addHandsOffArticle = () => {
+    setHandsOffArticles((current) => [...current, createHandsOffArticleInput()]);
+  };
+
+  const removeHandsOffArticle = (articleId: string) => {
+    setHandsOffArticles((current) => current.filter((article) => article.id !== articleId));
+  };
+
+  const updateHandsOffProgress = (
+    articleId: string,
+    progress: HandsOffArticleInput["progress"],
+    error?: string,
+  ) => {
+    setHandsOffArticles((current) =>
+      current.map((article) =>
+        article.id === articleId ? { ...article, progress, error } : article,
+      ),
+    );
+  };
 
   const handleMigrationFile = async (file: File | undefined) => {
     if (!file) return;
@@ -5973,6 +6105,156 @@ export default function NewRequest() {
     }
   };
 
+  const createHandsOffDrafts = async () => {
+    if (
+      handsOffSubmitting ||
+      handsOffArticles.length === 0 ||
+      handsOffArticles.some((article) => article.files.length === 0)
+    ) {
+      return;
+    }
+
+    setHandsOffSubmitting(true);
+    setError(null);
+    setHandsOffArticles((current) =>
+      current.map((article) => ({ ...article, progress: 0, error: undefined })),
+    );
+
+    const createArticle = async (article: HandsOffArticleInput, index: number) => {
+      try {
+        const uploaded = await Promise.all(
+          article.files.map(async (file) =>
+            api.uploadSourceFile({
+              title: file.name.replace(/\.[^.]+$/, ""),
+              fileName: file.name,
+              mimeType: handsOffMimeType(file),
+              dataUrl: await readFileAsDataUrl(file),
+            }),
+          ),
+        );
+        updateHandsOffProgress(article.id, 1);
+
+        const sourceList = uploaded
+          .map(
+            (file) =>
+              `- ${file.fileName}${
+                file.extractedText ? `\n  Extract: ${file.extractedText.slice(0, 1200)}` : ""
+              }`,
+          )
+          .join("\n");
+        const demoCopy = HANDS_OFF_DEMO_COPY[index % HANDS_OFF_DEMO_COPY.length];
+        const repeatNumber = Math.floor(index / HANDS_OFF_DEMO_COPY.length);
+        const title = repeatNumber > 0 ? `${demoCopy.title} (${repeatNumber + 1})` : demoCopy.title;
+        const summary = demoCopy.summary;
+        const sectionId = `hands-off-${index + 1}`;
+        const sections: ArticleSection[] = [
+          {
+            id: `${sectionId}-overview`,
+            type: "text",
+            title: "Before you begin",
+            body: "Review the source files and confirm the people, dates, locations, approvals, and business details that apply. Gather any supporting documentation referenced in the source material. Do not include sensitive personal information that is not required to complete the request.",
+            required: true,
+          },
+          {
+            id: `${sectionId}-steps`,
+            type: "text",
+            title: "Complete the request",
+            body: "1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate business support team for the employee's sector and country.\n3. Provide the required dates, business reason, approvals, and supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the request is final.",
+            required: true,
+          },
+          {
+            id: `${sectionId}-next`,
+            type: "text",
+            title: "What happens next",
+            body: "The support team reviews the request and may contact the requester if information is missing. Timing depends on the request type and the countries involved. Follow the instructions in the final confirmation before taking action.",
+            required: true,
+          },
+          {
+            id: `${sectionId}-help`,
+            type: "text",
+            title: "Get help",
+            body: "If the request is urgent, involves more than one country, or does not match the standard process, contact the appropriate support team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+            required: true,
+          },
+        ];
+        const finalArticleBody = [
+          `# ${title}`,
+          summary,
+          ...sections.map((section) =>
+            section.type === "text" ? `## ${section.title}\n\n${section.body}` : "",
+          ),
+        ]
+          .filter(Boolean)
+          .join("\n\n");
+
+        const created = await api.createJob({
+          title,
+          contentType: "How to",
+          knowledgeBase: "mypepsico",
+          summary,
+          audience: "All employees",
+          markets: ["us"],
+          sectors: ["pfna"],
+          countries: ["US"],
+          sourceText: `## Uploaded source files\n${sourceList}\n\nThe agent combined these files and applied the current content, accessibility, and readiness standards.`,
+          finalArticleBody,
+          sections,
+          references: uploaded.map((file) => ({
+            id: file.id,
+            title: file.fileName,
+            kind: "doc" as const,
+            filePath: file.filePath,
+            excerpt: file.extractedText?.slice(0, 260),
+            source: "submission" as const,
+            addedAt: new Date().toISOString(),
+            addedBy: me.name,
+          })),
+          visibility: {
+            audiences: ["All employees"],
+            markets: ["us"],
+            countries: ["US"],
+            canRead: ["All employees"],
+            security: "all-employees",
+            notes: "Publishing details were inferred and must be confirmed during author review.",
+          },
+          submittedBy: me,
+          approver: selectedApprover,
+          seo: {
+            title,
+            metaDescription:
+              "Learn what information to prepare, how to complete this request, and what employees and managers should expect after submission.",
+            keywords: ["employee request", "support process", "manager approval"],
+            summary,
+            keyQuestions: [
+              "What information do I need before I start?",
+              "What happens after I submit the request?",
+            ],
+            entities: ["myPepsiCo", "support team"],
+          },
+          authorReviewRequired: true,
+        });
+        updateHandsOffProgress(article.id, 2);
+        return created.id;
+      } catch (e: any) {
+        updateHandsOffProgress(article.id, 0, e?.message ?? String(e));
+        return null;
+      }
+    };
+
+    const jobIds = await Promise.all(handsOffArticles.map(createArticle));
+    const startedIds = jobIds.filter((id): id is string => Boolean(id));
+    if (startedIds.length === handsOffArticles.length) {
+      navigate(`/?tab=my-articles&writing=${startedIds.length}`);
+      return;
+    }
+
+    const failedCount = handsOffArticles.length - startedIds.length;
+    setError(
+      `${failedCount} ${failedCount === 1 ? "article" : "articles"} could not be started. Review the message beside each article and try again.`,
+    );
+    setHandsOffSubmitting(false);
+  };
+
   // ───────────── Submit ─────────────
   const submit = async () => {
     if (!articleMeetsMinimumLength) {
@@ -6058,19 +6340,11 @@ export default function NewRequest() {
     }
   };
   // ───────────── Render ─────────────
-  if (personaMode !== "non-admin") {
-    return (
-      <Alert severity="info">
-        Article creation is available to Content Owners. Team Admins and Super Admins manage review, governance, and published content.
-      </Alert>
-    );
-  }
-
   return (
     <Box
       sx={{
         maxWidth:
-          currentStep === 0 && creationStartMode === "guided"
+          currentStep === 0 && creationStartMode !== "form"
             ? "none"
             : currentStep === 2
               ? 1600
@@ -6082,7 +6356,7 @@ export default function NewRequest() {
             : 0,
       }}
     >
-      {!(currentStep === 0 && creationStartMode === "guided") && (
+      {!(currentStep === 0 && creationStartMode !== "form") && (
         <Box
           sx={{
             mb: currentStep === 1 ? 8 : 4,
@@ -6178,6 +6452,22 @@ export default function NewRequest() {
                   />
                 </Button>
               )}
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<UploadFileOutlinedIcon sx={{ fontSize: 17 }} />}
+                onClick={() => setCreationStartMode("hands-off")}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  color: t.pepsiBlueStrong,
+                  borderRadius: "8px",
+                  px: 1.25,
+                  "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                }}
+              >
+                Create from files
+              </Button>
               <Button
                 variant="text"
                 size="small"
@@ -6279,24 +6569,43 @@ export default function NewRequest() {
                 bgcolor: "#FFFFFF",
               }}
             >
-              <Button
-                size="small"
-                onClick={() => setCreationStartMode("form")}
-                sx={{
-                  minHeight: 40,
-                  px: 2,
-                  borderRadius: 999,
-                  textTransform: "none",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: t.pepsiBlueStrong,
-                  bgcolor: t.pepsiBlueSubtle,
-                  boxShadow: "none",
-                  "&:hover": { bgcolor: "#D8ECFF", boxShadow: "none" },
-                }}
-              >
-                Switch to form
-              </Button>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  size="small"
+                  startIcon={<UploadFileOutlinedIcon sx={{ fontSize: 17 }} />}
+                  onClick={() => setCreationStartMode("hands-off")}
+                  sx={{
+                    minHeight: 40,
+                    px: 1.75,
+                    borderRadius: 999,
+                    textTransform: "none",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    color: t.pepsiBlueStrong,
+                    "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                  }}
+                >
+                  Create from files
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => setCreationStartMode("form")}
+                  sx={{
+                    minHeight: 40,
+                    px: 2,
+                    borderRadius: 999,
+                    textTransform: "none",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    color: t.pepsiBlueStrong,
+                    bgcolor: t.brandSky,
+                    boxShadow: "none",
+                    "&:hover": { bgcolor: t.pepsiBlueSubtle, boxShadow: "none" },
+                  }}
+                >
+                  Switch to form
+                </Button>
+              </Stack>
             </Box>
 
             <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
@@ -6315,8 +6624,8 @@ export default function NewRequest() {
                     <Typography
                       sx={{
                         fontSize: { xs: "1.75rem", md: "2.125rem" },
-                        fontWeight: 400,
-                        color: t.ink,
+                        fontWeight: 500,
+                        color: t.pepsiNavy,
                         lineHeight: 1.2,
                       }}
                     >
@@ -6328,9 +6637,14 @@ export default function NewRequest() {
                         px: 1.25,
                         py: 0.8,
                         borderRadius: 999,
-                        border: `1px solid ${t.articleDivider}`,
+                        border: `1px solid ${t.borderStrong}`,
                         bgcolor: "#FFFFFF",
-                        boxShadow: "0 8px 24px rgba(15, 23, 42, 0.1)",
+                        boxShadow: "0 10px 28px rgba(0, 32, 91, 0.12)",
+                        transition: "border-color 120ms ease, box-shadow 120ms ease",
+                        "&:focus-within": {
+                          borderColor: t.pepsiBlue,
+                          boxShadow: "0 0 0 3px rgba(0, 101, 168, 0.12), 0 10px 28px rgba(0, 32, 91, 0.12)",
+                        },
                       }}
                     >
                       <Stack direction="row" alignItems="center" spacing={1}>
@@ -6339,7 +6653,7 @@ export default function NewRequest() {
                           size="small"
                           disabled={articleImportBusy}
                           title="Attach supporting evidence or an existing article"
-                          sx={{ width: 36, height: 36, color: t.ink }}
+                          sx={{ width: 36, height: 36, color: t.pepsiBlueStrong }}
                         >
                           {articleImportBusy ? <CircularProgress size={15} /> : <AttachFileIcon sx={{ fontSize: 19 }} />}
                           <input
@@ -6395,9 +6709,9 @@ export default function NewRequest() {
                           sx={{
                             width: 36,
                             height: 36,
-                            bgcolor: t.ink,
+                            bgcolor: t.pepsiBlue,
                             color: "#FFFFFF",
-                            "&:hover": { bgcolor: t.pepsiNavy },
+                            "&:hover": { bgcolor: t.pepsiBlueStrong },
                             "&.Mui-disabled": { bgcolor: t.surfaceContainerLow, color: t.granite },
                           }}
                         >
@@ -7052,9 +7366,14 @@ export default function NewRequest() {
                     px: 1.25,
                     py: 0.8,
                     borderRadius: 999,
-                    border: `1px solid ${t.articleDivider}`,
+                    border: `1px solid ${t.borderStrong}`,
                     bgcolor: "#FFFFFF",
-                    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.1)",
+                    boxShadow: "0 10px 28px rgba(0, 32, 91, 0.12)",
+                    transition: "border-color 120ms ease, box-shadow 120ms ease",
+                    "&:focus-within": {
+                      borderColor: t.pepsiBlue,
+                      boxShadow: "0 0 0 3px rgba(0, 101, 168, 0.12), 0 10px 28px rgba(0, 32, 91, 0.12)",
+                    },
                   }}
                 >
                   <Stack direction="row" alignItems="center" spacing={1}>
@@ -7063,7 +7382,7 @@ export default function NewRequest() {
                       size="small"
                       disabled={articleImportBusy}
                       title="Attach supporting evidence or an existing article"
-                      sx={{ width: 36, height: 36, color: t.ink }}
+                      sx={{ width: 36, height: 36, color: t.pepsiBlueStrong }}
                     >
                       {articleImportBusy ? <CircularProgress size={15} /> : <AttachFileIcon sx={{ fontSize: 19 }} />}
                       <input
@@ -7151,9 +7470,9 @@ export default function NewRequest() {
                       sx={{
                         width: 36,
                         height: 36,
-                        bgcolor: t.ink,
+                        bgcolor: t.pepsiBlue,
                         color: "#FFFFFF",
-                        "&:hover": { bgcolor: t.pepsiNavy },
+                        "&:hover": { bgcolor: t.pepsiBlueStrong },
                         "&.Mui-disabled": { bgcolor: t.surfaceContainerLow, color: t.granite },
                       }}
                     >
@@ -7890,6 +8209,268 @@ export default function NewRequest() {
           </Box>
           )}
           </>
+        ) : creationStartMode === "hands-off" ? (
+          <Box
+            sx={{
+              height: "calc(100vh - 72px)",
+              minHeight: 620,
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                minHeight: 64,
+                px: { xs: 2, md: 3 },
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                flexShrink: 0,
+              }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  size="small"
+                  onClick={() => setCreationStartMode("guided")}
+                  sx={{ minHeight: 40, px: 1.75, borderRadius: 999, textTransform: "none", fontWeight: 600 }}
+                >
+                  Back to chat
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => setCreationStartMode("form")}
+                  sx={{
+                    minHeight: 40,
+                    px: 2,
+                    borderRadius: 999,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    color: t.pepsiBlueStrong,
+                    bgcolor: t.brandSky,
+                    "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                  }}
+                >
+                  Switch to form
+                </Button>
+              </Stack>
+            </Box>
+
+            <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", px: 2, pb: 6 }}>
+              <Box sx={{ width: "min(760px, 100%)", mx: "auto", pt: { xs: 5, md: 9 } }}>
+                <Typography
+                  component="h1"
+                  sx={{ fontSize: { xs: "1.75rem", md: "2.125rem" }, fontWeight: 500, color: t.pepsiNavy, lineHeight: 1.2 }}
+                >
+                  Let the agent write it for you
+                </Typography>
+                <Typography sx={{ mt: 1.25, maxWidth: 650, fontSize: "0.9375rem", color: t.slate, lineHeight: 1.6 }}>
+                  Add the source material you already have. The agent will combine it into a standards-ready draft and place it in My Articles for you to review.
+                </Typography>
+
+                <Stack spacing={2} sx={{ mt: 4 }}>
+                  {handsOffArticles.map((article, articleIndex) => (
+                    <Box
+                      key={article.id}
+                      sx={{
+                        border: `1px solid ${article.error ? t.errorInk : t.border}`,
+                        borderRadius: 2,
+                        p: { xs: 1.5, sm: 2 },
+                        bgcolor: "#FFFFFF",
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>
+                            Article {articleIndex + 1}
+                          </Typography>
+                          <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
+                            {article.files.length === 0
+                              ? "Add the source files for this article"
+                              : `${article.files.length} source ${article.files.length === 1 ? "file" : "files"}`}
+                          </Typography>
+                        </Box>
+                        {handsOffArticles.length > 1 && !handsOffSubmitting && (
+                          <IconButton
+                            size="small"
+                            aria-label={`Remove article ${articleIndex + 1}`}
+                            onClick={() => removeHandsOffArticle(article.id)}
+                            sx={{ color: t.slate }}
+                          >
+                            <DeleteOutlineIcon sx={{ fontSize: 19 }} />
+                          </IconButton>
+                        )}
+                      </Stack>
+
+                      <Box
+                        component="label"
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          if (!handsOffSubmitting) addHandsOffFiles(article.id, event.dataTransfer.files);
+                        }}
+                        sx={{
+                          mt: 1.5,
+                          minHeight: 126,
+                          border: `1.5px dashed ${t.borderStrong}`,
+                          borderRadius: 1.5,
+                          bgcolor: t.surfaceContainerLow,
+                          display: "grid",
+                          placeItems: "center",
+                          px: 2,
+                          py: 2.5,
+                          cursor: handsOffSubmitting ? "default" : "pointer",
+                          transition: "border-color 120ms ease, background-color 120ms ease",
+                          "&:hover": handsOffSubmitting
+                            ? {}
+                            : { borderColor: t.pepsiBlue, bgcolor: t.pepsiBlueSubtle },
+                        }}
+                      >
+                        <Stack alignItems="center" spacing={0.75} textAlign="center">
+                          <Box
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: "50%",
+                              display: "grid",
+                              placeItems: "center",
+                              bgcolor: t.brandSky,
+                              color: t.pepsiBlueStrong,
+                            }}
+                          >
+                            <UploadFileOutlinedIcon sx={{ fontSize: 20 }} />
+                          </Box>
+                          <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
+                            Choose files or drag them here
+                          </Typography>
+                          <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
+                            PowerPoint, Excel, Word, PDF, CSV, Markdown, and text files
+                          </Typography>
+                        </Stack>
+                        <input
+                          type="file"
+                          hidden
+                          multiple
+                          accept={HANDS_OFF_ACCEPT}
+                          disabled={handsOffSubmitting}
+                          onChange={(event) => {
+                            if (event.target.files) addHandsOffFiles(article.id, event.target.files);
+                            event.target.value = "";
+                          }}
+                        />
+                      </Box>
+
+                      {article.files.length > 0 && (
+                        <Stack spacing={0} sx={{ mt: 1 }}>
+                          {article.files.map((file) => (
+                            <Stack
+                              key={`${file.name}:${file.size}:${file.lastModified}`}
+                              direction="row"
+                              alignItems="center"
+                              spacing={1.25}
+                              sx={{ minHeight: 48, px: 0.5, py: 0.75, borderBottom: `1px solid ${t.articleDivider}` }}
+                            >
+                              <InsertDriveFileOutlinedIcon sx={{ fontSize: 19, color: t.pepsiBlue }} />
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Typography noWrap sx={{ fontSize: "0.8125rem", fontWeight: 600, color: t.ink }}>
+                                  {file.name}
+                                </Typography>
+                                <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
+                                  {formatFileSize(file.size)}
+                                </Typography>
+                              </Box>
+                              <IconButton
+                                size="small"
+                                aria-label={`Remove ${file.name}`}
+                                disabled={handsOffSubmitting}
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  removeHandsOffFile(article.id, file);
+                                }}
+                              >
+                                <CloseIcon sx={{ fontSize: 18 }} />
+                              </IconButton>
+                            </Stack>
+                          ))}
+                        </Stack>
+                      )}
+
+                      {(handsOffSubmitting || article.error) && (
+                        <Stack spacing={0.625} sx={{ mt: 1.5 }}>
+                          {["Reading source files", "Writing the article", "Applying content and accessibility standards"].map(
+                            (label, progressIndex) => {
+                              const complete = article.progress > progressIndex;
+                              const active = !article.error && article.progress === progressIndex;
+                              return (
+                                <Stack key={label} direction="row" spacing={1} alignItems="center">
+                                  {complete ? (
+                                    <CheckCircleOutlineIcon sx={{ fontSize: 17, color: t.successInk }} />
+                                  ) : active ? (
+                                    <CircularProgress size={15} sx={{ color: t.pepsiBlue }} />
+                                  ) : (
+                                    <Box
+                                      sx={{
+                                        width: 15,
+                                        height: 15,
+                                        borderRadius: "50%",
+                                        border: `1px solid ${t.borderStrong}`,
+                                      }}
+                                    />
+                                  )}
+                                  <Typography sx={{ fontSize: "0.75rem", color: active || complete ? t.ink : t.granite }}>
+                                    {label}
+                                  </Typography>
+                                </Stack>
+                              );
+                            },
+                          )}
+                          {article.error && (
+                            <Typography sx={{ pt: 0.5, fontSize: "0.75rem", color: t.errorInk }}>
+                              {article.error}
+                            </Typography>
+                          )}
+                        </Stack>
+                      )}
+                    </Box>
+                  ))}
+
+                  <Button
+                    startIcon={<AddIcon sx={{ fontSize: 18 }} />}
+                    onClick={addHandsOffArticle}
+                    disabled={handsOffSubmitting}
+                    sx={{ alignSelf: "flex-start", px: 0.75, textTransform: "none", fontWeight: 700 }}
+                  >
+                    Add another article
+                  </Button>
+                </Stack>
+
+                <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={1} sx={{ mt: 2.5 }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    startIcon={handsOffSubmitting ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon sx={{ fontSize: 18 }} />}
+                    disabled={
+                      handsOffSubmitting ||
+                      handsOffArticles.length === 0 ||
+                      handsOffArticles.some((article) => article.files.length === 0)
+                    }
+                    onClick={createHandsOffDrafts}
+                    sx={{ minHeight: 44, px: 2.5, borderRadius: 999, textTransform: "none", fontWeight: 700 }}
+                  >
+                    {handsOffSubmitting
+                      ? `Starting ${handsOffArticles.length} ${handsOffArticles.length === 1 ? "article" : "articles"}...`
+                      : handsOffArticles.length === 1
+                        ? "Write article for me"
+                        : `Write ${handsOffArticles.length} articles for me`}
+                  </Button>
+                </Stack>
+                <Typography sx={{ mt: 1.25, textAlign: "right", fontSize: "0.6875rem", color: t.granite }}>
+                  Track each article in My Articles while the agent writes. Finished drafts will move to Needs author review.
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
         ) : (
           <>
 
@@ -10144,7 +10725,7 @@ export default function NewRequest() {
         </Stack>
       )}
 
-      {!(currentStep === 0 && creationStartMode === "guided") && (
+      {!(currentStep === 0 && creationStartMode !== "form") && (
         <>
           <Divider sx={{ my: 4 }} />
 

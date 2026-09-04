@@ -8,6 +8,7 @@
  * on the PublishedArticle and any further edits happen there.
  */
 export type ArticleStatus =
+  | "needs-author-review"
   | "needs-review"
   | "needs-info"
   | "rejected"
@@ -82,6 +83,8 @@ export type JobInput = {
   sections?: ArticleSection[];
   taxonomy?: ArticleTaxonomy;
   relationships?: ArticleRelationship[];
+  /** Source files supplied for autonomous drafting. */
+  references?: ArticleReference[];
   visibility?: ArticleVisibility;
   submittedBy: { name: string; email: string };
   approver?: { name: string; email: string; role?: string };
@@ -104,6 +107,8 @@ export type JobInput = {
    * "Mark as replacement" on a matched article.
    */
   replacesArticleId?: string;
+  /** Hands-off generation stops with the author, before the approver queue. */
+  authorReviewRequired?: boolean;
 };
 
 export type ArticleSEO = {

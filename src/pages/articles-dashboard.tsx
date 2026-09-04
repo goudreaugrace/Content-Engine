@@ -90,6 +90,7 @@ type KindFilter = "all" | AttentionKind;
  */
 type StatusFilter =
   | "all"
+  | "needs-author-review"
   | "needs-review"
   | "needs-info"
   | "rejected"
@@ -99,6 +100,7 @@ type StatusFilter =
   | "in-flight";
 
 const STATUS_LABELS: Record<Exclude<StatusFilter, "all">, string> = {
+  "needs-author-review": "Needs author review",
   "needs-review": "Needs review",
   "needs-info": "Changes Requested",
   rejected: "Rejected",
@@ -112,6 +114,7 @@ const STATUS_LABELS: Record<Exclude<StatusFilter, "all">, string> = {
  *  then published cadence, then in-flight. Mirrors how a reviewer scans
  *  the queue in workflow order. */
 const STATUS_FILTER_ORDER: Exclude<StatusFilter, "all">[] = [
+  "needs-author-review",
   "needs-review",
   "needs-info",
   "rejected",

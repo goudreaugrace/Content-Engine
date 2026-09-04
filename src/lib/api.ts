@@ -7,6 +7,7 @@
  * PublishedArticle, not the source.
  */
 export type ArticleStatus =
+  | "needs-author-review"
   | "needs-review"
   | "needs-info"
   | "rejected"
@@ -108,6 +109,8 @@ export type JobInput = {
   sections?: ArticleSection[];
   taxonomy?: ArticleTaxonomy;
   relationships?: ArticleRelationship[];
+  /** Source files supplied for autonomous drafting. */
+  references?: ArticleReference[];
   visibility?: ArticleVisibility;
   submittedBy: { name: string; email: string };
   approver?: { name: string; email: string; role?: string };
@@ -119,6 +122,8 @@ export type JobInput = {
   globalJustification?: string;
   /** Phase B: set when the duplicate-detection panel marks an existing article as the one being replaced. */
   replacesArticleId?: string;
+  /** Hands-off generation stops with the author, before the approver queue. */
+  authorReviewRequired?: boolean;
 };
 
 export type ArticleSEO = {
@@ -698,6 +703,10 @@ export const api = {
     request<Article>(`/api/articles/${id}/review`, {
       method: "PATCH",
       body: JSON.stringify(body),
+    }),
+  submitArticleForApproval: (id: string) =>
+    request<Article>(`/api/articles/${id}/submit-for-approval`, {
+      method: "POST",
     }),
   updateArticle: (
     id: string,

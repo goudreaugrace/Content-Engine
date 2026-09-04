@@ -76,6 +76,11 @@ function describeDraft(
   article: Article,
 ): { reason: string; severity: AttentionSeverity } | null {
   switch (article.status) {
+    case "needs-author-review":
+      return {
+        reason: "Generated draft needs author review",
+        severity: "medium",
+      };
     case "needs-review":
       // Auto-approve-candidate is the lowest-friction case but still needs
       // a reviewer click — keep it high but lighter copy.

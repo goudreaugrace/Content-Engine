@@ -518,6 +518,33 @@ articlesRouter.post("/:id/resubmit", async (req, res) => {
   res.json(updated);
 });
 
+/** Move an autonomous draft into the approver queue after author review. */
+articlesRouter.post("/:id/submit-for-approval", async (req, res) => {
+  const article = await loadById<Article>("articles", req.params.id);
+  if (!article) return res.status(404).json({ error: "not found" });
+  if (article.status !== "needs-author-review") {
+    return res.status(400).json({
+      error: "Only drafts that need author review can be submitted for approval",
+    });
+  }
+  const characterCount = article.body.replace(/[#*_>`\[\]()\-]/g, "").trim().length;
+  if (characterCount < 500) {
+    return res.status(400).json({
+      error: "Articles need at least 500 characters before they can be submitted for approval.",
+    });
+  }
+
+  const updated: Article = {
+    ...article,
+    status: "needs-review",
+    submittedAt: new Date().toISOString(),
+    reviewedAt: undefined,
+    reviewer: undefined,
+  };
+  await upsert("articles", updated);
+  res.json(updated);
+});
+
 articlesRouter.post("/:id/translate", async (req, res) => {
   const raw = ((req.body as { target?: string })?.target ?? "en").toLowerCase();
   const resolved = resolveLanguage(raw);

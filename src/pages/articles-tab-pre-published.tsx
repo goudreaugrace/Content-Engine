@@ -33,6 +33,7 @@ import CloseOutlinedIcon2 from "@mui/icons-material/CloseOutlined";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ViewListOutlinedIcon from "@mui/icons-material/ViewListOutlined";
 import ViewKanbanOutlinedIcon from "@mui/icons-material/ViewKanbanOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { api, type Article, type ArticleStatus } from "../lib/api";
 import { localeFor } from "../lib/market";
 import { sectorShortLabel } from "../lib/sector";
@@ -67,6 +68,11 @@ const STATUS_META: Record<
   ArticleStatus,
   { label: string; color: "warning" | "success" | "error" | "info"; icon: React.ReactNode }
 > = {
+  "needs-author-review": {
+    label: "Needs author review",
+    color: "info",
+    icon: <EditOutlinedIcon sx={{ fontSize: 13 }} />,
+  },
   "needs-review": {
     label: "Needs review",
     color: "warning",
@@ -191,6 +197,7 @@ export default function PrePublishedTab({
   const counts = useMemo(
     () => ({
       total: articles.length,
+      "needs-author-review": articles.filter((a) => a.status === "needs-author-review").length,
       "needs-review": articles.filter((a) => a.status === "needs-review").length,
       "needs-info": articles.filter((a) => a.status === "needs-info").length,
       rejected: articles.filter((a) => a.status === "rejected").length,
@@ -264,6 +271,11 @@ export default function PrePublishedTab({
       <KpiRow>
         <KpiItem label="Total drafts" value={counts.total} />
         <KpiItem
+          label="Needs author review"
+          value={counts["needs-author-review"]}
+          accent={counts["needs-author-review"] > 0 ? t.pepsiBlue : undefined}
+        />
+        <KpiItem
           label="Needs review"
           value={counts["needs-review"]}
           accent={counts["needs-review"] > 0 ? t.ember : undefined}
@@ -299,6 +311,10 @@ export default function PrePublishedTab({
             onChange={(v) => setStatusFilter(v as StatusFilter)}
             options={[
               { value: "all", label: `All statuses (${counts.total})` },
+              {
+                value: "needs-author-review",
+                label: `Needs author review (${counts["needs-author-review"]})`,
+              },
               {
                 value: "needs-review",
                 label: `Needs review (${counts["needs-review"]})`,
@@ -643,6 +659,7 @@ export default function PrePublishedTab({
 // each lane stack scrolls vertically when it grows tall.
 // ════════════════════════════════════════════════════════════
 const BOARD_LANE_ORDER: Exclude<ArticleStatus, "published">[] = [
+  "needs-author-review",
   "needs-review",
   "needs-info",
   "rejected",
@@ -662,6 +679,7 @@ function StatusChipFilter({
   onChange: (next: StatusFilter) => void;
   counts: {
     total: number;
+    "needs-author-review": number;
     "needs-review": number;
     "needs-info": number;
     rejected: number;
@@ -679,6 +697,12 @@ function StatusChipFilter({
     accent: string;
   }> = [
     { key: "all", label: "All", count: counts.total, accent: t.pepsiBlue },
+    {
+      key: "needs-author-review",
+      label: "Author review",
+      count: counts["needs-author-review"],
+      accent: t.pepsiBlue,
+    },
     {
       key: "needs-review",
       label: "Needs review",
@@ -769,6 +793,7 @@ function BoardView({
   // everything that reaches the board.
   const grouped = useMemo(() => {
     const map: Record<Exclude<ArticleStatus, "published">, Article[]> = {
+      "needs-author-review": [],
       "needs-review": [],
       "needs-info": [],
       rejected: [],
@@ -828,7 +853,9 @@ function BoardLane({
   // header + count badge read as the same family as the status everywhere
   // else in the app.
   const accent =
-    status === "needs-review"
+    status === "needs-author-review"
+      ? t.pepsiBlue
+      : status === "needs-review"
       ? t.emberStrong
       : status === "needs-info"
         ? t.infoInk

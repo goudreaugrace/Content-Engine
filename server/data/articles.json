@@ -1,5 +1,1806 @@
 [
   {
+    "id": "ka-5dbe8774",
+    "jobId": "job-4da8ad68",
+    "title": "How to prepare for a short-term workplace change",
+    "contentType": "How to",
+    "knowledgeBase": "mypepsico",
+    "market": "US",
+    "countries": [
+      "US"
+    ],
+    "seo": {
+      "title": "Prepare for a Short-Term Workplace Change",
+      "metaDescription": "Learn what information to gather and what to expect when requesting a short-term workplace change.",
+      "keywords": [
+        "workplace change",
+        "temporary location"
+      ],
+      "summary": "Use this guide to gather the information needed for a temporary workplace change.",
+      "keyQuestions": [
+        "How to prepare for a short-term workplace change?"
+      ],
+      "entities": [
+        "Use",
+        "Send",
+        "United States"
+      ]
+    },
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico",
+      "sector": "pfna",
+      "countries": [
+        "US"
+      ],
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "All employees"
+      ],
+      "contentType": "How to",
+      "topics": [
+        "How to",
+        "Use",
+        "Send",
+        "United States",
+        "workplace change",
+        "temporary location"
+      ],
+      "businessTerms": [
+        "How to",
+        "Use",
+        "Send",
+        "United States",
+        "workplace change",
+        "temporary location",
+        "Before",
+        "Confirm",
+        "Submit"
+      ],
+      "systems": [],
+      "processes": [
+        "approval",
+        "review"
+      ]
+    },
+    "relationships": [],
+    "references": [
+      {
+        "id": "async-demo-source",
+        "title": "Temporary workplace change source",
+        "kind": "doc",
+        "source": "submission",
+        "addedAt": "2026-09-04T14:00:00.000Z",
+        "addedBy": "Demo User"
+      }
+    ],
+    "body": "# How to prepare for a short-term workplace change\n\nUse this guide to gather the information needed for a temporary workplace change.\n\n## Before you begin\n\nConfirm the employee, locations, dates, business reason, and manager approval.\n\n## Submit the request\n\nSend the complete request to the appropriate support team and keep the confirmation number.\n\n## What happens next\n\nThe support team reviews the request and contacts you if more information is needed.",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@example.com"
+    },
+    "owner": "Demo Approver",
+    "approvedBy": "Demo Approver",
+    "submittedAt": "2026-09-04T13:50:41.403Z",
+    "status": "needs-author-review",
+    "complianceIssues": [],
+    "lead": "Use this guide to gather the information needed for a temporary workplace change.",
+    "canonicalSlug": "how-to-prepare-for-a-short-term-workplace-change",
+    "aliases": [
+      "workplace change",
+      "temporary location",
+      "How to prepare for a short-term workplace change"
+    ],
+    "topics": [
+      "How to",
+      "Use",
+      "Send",
+      "United States",
+      "workplace change",
+      "temporary location"
+    ],
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US"
+      ],
+      "security": "all-employees",
+      "notes": "Visible to employees in the selected audience, market, and country scope."
+    },
+    "approvalResults": [
+      {
+        "id": "canonical-title",
+        "label": "Canonical title and slug present",
+        "severity": "ok"
+      },
+      {
+        "id": "lead",
+        "label": "Lead stands alone",
+        "severity": "ok"
+      },
+      {
+        "id": "references",
+        "label": "1 source reference attached",
+        "severity": "ok"
+      },
+      {
+        "id": "topic-scope",
+        "label": "Topic scope is tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "owner",
+        "label": "Article owner present",
+        "severity": "ok"
+      },
+      {
+        "id": "visibility",
+        "label": "Audience and country visibility set",
+        "severity": "ok"
+      },
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Before you start, Steps, Common, Need help",
+        "severity": "warning",
+        "reason": "How to articles work best with: Before you start, Steps, Common, Need help."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (41 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (98 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "1 country tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-3407bbbd",
+    "jobId": "job-8ffd5b89",
+    "title": "How to prepare for a temporary workplace change",
+    "contentType": "How to",
+    "knowledgeBase": "mypepsico",
+    "market": "US",
+    "countries": [
+      "US"
+    ],
+    "seo": {
+      "title": "How to prepare for a temporary workplace change",
+      "metaDescription": "Learn what information to prepare, how to complete this request, and what employees and managers should expect after submission.",
+      "keywords": [
+        "employee request",
+        "support process",
+        "manager approval"
+      ],
+      "summary": "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+      "keyQuestions": [
+        "What information do I need before I start?",
+        "What happens after I submit the request?"
+      ],
+      "entities": [
+        "myPepsiCo",
+        "support team"
+      ]
+    },
+    "sections": [
+      {
+        "id": "hands-off-1-overview",
+        "type": "text",
+        "title": "Before you begin",
+        "body": "Review the source files and confirm the people, dates, locations, approvals, and business details that apply. Gather any supporting documentation referenced in the source material. Do not include sensitive personal information that is not required to complete the request.",
+        "required": true
+      },
+      {
+        "id": "hands-off-1-steps",
+        "type": "text",
+        "title": "Complete the request",
+        "body": "1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate business support team for the employee's sector and country.\n3. Provide the required dates, business reason, approvals, and supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the request is final.",
+        "required": true
+      },
+      {
+        "id": "hands-off-1-next",
+        "type": "text",
+        "title": "What happens next",
+        "body": "The support team reviews the request and may contact the requester if information is missing. Timing depends on the request type and the countries involved. Follow the instructions in the final confirmation before taking action.",
+        "required": true
+      },
+      {
+        "id": "hands-off-1-help",
+        "type": "text",
+        "title": "Get help",
+        "body": "If the request is urgent, involves more than one country, or does not match the standard process, contact the appropriate support team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+        "required": true
+      }
+    ],
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico",
+      "sector": "pfna",
+      "countries": [
+        "US"
+      ],
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "All employees"
+      ],
+      "contentType": "How to",
+      "topics": [
+        "How to",
+        "myPepsiCo",
+        "support team",
+        "employee request",
+        "support process",
+        "manager approval"
+      ],
+      "businessTerms": [
+        "How to",
+        "myPepsiCo",
+        "support team",
+        "employee request",
+        "support process",
+        "manager approval",
+        "Before",
+        "Review",
+        "Gather",
+        "Complete",
+        "Contact",
+        "Provide",
+        "Timing",
+        "Follow"
+      ],
+      "systems": [],
+      "processes": [
+        "approval",
+        "review"
+      ]
+    },
+    "relationships": [],
+    "references": [
+      {
+        "id": "src-33e2e1cf",
+        "title": "Build-to-Think_Keynote-Voiceover - final.pdf",
+        "kind": "doc",
+        "filePath": "source-uploads/src-33e2e1cf/Build-to-Think_Keynote-Voiceover - final.pdf",
+        "excerpt": "",
+        "source": "submission",
+        "addedAt": "2026-09-04T13:40:09.659Z",
+        "addedBy": "Demo User"
+      }
+    ],
+    "body": "# How to prepare for a temporary workplace change\n\nUse this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.\n\n## Before you begin\n\nReview the source files and confirm the people, dates, locations, approvals, and business details that apply. Gather any supporting documentation referenced in the source material. Do not include sensitive personal information that is not required to complete the request.\n\n## Complete the request\n\n1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate business support team for the employee's sector and country.\n3. Provide the required dates, business reason, approvals, and supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the request is final.\n\n## What happens next\n\nThe support team reviews the request and may contact the requester if information is missing. Timing depends on the request type and the countries involved. Follow the instructions in the final confirmation before taking action.\n\n## Get help\n\nIf the request is urgent, involves more than one country, or does not match the standard process, contact the appropriate support team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "owner": "Jessica Smith",
+    "approvedBy": "Jessica Smith",
+    "submittedAt": "2026-09-04T13:40:10.903Z",
+    "status": "needs-author-review",
+    "complianceIssues": [],
+    "lead": "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+    "canonicalSlug": "how-to-prepare-for-a-temporary-workplace-change",
+    "aliases": [
+      "employee request",
+      "support process",
+      "manager approval",
+      "What information do I need before I start",
+      "What happens after I submit the request"
+    ],
+    "topics": [
+      "How to",
+      "myPepsiCo",
+      "support team",
+      "employee request",
+      "support process",
+      "manager approval"
+    ],
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US"
+      ],
+      "canRead": [
+        "All employees"
+      ],
+      "security": "all-employees",
+      "notes": "Publishing details were inferred and must be confirmed during author review."
+    },
+    "approvalResults": [
+      {
+        "id": "canonical-title",
+        "label": "Canonical title and slug present",
+        "severity": "ok"
+      },
+      {
+        "id": "lead",
+        "label": "Lead stands alone",
+        "severity": "ok"
+      },
+      {
+        "id": "references",
+        "label": "1 source reference attached",
+        "severity": "ok"
+      },
+      {
+        "id": "topic-scope",
+        "label": "Topic scope is tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "owner",
+        "label": "Article owner present",
+        "severity": "ok"
+      },
+      {
+        "id": "visibility",
+        "label": "Audience and country visibility set",
+        "severity": "ok"
+      },
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Before you start, Steps, Common, Need help",
+        "severity": "warning",
+        "reason": "How to articles work best with: Before you start, Steps, Common, Need help."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (47 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (128 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "1 country tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-70d28b4a",
+    "jobId": "job-59ecdcf3",
+    "title": "How to prepare for a temporary workplace change",
+    "contentType": "How to",
+    "knowledgeBase": "mypepsico",
+    "market": "US",
+    "countries": [
+      "US"
+    ],
+    "seo": {
+      "title": "Prepare for a temporary workplace change",
+      "metaDescription": "Learn what information to gather, how to submit a temporary workplace change request, and what employees and managers should expect next.",
+      "keywords": [
+        "workplace change",
+        "employee request",
+        "manager approval"
+      ],
+      "summary": "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+      "keyQuestions": [
+        "How do I request a temporary workplace change?",
+        "What information is needed for a workplace change?"
+      ],
+      "entities": [
+        "myPepsiCo",
+        "People team"
+      ]
+    },
+    "sections": [
+      {
+        "id": "hands-off-overview",
+        "type": "text",
+        "title": "Before you begin",
+        "body": "Confirm the requested change, the affected employee or team, the proposed start and end dates, and the business reason. Gather any manager approval, location details, and supporting documentation referenced in the source files. Do not include sensitive personal information that is not required to process the request.",
+        "required": true
+      },
+      {
+        "id": "hands-off-steps",
+        "type": "text",
+        "title": "Submit the request",
+        "body": "1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate People or business support team for the employee's sector and country.\n3. Provide the requested dates, business reason, manager approval, and any required supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the change is final.",
+        "required": true
+      },
+      {
+        "id": "hands-off-next",
+        "type": "text",
+        "title": "What happens next",
+        "body": "The support team reviews the request for policy, payroll, tax, access, and location impacts. They may contact the requester if information is missing. Timing depends on the type of change and the countries involved. The employee and manager should follow the instructions in the final confirmation before taking action.",
+        "required": true
+      },
+      {
+        "id": "hands-off-help",
+        "type": "text",
+        "title": "Get help",
+        "body": "If the request is urgent, involves more than one country, or does not match the standard process, contact your People team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+        "required": true
+      }
+    ],
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico",
+      "sector": "pfna",
+      "countries": [
+        "US"
+      ],
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "All employees"
+      ],
+      "contentType": "How to",
+      "topics": [
+        "How to",
+        "myPepsiCo",
+        "People team",
+        "workplace change",
+        "employee request",
+        "manager approval"
+      ],
+      "businessTerms": [
+        "How to",
+        "myPepsiCo",
+        "People team",
+        "workplace change",
+        "employee request",
+        "manager approval",
+        "Before",
+        "Confirm",
+        "Gather",
+        "Submit",
+        "Review",
+        "Contact",
+        "People",
+        "Provide"
+      ],
+      "systems": [],
+      "processes": [
+        "approval",
+        "payroll",
+        "access",
+        "review"
+      ]
+    },
+    "relationships": [],
+    "references": [
+      {
+        "id": "src-40a9d739",
+        "title": "Build-to-Think_Keynote-Voiceover - final.pdf",
+        "kind": "doc",
+        "filePath": "source-uploads/src-40a9d739/Build-to-Think_Keynote-Voiceover - final.pdf",
+        "excerpt": "",
+        "source": "submission",
+        "addedAt": "2026-09-04T01:44:08.447Z",
+        "addedBy": "Demo User"
+      }
+    ],
+    "body": "# How to prepare for a temporary workplace change\n\nUse this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.\n\n## Before you begin\n\nConfirm the requested change, the affected employee or team, the proposed start and end dates, and the business reason. Gather any manager approval, location details, and supporting documentation referenced in the source files. Do not include sensitive personal information that is not required to process the request.\n\n## Submit the request\n\n1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate People or business support team for the employee's sector and country.\n3. Provide the requested dates, business reason, manager approval, and any required supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the change is final.\n\n## What happens next\n\nThe support team reviews the request for policy, payroll, tax, access, and location impacts. They may contact the requester if information is missing. Timing depends on the type of change and the countries involved. The employee and manager should follow the instructions in the final confirmation before taking action.\n\n## Get help\n\nIf the request is urgent, involves more than one country, or does not match the standard process, contact your People team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "owner": "Jessica Smith",
+    "approvedBy": "Jessica Smith",
+    "submittedAt": "2026-09-04T01:44:09.668Z",
+    "status": "needs-author-review",
+    "complianceIssues": [],
+    "lead": "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+    "canonicalSlug": "how-to-prepare-for-a-temporary-workplace-change",
+    "aliases": [
+      "workplace change",
+      "employee request",
+      "manager approval",
+      "How do I request a temporary workplace change",
+      "What information is needed for a workplace change"
+    ],
+    "topics": [
+      "How to",
+      "myPepsiCo",
+      "People team",
+      "workplace change",
+      "employee request",
+      "manager approval"
+    ],
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US"
+      ],
+      "canRead": [
+        "All employees"
+      ],
+      "security": "all-employees",
+      "notes": "Publishing details were inferred and must be confirmed during author review."
+    },
+    "approvalResults": [
+      {
+        "id": "canonical-title",
+        "label": "Canonical title and slug present",
+        "severity": "ok"
+      },
+      {
+        "id": "lead",
+        "label": "Lead stands alone",
+        "severity": "ok"
+      },
+      {
+        "id": "references",
+        "label": "1 source reference attached",
+        "severity": "ok"
+      },
+      {
+        "id": "topic-scope",
+        "label": "Topic scope is tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "owner",
+        "label": "Article owner present",
+        "severity": "ok"
+      },
+      {
+        "id": "visibility",
+        "label": "Audience and country visibility set",
+        "severity": "ok"
+      },
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Before you start, Steps, Common, Need help",
+        "severity": "warning",
+        "reason": "How to articles work best with: Before you start, Steps, Common, Need help."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (40 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (137 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "1 country tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-5f030e72",
+    "jobId": "job-14a6454e",
+    "title": "How to prepare for a temporary workplace change",
+    "contentType": "How to",
+    "knowledgeBase": "mypepsico",
+    "market": "US",
+    "countries": [
+      "US"
+    ],
+    "seo": {
+      "title": "Prepare for a temporary workplace change",
+      "metaDescription": "Learn what information to gather, how to submit a temporary workplace change request, and what employees and managers should expect next.",
+      "keywords": [
+        "workplace change",
+        "employee request",
+        "manager approval"
+      ],
+      "summary": "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+      "keyQuestions": [
+        "How do I request a temporary workplace change?",
+        "What information is needed for a workplace change?"
+      ],
+      "entities": [
+        "myPepsiCo",
+        "People team"
+      ]
+    },
+    "sections": [
+      {
+        "id": "hands-off-overview",
+        "type": "text",
+        "title": "Before you begin",
+        "body": "Confirm the requested change, the affected employee or team, the proposed start and end dates, and the business reason. Gather any manager approval, location details, and supporting documentation referenced in the source files. Do not include sensitive personal information that is not required to process the request.",
+        "required": true
+      },
+      {
+        "id": "hands-off-steps",
+        "type": "text",
+        "title": "Submit the request",
+        "body": "1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate People or business support team for the employee's sector and country.\n3. Provide the requested dates, business reason, manager approval, and any required supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the change is final.",
+        "required": true
+      },
+      {
+        "id": "hands-off-next",
+        "type": "text",
+        "title": "What happens next",
+        "body": "The support team reviews the request for policy, payroll, tax, access, and location impacts. They may contact the requester if information is missing. Timing depends on the type of change and the countries involved. The employee and manager should follow the instructions in the final confirmation before taking action.",
+        "required": true
+      },
+      {
+        "id": "hands-off-help",
+        "type": "text",
+        "title": "Get help",
+        "body": "If the request is urgent, involves more than one country, or does not match the standard process, contact your People team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+        "required": true
+      }
+    ],
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico",
+      "sector": "pfna",
+      "countries": [
+        "US"
+      ],
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "All employees"
+      ],
+      "contentType": "How to",
+      "topics": [
+        "How to",
+        "myPepsiCo",
+        "People team",
+        "workplace change",
+        "employee request",
+        "manager approval"
+      ],
+      "businessTerms": [
+        "How to",
+        "myPepsiCo",
+        "People team",
+        "workplace change",
+        "employee request",
+        "manager approval",
+        "Before",
+        "Confirm",
+        "Gather",
+        "Submit",
+        "Review",
+        "Contact",
+        "People",
+        "Provide"
+      ],
+      "systems": [],
+      "processes": [
+        "approval",
+        "payroll",
+        "access",
+        "review"
+      ]
+    },
+    "relationships": [],
+    "references": [
+      {
+        "id": "src-2983cf1c",
+        "title": "Build-to-Think_Keynote-Voiceover - final.pdf",
+        "kind": "doc",
+        "filePath": "source-uploads/src-2983cf1c/Build-to-Think_Keynote-Voiceover - final.pdf",
+        "excerpt": "",
+        "source": "submission",
+        "addedAt": "2026-09-04T01:42:39.859Z",
+        "addedBy": "Demo User"
+      }
+    ],
+    "body": "# How to prepare for a temporary workplace change\n\nUse this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.\n\n## Before you begin\n\nConfirm the requested change, the affected employee or team, the proposed start and end dates, and the business reason. Gather any manager approval, location details, and supporting documentation referenced in the source files. Do not include sensitive personal information that is not required to process the request.\n\n## Submit the request\n\n1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate People or business support team for the employee's sector and country.\n3. Provide the requested dates, business reason, manager approval, and any required supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the change is final.\n\n## What happens next\n\nThe support team reviews the request for policy, payroll, tax, access, and location impacts. They may contact the requester if information is missing. Timing depends on the type of change and the countries involved. The employee and manager should follow the instructions in the final confirmation before taking action.\n\n## Get help\n\nIf the request is urgent, involves more than one country, or does not match the standard process, contact your People team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "owner": "Jessica Smith",
+    "approvedBy": "Jessica Smith",
+    "submittedAt": "2026-09-04T01:42:41.088Z",
+    "status": "needs-author-review",
+    "complianceIssues": [],
+    "lead": "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+    "canonicalSlug": "how-to-prepare-for-a-temporary-workplace-change",
+    "aliases": [
+      "workplace change",
+      "employee request",
+      "manager approval",
+      "How do I request a temporary workplace change",
+      "What information is needed for a workplace change"
+    ],
+    "topics": [
+      "How to",
+      "myPepsiCo",
+      "People team",
+      "workplace change",
+      "employee request",
+      "manager approval"
+    ],
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US"
+      ],
+      "canRead": [
+        "All employees"
+      ],
+      "security": "all-employees",
+      "notes": "Publishing details were inferred and must be confirmed during author review."
+    },
+    "approvalResults": [
+      {
+        "id": "canonical-title",
+        "label": "Canonical title and slug present",
+        "severity": "ok"
+      },
+      {
+        "id": "lead",
+        "label": "Lead stands alone",
+        "severity": "ok"
+      },
+      {
+        "id": "references",
+        "label": "1 source reference attached",
+        "severity": "ok"
+      },
+      {
+        "id": "topic-scope",
+        "label": "Topic scope is tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "owner",
+        "label": "Article owner present",
+        "severity": "ok"
+      },
+      {
+        "id": "visibility",
+        "label": "Audience and country visibility set",
+        "severity": "ok"
+      },
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Before you start, Steps, Common, Need help",
+        "severity": "warning",
+        "reason": "How to articles work best with: Before you start, Steps, Common, Need help."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (40 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (137 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "1 country tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-f956f482",
+    "jobId": "job-729e35af",
+    "title": "How to prepare for a temporary workplace change",
+    "contentType": "How to",
+    "knowledgeBase": "mypepsico",
+    "market": "US",
+    "countries": [
+      "US"
+    ],
+    "seo": {
+      "title": "Prepare for a temporary workplace change",
+      "metaDescription": "Learn what information to gather, how to submit a temporary workplace change request, and what employees and managers should expect next.",
+      "keywords": [
+        "workplace change",
+        "employee request",
+        "manager approval"
+      ],
+      "summary": "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+      "keyQuestions": [
+        "How do I request a temporary workplace change?",
+        "What information is needed for a workplace change?"
+      ],
+      "entities": [
+        "myPepsiCo",
+        "People team"
+      ]
+    },
+    "sections": [
+      {
+        "id": "hands-off-overview",
+        "type": "text",
+        "title": "Before you begin",
+        "body": "Confirm the requested change, the affected employee or team, the proposed start and end dates, and the business reason. Gather any manager approval, location details, and supporting documentation referenced in the source files. Do not include sensitive personal information that is not required to process the request.",
+        "required": true
+      },
+      {
+        "id": "hands-off-steps",
+        "type": "text",
+        "title": "Submit the request",
+        "body": "1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate People or business support team for the employee's sector and country.\n3. Provide the requested dates, business reason, manager approval, and any required supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the change is final.",
+        "required": true
+      },
+      {
+        "id": "hands-off-next",
+        "type": "text",
+        "title": "What happens next",
+        "body": "The support team reviews the request for policy, payroll, tax, access, and location impacts. They may contact the requester if information is missing. Timing depends on the type of change and the countries involved. The employee and manager should follow the instructions in the final confirmation before taking action.",
+        "required": true
+      },
+      {
+        "id": "hands-off-help",
+        "type": "text",
+        "title": "Get help",
+        "body": "If the request is urgent, involves more than one country, or does not match the standard process, contact your People team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+        "required": true
+      }
+    ],
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico",
+      "sector": "pfna",
+      "countries": [
+        "US"
+      ],
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "All employees"
+      ],
+      "contentType": "How to",
+      "topics": [
+        "How to",
+        "myPepsiCo",
+        "People team",
+        "workplace change",
+        "employee request",
+        "manager approval"
+      ],
+      "businessTerms": [
+        "How to",
+        "myPepsiCo",
+        "People team",
+        "workplace change",
+        "employee request",
+        "manager approval",
+        "Before",
+        "Confirm",
+        "Gather",
+        "Submit",
+        "Review",
+        "Contact",
+        "People",
+        "Provide"
+      ],
+      "systems": [],
+      "processes": [
+        "approval",
+        "payroll",
+        "access",
+        "review"
+      ]
+    },
+    "relationships": [],
+    "references": [
+      {
+        "id": "src-544e458d",
+        "title": "hands-off-demo-policy.txt",
+        "kind": "doc",
+        "filePath": "source-uploads/src-544e458d/hands-off-demo-policy.txt",
+        "excerpt": "Temporary workplace change guidance\n\nRequests should include the business reason, proposed dates, manager approval,\ncurrent location, requested location, and the affected employee or team.\nThe People team reviews policy, payroll, tax, and access impacts before",
+        "source": "submission",
+        "addedAt": "2026-09-04T01:37:02.043Z",
+        "addedBy": "Demo User"
+      },
+      {
+        "id": "src-626e4d61",
+        "title": "hands-off-demo-checklist.csv",
+        "kind": "doc",
+        "filePath": "source-uploads/src-626e4d61/hands-off-demo-checklist.csv",
+        "excerpt": "item,required\nBusiness reason,yes\nProposed start and end dates,yes\nManager approval,yes\nSupporting documentation,when applicable",
+        "source": "submission",
+        "addedAt": "2026-09-04T01:37:02.044Z",
+        "addedBy": "Demo User"
+      }
+    ],
+    "body": "# How to prepare for a temporary workplace change\n\nUse this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.\n\n## Before you begin\n\nConfirm the requested change, the affected employee or team, the proposed start and end dates, and the business reason. Gather any manager approval, location details, and supporting documentation referenced in the source files. Do not include sensitive personal information that is not required to process the request.\n\n## Submit the request\n\n1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate People or business support team for the employee's sector and country.\n3. Provide the requested dates, business reason, manager approval, and any required supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the change is final.\n\n## What happens next\n\nThe support team reviews the request for policy, payroll, tax, access, and location impacts. They may contact the requester if information is missing. Timing depends on the type of change and the countries involved. The employee and manager should follow the instructions in the final confirmation before taking action.\n\n## Get help\n\nIf the request is urgent, involves more than one country, or does not match the standard process, contact your People team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "owner": "Jessica Smith",
+    "approvedBy": "Jessica Smith",
+    "submittedAt": "2026-09-04T01:38:09.842Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "lead": "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+    "canonicalSlug": "how-to-prepare-for-a-temporary-workplace-change",
+    "aliases": [
+      "workplace change",
+      "employee request",
+      "manager approval",
+      "How do I request a temporary workplace change",
+      "What information is needed for a workplace change"
+    ],
+    "topics": [
+      "How to",
+      "myPepsiCo",
+      "People team",
+      "workplace change",
+      "employee request",
+      "manager approval"
+    ],
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "us"
+      ],
+      "countries": [
+        "US"
+      ],
+      "canRead": [
+        "All employees"
+      ],
+      "security": "all-employees",
+      "notes": "Publishing details were inferred and must be confirmed during author review."
+    },
+    "approvalResults": [
+      {
+        "id": "canonical-title",
+        "label": "Canonical title and slug present",
+        "severity": "ok"
+      },
+      {
+        "id": "lead",
+        "label": "Lead stands alone",
+        "severity": "ok"
+      },
+      {
+        "id": "references",
+        "label": "2 source references attached",
+        "severity": "ok"
+      },
+      {
+        "id": "topic-scope",
+        "label": "Topic scope is tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "owner",
+        "label": "Article owner present",
+        "severity": "ok"
+      },
+      {
+        "id": "visibility",
+        "label": "Audience and country visibility set",
+        "severity": "ok"
+      },
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Before you start, Steps, Common, Need help",
+        "severity": "warning",
+        "reason": "How to articles work best with: Before you start, Steps, Common, Need help."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (40 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (137 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "1 country tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-68fd8ab7",
+    "jobId": "job-13af2f55",
+    "title": "How to create a How to article explaining how employees update their direct deposit",
+    "contentType": "How to",
+    "knowledgeBase": "mypepsico",
+    "market": "UK",
+    "countries": [
+      "MX",
+      "BR",
+      "GB",
+      "IE"
+    ],
+    "seo": {
+      "title": "How to create a How to article explaining how employees",
+      "metaDescription": "Use this article to complete how to create a how to article explaining how employees update their direct deposit.",
+      "keywords": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ],
+      "summary": "Use this article to complete how to create a how to article explaining how employees update their direct deposit.",
+      "keyQuestions": [
+        "How to create a How to article explaining how employees update their direct deposit?"
+      ],
+      "entities": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ]
+    },
+    "sections": [
+      {
+        "id": "whoApplies",
+        "type": "text",
+        "title": "Who should use these steps?",
+        "body": "All employees in Mexico, Brazil, United Kingdom.",
+        "required": true
+      },
+      {
+        "id": "beforeStart",
+        "type": "text",
+        "title": "What do I need before I start?",
+        "body": "This article is for United States employees who manage their pay information in myPepsiCo. Before starting, employees need access to their account, their bank routing number, their account number, and the percentage or amount they want deposited into each account.",
+        "required": true
+      },
+      {
+        "id": "steps",
+        "type": "text",
+        "title": "What do I need to do?",
+        "body": "1. Open myPepsiCo and go to the payroll area.\n2. Select Direct deposit, then choose Add account or Edit beside an existing account.\n3. Enter the routing and account numbers, choose the account type, and set the deposit allocation.\n4. Review every field, then submit the change and save the confirmation number.",
+        "required": true
+      },
+      {
+        "id": "commonIssues",
+        "type": "text",
+        "title": "What should I do if something goes wrong?",
+        "body": "If the bank information is rejected, check the routing number, account number, and account type before submitting again. If Direct deposit is unavailable or the error continues, open Payroll Help in myPepsiCo, choose Direct deposit support, and include the confirmation number, submission date, and error message. Urgent payroll concerns should follow the escalation path provided by Payroll Help.",
+        "required": true
+      },
+      {
+        "id": "whatNext",
+        "type": "text",
+        "title": "What happens next?",
+        "body": "A confirmation appears after the employee submits the change. The update may take up to one payroll cycle to appear, depending on when it was submitted. Employees should review their next pay statement and keep the confirmation number until the change is complete.",
+        "required": true
+      },
+      {
+        "id": "relatedContent",
+        "type": "text",
+        "title": "Where can I get more help?",
+        "body": "Use the approved support path and related resources identified in this article.",
+        "required": true
+      }
+    ],
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico",
+      "sector": "pbna",
+      "countries": [
+        "MX",
+        "BR",
+        "GB",
+        "IE"
+      ],
+      "writtenLanguage": "en-US",
+      "languagesRequired": [
+        "es-MX",
+        "pt-BR",
+        "en-GB"
+      ],
+      "audiences": [
+        "All employees"
+      ],
+      "contentType": "How to",
+      "topics": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ],
+      "businessTerms": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ],
+      "systems": [],
+      "processes": [
+        "How to create a How to article explaining how employees update their direct deposit"
+      ]
+    },
+    "relationships": [],
+    "body": "# How to create a How to article explaining how employees update their direct deposit\n\nUse this article to complete how to create a how to article explaining how employees update their direct deposit. It explains what to prepare, the steps to follow, and how to resolve common issues.\n\n## Who should use these steps?\n\nAll employees in Mexico, Brazil, United Kingdom.\n\n## What do I need before I start?\n\nThis article is for United States employees who manage their pay information in myPepsiCo. Before starting, employees need access to their account, their bank routing number, their account number, and the percentage or amount they want deposited into each account.\n\n## What do I need to do?\n\n1. Open myPepsiCo and go to the payroll area.\n2. Select Direct deposit, then choose Add account or Edit beside an existing account.\n3. Enter the routing and account numbers, choose the account type, and set the deposit allocation.\n4. Review every field, then submit the change and save the confirmation number.\n\n## What should I do if something goes wrong?\n\nIf the bank information is rejected, check the routing number, account number, and account type before submitting again. If Direct deposit is unavailable or the error continues, open Payroll Help in myPepsiCo, choose Direct deposit support, and include the confirmation number, submission date, and error message. Urgent payroll concerns should follow the escalation path provided by Payroll Help.\n\n## What happens next?\n\nA confirmation appears after the employee submits the change. The update may take up to one payroll cycle to appear, depending on when it was submitted. Employees should review their next pay statement and keep the confirmation number until the change is complete.\n\n## Where can I get more help?\n\nUse the approved support path and related resources identified in this article.",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "owner": "Robert Chen",
+    "approvedBy": "Robert Chen",
+    "submittedAt": "2026-09-03T19:31:04.715Z",
+    "status": "needs-review",
+    "complianceIssues": [
+      {
+        "severity": "warning",
+        "category": "formatting",
+        "message": "Title exceeds 80 characters."
+      }
+    ],
+    "lead": "Use this article to complete how to create a how to article explaining how employees update their direct deposit.",
+    "canonicalSlug": "how-to-create-a-how-to-article-explaining-how-employees-update-their-direct-depo",
+    "aliases": [
+      "create",
+      "article",
+      "explaining",
+      "employees",
+      "update",
+      "How to create a How to article explaining how employees update their direct deposit"
+    ],
+    "topics": [
+      "How to",
+      "create",
+      "article",
+      "explaining",
+      "employees",
+      "update"
+    ],
+    "references": [
+      {
+        "id": "ref-02020e4d",
+        "title": "Submitted source: How to create a How to article explaining how employees update their direct deposit",
+        "kind": "note",
+        "source": "submission",
+        "excerpt": "## mypepsico publishing controls\n\n- Knowledge base: myPepsiCo KB\n- Source language: English (en-US)\n- Translations needed: Spanish (es-MX), Portuguese (pt-BR), English (en-GB)\n- Country: Mexico · Spanish (es-MX), Brazil · Portuguese (pt-BR), United Kingdom · E",
+        "addedAt": "2026-09-03T19:31:04.715Z",
+        "addedBy": "Demo User"
+      }
+    ],
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "mx",
+        "br",
+        "uk"
+      ],
+      "countries": [
+        "MX",
+        "BR",
+        "GB",
+        "IE"
+      ],
+      "canRead": [
+        "All employees"
+      ],
+      "cannotRead": [],
+      "security": "all-employees",
+      "notes": "People outside the selected access groups are excluded."
+    },
+    "approvalResults": [
+      {
+        "id": "canonical-title",
+        "label": "Canonical title and slug present",
+        "severity": "ok"
+      },
+      {
+        "id": "lead",
+        "label": "Lead stands alone",
+        "severity": "ok"
+      },
+      {
+        "id": "references",
+        "label": "1 source reference attached",
+        "severity": "ok"
+      },
+      {
+        "id": "topic-scope",
+        "label": "Topic scope is tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "owner",
+        "label": "Article owner present",
+        "severity": "ok"
+      },
+      {
+        "id": "visibility",
+        "label": "Audience and country visibility set",
+        "severity": "ok"
+      },
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Before you start, Common, Need help",
+        "severity": "warning",
+        "reason": "How to articles work best with: Before you start, Steps, Common, Need help."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (55 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (113 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "4 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-93426513",
+    "jobId": "job-13af2f55",
+    "title": "How to create a How to article explaining how employees update their direct deposit",
+    "contentType": "How to",
+    "knowledgeBase": "mypepsico",
+    "market": "BR",
+    "countries": [
+      "MX",
+      "BR",
+      "GB",
+      "IE"
+    ],
+    "seo": {
+      "title": "How to create a How to article explaining how employees",
+      "metaDescription": "Use this article to complete how to create a how to article explaining how employees update their direct deposit.",
+      "keywords": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ],
+      "summary": "Use this article to complete how to create a how to article explaining how employees update their direct deposit.",
+      "keyQuestions": [
+        "How to create a How to article explaining how employees update their direct deposit?"
+      ],
+      "entities": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ]
+    },
+    "sections": [
+      {
+        "id": "whoApplies",
+        "type": "text",
+        "title": "Who should use these steps?",
+        "body": "All employees in Mexico, Brazil, United Kingdom.",
+        "required": true
+      },
+      {
+        "id": "beforeStart",
+        "type": "text",
+        "title": "What do I need before I start?",
+        "body": "This article is for United States employees who manage their pay information in myPepsiCo. Before starting, employees need access to their account, their bank routing number, their account number, and the percentage or amount they want deposited into each account.",
+        "required": true
+      },
+      {
+        "id": "steps",
+        "type": "text",
+        "title": "What do I need to do?",
+        "body": "1. Open myPepsiCo and go to the payroll area.\n2. Select Direct deposit, then choose Add account or Edit beside an existing account.\n3. Enter the routing and account numbers, choose the account type, and set the deposit allocation.\n4. Review every field, then submit the change and save the confirmation number.",
+        "required": true
+      },
+      {
+        "id": "commonIssues",
+        "type": "text",
+        "title": "What should I do if something goes wrong?",
+        "body": "If the bank information is rejected, check the routing number, account number, and account type before submitting again. If Direct deposit is unavailable or the error continues, open Payroll Help in myPepsiCo, choose Direct deposit support, and include the confirmation number, submission date, and error message. Urgent payroll concerns should follow the escalation path provided by Payroll Help.",
+        "required": true
+      },
+      {
+        "id": "whatNext",
+        "type": "text",
+        "title": "What happens next?",
+        "body": "A confirmation appears after the employee submits the change. The update may take up to one payroll cycle to appear, depending on when it was submitted. Employees should review their next pay statement and keep the confirmation number until the change is complete.",
+        "required": true
+      },
+      {
+        "id": "relatedContent",
+        "type": "text",
+        "title": "Where can I get more help?",
+        "body": "Use the approved support path and related resources identified in this article.",
+        "required": true
+      }
+    ],
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico",
+      "sector": "pbna",
+      "countries": [
+        "MX",
+        "BR",
+        "GB",
+        "IE"
+      ],
+      "writtenLanguage": "en-US",
+      "languagesRequired": [
+        "es-MX",
+        "pt-BR",
+        "en-GB"
+      ],
+      "audiences": [
+        "All employees"
+      ],
+      "contentType": "How to",
+      "topics": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ],
+      "businessTerms": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ],
+      "systems": [],
+      "processes": [
+        "How to create a How to article explaining how employees update their direct deposit"
+      ]
+    },
+    "relationships": [],
+    "body": "# How to create a How to article explaining how employees update their direct deposit\n\nUse this article to complete how to create a how to article explaining how employees update their direct deposit. It explains what to prepare, the steps to follow, and how to resolve common issues.\n\n## Who should use these steps?\n\nAll employees in Mexico, Brazil, United Kingdom.\n\n## What do I need before I start?\n\nThis article is for United States employees who manage their pay information in myPepsiCo. Before starting, employees need access to their account, their bank routing number, their account number, and the percentage or amount they want deposited into each account.\n\n## What do I need to do?\n\n1. Open myPepsiCo and go to the payroll area.\n2. Select Direct deposit, then choose Add account or Edit beside an existing account.\n3. Enter the routing and account numbers, choose the account type, and set the deposit allocation.\n4. Review every field, then submit the change and save the confirmation number.\n\n## What should I do if something goes wrong?\n\nIf the bank information is rejected, check the routing number, account number, and account type before submitting again. If Direct deposit is unavailable or the error continues, open Payroll Help in myPepsiCo, choose Direct deposit support, and include the confirmation number, submission date, and error message. Urgent payroll concerns should follow the escalation path provided by Payroll Help.\n\n## What happens next?\n\nA confirmation appears after the employee submits the change. The update may take up to one payroll cycle to appear, depending on when it was submitted. Employees should review their next pay statement and keep the confirmation number until the change is complete.\n\n## Where can I get more help?\n\nUse the approved support path and related resources identified in this article.",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "owner": "Robert Chen",
+    "approvedBy": "Robert Chen",
+    "submittedAt": "2026-09-03T19:31:04.301Z",
+    "status": "needs-review",
+    "complianceIssues": [
+      {
+        "severity": "warning",
+        "category": "formatting",
+        "message": "Title exceeds 80 characters."
+      }
+    ],
+    "lead": "Use this article to complete how to create a how to article explaining how employees update their direct deposit.",
+    "canonicalSlug": "how-to-create-a-how-to-article-explaining-how-employees-update-their-direct-depo",
+    "aliases": [
+      "create",
+      "article",
+      "explaining",
+      "employees",
+      "update",
+      "How to create a How to article explaining how employees update their direct deposit"
+    ],
+    "topics": [
+      "How to",
+      "create",
+      "article",
+      "explaining",
+      "employees",
+      "update"
+    ],
+    "references": [
+      {
+        "id": "ref-164dc2c7",
+        "title": "Submitted source: How to create a How to article explaining how employees update their direct deposit",
+        "kind": "note",
+        "source": "submission",
+        "excerpt": "## mypepsico publishing controls\n\n- Knowledge base: myPepsiCo KB\n- Source language: English (en-US)\n- Translations needed: Spanish (es-MX), Portuguese (pt-BR), English (en-GB)\n- Country: Mexico · Spanish (es-MX), Brazil · Portuguese (pt-BR), United Kingdom · E",
+        "addedAt": "2026-09-03T19:31:04.301Z",
+        "addedBy": "Demo User"
+      }
+    ],
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "mx",
+        "br",
+        "uk"
+      ],
+      "countries": [
+        "MX",
+        "BR",
+        "GB",
+        "IE"
+      ],
+      "canRead": [
+        "All employees"
+      ],
+      "cannotRead": [],
+      "security": "all-employees",
+      "notes": "People outside the selected access groups are excluded."
+    },
+    "approvalResults": [
+      {
+        "id": "canonical-title",
+        "label": "Canonical title and slug present",
+        "severity": "ok"
+      },
+      {
+        "id": "lead",
+        "label": "Lead stands alone",
+        "severity": "ok"
+      },
+      {
+        "id": "references",
+        "label": "1 source reference attached",
+        "severity": "ok"
+      },
+      {
+        "id": "topic-scope",
+        "label": "Topic scope is tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "owner",
+        "label": "Article owner present",
+        "severity": "ok"
+      },
+      {
+        "id": "visibility",
+        "label": "Audience and country visibility set",
+        "severity": "ok"
+      },
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Before you start, Common, Need help",
+        "severity": "warning",
+        "reason": "How to articles work best with: Before you start, Steps, Common, Need help."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (55 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (113 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "4 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
+    "id": "ka-b29ea124",
+    "jobId": "job-13af2f55",
+    "title": "How to create a How to article explaining how employees update their direct deposit",
+    "contentType": "How to",
+    "knowledgeBase": "mypepsico",
+    "market": "MX",
+    "countries": [
+      "MX",
+      "BR",
+      "GB",
+      "IE"
+    ],
+    "seo": {
+      "title": "How to create a How to article explaining how employees",
+      "metaDescription": "Use this article to complete how to create a how to article explaining how employees update their direct deposit.",
+      "keywords": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ],
+      "summary": "Use this article to complete how to create a how to article explaining how employees update their direct deposit.",
+      "keyQuestions": [
+        "How to create a How to article explaining how employees update their direct deposit?"
+      ],
+      "entities": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ]
+    },
+    "sections": [
+      {
+        "id": "whoApplies",
+        "type": "text",
+        "title": "Who should use these steps?",
+        "body": "All employees in Mexico, Brazil, United Kingdom.",
+        "required": true
+      },
+      {
+        "id": "beforeStart",
+        "type": "text",
+        "title": "What do I need before I start?",
+        "body": "This article is for United States employees who manage their pay information in myPepsiCo. Before starting, employees need access to their account, their bank routing number, their account number, and the percentage or amount they want deposited into each account.",
+        "required": true
+      },
+      {
+        "id": "steps",
+        "type": "text",
+        "title": "What do I need to do?",
+        "body": "1. Open myPepsiCo and go to the payroll area.\n2. Select Direct deposit, then choose Add account or Edit beside an existing account.\n3. Enter the routing and account numbers, choose the account type, and set the deposit allocation.\n4. Review every field, then submit the change and save the confirmation number.",
+        "required": true
+      },
+      {
+        "id": "commonIssues",
+        "type": "text",
+        "title": "What should I do if something goes wrong?",
+        "body": "If the bank information is rejected, check the routing number, account number, and account type before submitting again. If Direct deposit is unavailable or the error continues, open Payroll Help in myPepsiCo, choose Direct deposit support, and include the confirmation number, submission date, and error message. Urgent payroll concerns should follow the escalation path provided by Payroll Help.",
+        "required": true
+      },
+      {
+        "id": "whatNext",
+        "type": "text",
+        "title": "What happens next?",
+        "body": "A confirmation appears after the employee submits the change. The update may take up to one payroll cycle to appear, depending on when it was submitted. Employees should review their next pay statement and keep the confirmation number until the change is complete.",
+        "required": true
+      },
+      {
+        "id": "relatedContent",
+        "type": "text",
+        "title": "Where can I get more help?",
+        "body": "Use the approved support path and related resources identified in this article.",
+        "required": true
+      }
+    ],
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico",
+      "sector": "pbna",
+      "countries": [
+        "MX",
+        "BR",
+        "GB",
+        "IE"
+      ],
+      "writtenLanguage": "en-US",
+      "languagesRequired": [
+        "es-MX",
+        "pt-BR",
+        "en-GB"
+      ],
+      "audiences": [
+        "All employees"
+      ],
+      "contentType": "How to",
+      "topics": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ],
+      "businessTerms": [
+        "create",
+        "article",
+        "explaining",
+        "employees",
+        "update"
+      ],
+      "systems": [],
+      "processes": [
+        "How to create a How to article explaining how employees update their direct deposit"
+      ]
+    },
+    "relationships": [],
+    "body": "# How to create a How to article explaining how employees update their direct deposit\n\nUse this article to complete how to create a how to article explaining how employees update their direct deposit. It explains what to prepare, the steps to follow, and how to resolve common issues.\n\n## Who should use these steps?\n\nAll employees in Mexico, Brazil, United Kingdom.\n\n## What do I need before I start?\n\nThis article is for United States employees who manage their pay information in myPepsiCo. Before starting, employees need access to their account, their bank routing number, their account number, and the percentage or amount they want deposited into each account.\n\n## What do I need to do?\n\n1. Open myPepsiCo and go to the payroll area.\n2. Select Direct deposit, then choose Add account or Edit beside an existing account.\n3. Enter the routing and account numbers, choose the account type, and set the deposit allocation.\n4. Review every field, then submit the change and save the confirmation number.\n\n## What should I do if something goes wrong?\n\nIf the bank information is rejected, check the routing number, account number, and account type before submitting again. If Direct deposit is unavailable or the error continues, open Payroll Help in myPepsiCo, choose Direct deposit support, and include the confirmation number, submission date, and error message. Urgent payroll concerns should follow the escalation path provided by Payroll Help.\n\n## What happens next?\n\nA confirmation appears after the employee submits the change. The update may take up to one payroll cycle to appear, depending on when it was submitted. Employees should review their next pay statement and keep the confirmation number until the change is complete.\n\n## Where can I get more help?\n\nUse the approved support path and related resources identified in this article.",
+    "submittedBy": {
+      "name": "Demo User",
+      "email": "content-owner@pepsico.com"
+    },
+    "owner": "Robert Chen",
+    "approvedBy": "Robert Chen",
+    "submittedAt": "2026-09-03T19:31:03.883Z",
+    "status": "needs-review",
+    "complianceIssues": [
+      {
+        "severity": "warning",
+        "category": "formatting",
+        "message": "Title exceeds 80 characters."
+      }
+    ],
+    "lead": "Use this article to complete how to create a how to article explaining how employees update their direct deposit.",
+    "canonicalSlug": "how-to-create-a-how-to-article-explaining-how-employees-update-their-direct-depo",
+    "aliases": [
+      "create",
+      "article",
+      "explaining",
+      "employees",
+      "update",
+      "How to create a How to article explaining how employees update their direct deposit"
+    ],
+    "topics": [
+      "How to",
+      "create",
+      "article",
+      "explaining",
+      "employees",
+      "update"
+    ],
+    "references": [
+      {
+        "id": "ref-6c6a015a",
+        "title": "Submitted source: How to create a How to article explaining how employees update their direct deposit",
+        "kind": "note",
+        "source": "submission",
+        "excerpt": "## mypepsico publishing controls\n\n- Knowledge base: myPepsiCo KB\n- Source language: English (en-US)\n- Translations needed: Spanish (es-MX), Portuguese (pt-BR), English (en-GB)\n- Country: Mexico · Spanish (es-MX), Brazil · Portuguese (pt-BR), United Kingdom · E",
+        "addedAt": "2026-09-03T19:31:03.883Z",
+        "addedBy": "Demo User"
+      }
+    ],
+    "relatedArticleIds": [],
+    "visibility": {
+      "audiences": [
+        "All employees"
+      ],
+      "markets": [
+        "mx",
+        "br",
+        "uk"
+      ],
+      "countries": [
+        "MX",
+        "BR",
+        "GB",
+        "IE"
+      ],
+      "canRead": [
+        "All employees"
+      ],
+      "cannotRead": [],
+      "security": "all-employees",
+      "notes": "People outside the selected access groups are excluded."
+    },
+    "approvalResults": [
+      {
+        "id": "canonical-title",
+        "label": "Canonical title and slug present",
+        "severity": "ok"
+      },
+      {
+        "id": "lead",
+        "label": "Lead stands alone",
+        "severity": "ok"
+      },
+      {
+        "id": "references",
+        "label": "1 source reference attached",
+        "severity": "ok"
+      },
+      {
+        "id": "topic-scope",
+        "label": "Topic scope is tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "owner",
+        "label": "Article owner present",
+        "severity": "ok"
+      },
+      {
+        "id": "visibility",
+        "label": "Audience and country visibility set",
+        "severity": "ok"
+      },
+      {
+        "id": "required-sections",
+        "label": "Missing recommended sections: Before you start, Common, Need help",
+        "severity": "warning",
+        "reason": "How to articles work best with: Before you start, Steps, Common, Need help."
+      },
+      {
+        "id": "seo-title-length",
+        "label": "SEO title length OK (55 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "meta-description",
+        "label": "Meta description present (113 chars)",
+        "severity": "ok"
+      },
+      {
+        "id": "countries",
+        "label": "4 countries tagged",
+        "severity": "ok"
+      },
+      {
+        "id": "compliance-errors",
+        "label": "No compliance errors",
+        "severity": "ok"
+      }
+    ],
+    "autoApproveCandidate": false
+  },
+  {
     "id": "ka-687d18bc",
     "jobId": "job-9e07a2fe",
     "title": "qewrwe",

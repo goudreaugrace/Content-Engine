@@ -17,13 +17,23 @@ import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
 import RouteOutlinedIcon from "@mui/icons-material/RouteOutlined";
 import HubOutlinedIcon from "@mui/icons-material/HubOutlined";
 import InsightsOutlinedIcon from "@mui/icons-material/InsightsOutlined";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import AltRouteOutlinedIcon from "@mui/icons-material/AltRouteOutlined";
+import EditNoteOutlinedIcon from "@mui/icons-material/EditNoteOutlined";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+import FindInPageOutlinedIcon from "@mui/icons-material/FindInPageOutlined";
+import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
+import MonitorHeartOutlinedIcon from "@mui/icons-material/MonitorHeartOutlined";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import { api } from "../lib/api";
 import { usePersonaMode } from "../lib/persona";
 
 const STEPS = [
   { key: "welcome", title: "Welcome", label: "Welcome" },
   { key: "flow", title: "Create to publish", label: "Flow" },
-  { key: "agents", title: "Article building blocks", label: "Article parts" },
+  { key: "orchestration", title: "AI agent orchestration", label: "AI system" },
+  { key: "parts", title: "Article building blocks", label: "Article parts" },
   { key: "sequence", title: "Review and publish", label: "Review" },
   { key: "state", title: "Library state", label: "Library" },
   { key: "ready", title: "You're set up", label: "Ready" },
@@ -186,8 +196,11 @@ export default function HowItWorks() {
         <GuideSection stepKey="flow">
           <StepFlow />
         </GuideSection>
-        <GuideSection stepKey="agents">
-          <StepAgents />
+        <GuideSection stepKey="orchestration">
+          <StepOrchestration />
+        </GuideSection>
+        <GuideSection stepKey="parts">
+          <StepParts />
         </GuideSection>
         <GuideSection stepKey="sequence">
           <StepSequence />
@@ -315,11 +328,15 @@ function StepWelcome({ hasCompletedBefore }: { hasCompletedBefore: boolean }) {
     },
     {
       icon: <HubOutlinedIcon sx={{ fontSize: 20 }} />,
-      label: "Use structured sections, source files, FAQs, tables, and resources",
+      label: "Coordinate specialist agents to understand, write, verify, and maintain content",
     },
     {
       icon: <InsightsOutlinedIcon sx={{ fontSize: 20 }} />,
       label: "Review the same article view employees will read before approval",
+    },
+    {
+      icon: <ArticleOutlinedIcon sx={{ fontSize: 20 }} />,
+      label: "Keep source files, structured sections, governance, and article health connected",
     },
   ];
 
@@ -373,9 +390,9 @@ function StepWelcome({ hasCompletedBefore }: { hasCompletedBefore: boolean }) {
           mx: 0,
         }}
       >
-        Scroll through the self-service authoring flow, structured article
-        templates, and review-to-publish experience. Use the links on the right
-        to jump between sections.
+        Scroll through the self-service authoring flow, the conceptual AI
+        system behind it, and the review-to-publish experience. Use the links
+        on the right to jump between sections.
       </Typography>
 
       {/* What you'll see — three promises with icons. Inline, no card
@@ -466,7 +483,7 @@ function StepFlow() {
       <StepHeader
         kicker="02"
         title="Create to publish"
-        sub="A Content Owner chooses the basics, writes with the right template blocks, reviews the employee-facing article, then sends it for approval and publishing."
+        sub="A creator chooses the basics, writes with the right template blocks, reviews the employee-facing article, then sends it for approval and publishing."
       />
       <Box sx={{ position: "relative", py: { xs: 2, md: 4 } }}>
         <FlowDiagram />
@@ -691,9 +708,355 @@ function alphaHex(hex: string, a: number): string {
 }
 
 // ════════════════════════════════════════════════════════════
-// STEP 3 — AGENTS (radial constellation)
+// STEP 3 — CONCEPTUAL AI ORCHESTRATION
 // ════════════════════════════════════════════════════════════
-const AGENTS = [
+type AgentAccent = "creation" | "guidance" | "governance";
+
+const ORCHESTRATION_STAGES = [
+  { id: "understand", number: "01", label: "Understand" },
+  { id: "plan", number: "02", label: "Plan" },
+  { id: "create", number: "03", label: "Create" },
+  { id: "verify", number: "04", label: "Verify" },
+  { id: "operate", number: "05", label: "Operate" },
+] as const;
+
+const ORCHESTRATION_AGENTS: Array<{
+  id: string;
+  stage: (typeof ORCHESTRATION_STAGES)[number]["id"];
+  name: string;
+  role: string;
+  input: string;
+  output: string;
+  boundary: string;
+  accent: AgentAccent;
+  icon: ReactNode;
+}> = [
+  {
+    id: "intake",
+    stage: "understand",
+    name: "Intake & evidence",
+    role: "Combines the opening request, conversational answers, form fields, and uploaded files into one traceable source package.",
+    input: "Chat, form data, PDFs, documents, presentations, spreadsheets, and existing articles.",
+    output: "Extracted facts, source references, and a structured article brief.",
+    boundary: "It preserves source links and marks unreadable or conflicting material instead of silently filling gaps.",
+    accent: "creation",
+    icon: <DescriptionOutlinedIcon sx={{ fontSize: 20 }} />,
+  },
+  {
+    id: "clarification",
+    stage: "understand",
+    name: "Clarification",
+    role: "Identifies the smallest set of missing details needed to create a useful article and asks focused follow-up questions.",
+    input: "The source package, required publishing fields, and the selected article type.",
+    output: "Confirmed answers, unresolved questions, and an explicit readiness signal.",
+    boundary: "It asks before assuming and lets the user say that a detail is unknown or requires confirmation.",
+    accent: "guidance",
+    icon: <HelpOutlineIcon sx={{ fontSize: 20 }} />,
+  },
+  {
+    id: "routing",
+    stage: "plan",
+    name: "Routing & scope",
+    role: "Determines the article type, knowledge base, sectors, countries, audience, access groups, language, and approval path.",
+    input: "Confirmed intent plus current organization, market, audience, and permission profiles.",
+    output: "A drafting plan and the specialist profiles that should govern the article.",
+    boundary: "Permissions and final routing remain enforced by product rules, even when AI recommends a destination.",
+    accent: "guidance",
+    icon: <AltRouteOutlinedIcon sx={{ fontSize: 20 }} />,
+  },
+  {
+    id: "writer",
+    stage: "create",
+    name: "Article writer",
+    role: "Builds an employee-facing draft using the correct FAQ, Business info, How to, or Policy structure.",
+    input: "The approved brief, source evidence, audience profile, and article template.",
+    output: "A complete structured draft with a title, summary, sections, help path, and source associations.",
+    boundary: "It can propose wording and structure, but it cannot approve its own factual or policy claims.",
+    accent: "creation",
+    icon: <EditNoteOutlinedIcon sx={{ fontSize: 20 }} />,
+  },
+  {
+    id: "grounding",
+    stage: "verify",
+    name: "Source grounding",
+    role: "Compares important claims, dates, steps, and policy statements with the uploaded or connected source material.",
+    input: "The draft and its source package.",
+    output: "Claim-to-source links, conflicts, unsupported statements, and questions for a human owner.",
+    boundary: "It flags uncertainty; it does not convert an unsupported statement into a verified fact.",
+    accent: "governance",
+    icon: <FactCheckOutlinedIcon sx={{ fontSize: 20 }} />,
+  },
+  {
+    id: "standards",
+    stage: "verify",
+    name: "Standards & accessibility",
+    role: "Checks structure, plain language, tone, accessibility, minimum completeness, and readiness standards.",
+    input: "The structured draft plus current content and design standards.",
+    output: "Passed checks, blocking issues, and specific recommended improvements.",
+    boundary: "Deterministic rules should own hard requirements; AI explains issues and suggests revisions.",
+    accent: "governance",
+    icon: <VerifiedUserOutlinedIcon sx={{ fontSize: 20 }} />,
+  },
+  {
+    id: "findability",
+    stage: "verify",
+    name: "Findability",
+    role: "Improves how employees and search systems discover the article without changing its meaning.",
+    input: "The approved draft, employee search language, taxonomy, and related content.",
+    output: "Search title, description, keywords, common questions, related articles, and duplicate signals.",
+    boundary: "Metadata stays editable and duplicate recommendations require human confirmation.",
+    accent: "guidance",
+    icon: <FindInPageOutlinedIcon sx={{ fontSize: 20 }} />,
+  },
+  {
+    id: "localization",
+    stage: "operate",
+    name: "Localization",
+    role: "Creates language and market variants while preserving the approved meaning and identifying local differences.",
+    input: "The approved source article, locale profiles, terminology, and market requirements.",
+    output: "Linked translations and localized variants ready for market review.",
+    boundary: "High-impact policy or legal differences require a qualified local reviewer.",
+    accent: "creation",
+    icon: <TranslateOutlinedIcon sx={{ fontSize: 20 }} />,
+  },
+  {
+    id: "health",
+    stage: "operate",
+    name: "Content health",
+    role: "Monitors published articles for age, ownership gaps, declining use, feedback, source changes, and conflicting content.",
+    input: "Published content, review dates, usage signals, feedback, ownership, and source updates.",
+    output: "Prioritized review tasks, owner alerts, and recommendations to update, merge, or archive content.",
+    boundary: "It recommends action; owners and administrators decide whether published knowledge changes.",
+    accent: "governance",
+    icon: <MonitorHeartOutlinedIcon sx={{ fontSize: 20 }} />,
+  },
+];
+
+function StepOrchestration() {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const [active, setActive] = useState("writer");
+  const activeAgent = ORCHESTRATION_AGENTS.find((agent) => agent.id === active)!;
+  const tones = {
+    creation: t.productAccent.creation,
+    guidance: t.productAccent.guidance,
+    governance: t.productAccent.governance,
+  } as const;
+  const activeTone = tones[activeAgent.accent];
+
+  const humanGates = [
+    { number: "01", title: "Confirm the brief", body: "The content owner confirms the sources, scope, audience, and approver before drafting." },
+    { number: "02", title: "Confirm the draft", body: "The content owner reviews the full employee-facing article and adds or corrects details." },
+    { number: "03", title: "Approve publication", body: "An authorized reviewer requests changes, rejects, or approves the article for publication." },
+    { number: "04", title: "Govern over time", body: "Administrators act on health signals, standards changes, ownership, and review schedules." },
+  ];
+
+  return (
+    <Box>
+      <StepHeader
+        kicker="03"
+        title="AI agent orchestration"
+        sub="Conceptually, one orchestrator would coordinate focused agents across the article lifecycle. The user experiences one conversation and one article; the specialists work behind the scenes and stop at clear human checkpoints."
+      />
+
+      <Box sx={{ mt: 3, borderTop: `1px solid ${t.border}`, borderBottom: `1px solid ${t.border}` }}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.5}
+          alignItems={{ xs: "flex-start", sm: "center" }}
+          sx={{ px: { xs: 2, md: 2.5 }, py: 2, bgcolor: t.surfaceContainerLow }}
+        >
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              display: "grid",
+              placeItems: "center",
+              borderRadius: 1,
+              color: t.productAccent.guidance.ink,
+              bgcolor: t.productAccent.guidance.soft,
+              flexShrink: 0,
+            }}
+          >
+            <HubOutlinedIcon sx={{ fontSize: 20 }} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>
+              Orchestrator
+            </Typography>
+            <Typography sx={{ mt: 0.25, fontSize: "0.8125rem", color: t.slate, lineHeight: 1.5 }}>
+              Maintains the plan, calls only the specialists needed, records their outputs, resolves handoffs, and pauses whenever a human decision is required.
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "repeat(5, minmax(0, 1fr))" },
+          }}
+        >
+          {ORCHESTRATION_STAGES.map((stage, stageIndex) => {
+            const stageAgents = ORCHESTRATION_AGENTS.filter((agent) => agent.stage === stage.id);
+            return (
+              <Box
+                key={stage.id}
+                sx={{
+                  position: "relative",
+                  minWidth: 0,
+                  px: 2,
+                  py: 2.25,
+                  borderTop: { xs: stageIndex === 0 ? "none" : `1px solid ${t.border}`, md: "none" },
+                  borderLeft: { xs: "none", md: stageIndex === 0 ? "none" : `1px solid ${t.border}` },
+                }}
+              >
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                  <Box>
+                    <Typography sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.625rem", color: t.granite, letterSpacing: "0.08em" }}>
+                      STAGE {stage.number}
+                    </Typography>
+                    <Typography sx={{ mt: 0.35, fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
+                      {stage.label}
+                    </Typography>
+                  </Box>
+                  {stageIndex < ORCHESTRATION_STAGES.length - 1 && (
+                    <ArrowForwardIcon sx={{ display: { xs: "none", md: "block" }, fontSize: 16, color: t.borderStrong }} />
+                  )}
+                </Stack>
+                <Stack spacing={0.75}>
+                  {stageAgents.map((agent) => {
+                    const selected = agent.id === active;
+                    const tone = tones[agent.accent];
+                    return (
+                      <Button
+                        key={agent.id}
+                        onClick={() => setActive(agent.id)}
+                        aria-pressed={selected}
+                        fullWidth
+                        sx={{
+                          justifyContent: "flex-start",
+                          textAlign: "left",
+                          minHeight: 42,
+                          px: 1.25,
+                          py: 0.75,
+                          borderRadius: 1,
+                          border: `1px solid ${selected ? tone.main : t.border}`,
+                          bgcolor: selected ? tone.soft : t.surface,
+                          color: selected ? tone.ink : t.slate,
+                          fontSize: "0.75rem",
+                          fontWeight: selected ? 700 : 600,
+                          lineHeight: 1.3,
+                          textTransform: "none",
+                          "&:hover": { bgcolor: tone.soft, borderColor: tone.main, color: tone.ink },
+                        }}
+                      >
+                        {agent.name}
+                      </Button>
+                    );
+                  })}
+                </Stack>
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
+
+      <Box
+        key={activeAgent.id}
+        sx={{
+          mt: 2,
+          p: { xs: 2, md: 2.5 },
+          borderRadius: 1,
+          bgcolor: activeTone.soft,
+          borderLeft: `4px solid ${activeTone.main}`,
+          animation: `${fadeUp} 220ms cubic-bezier(0.16, 1, 0.3, 1)`,
+        }}
+      >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ sm: "flex-start" }}>
+          <Box sx={{ color: activeTone.ink, pt: 0.25 }}>{activeAgent.icon}</Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{ fontSize: "1.125rem", fontWeight: 700, color: t.ink }}>
+              {activeAgent.name}
+            </Typography>
+            <Typography sx={{ mt: 0.5, fontSize: "0.875rem", color: t.slate, lineHeight: 1.6, maxWidth: "78ch" }}>
+              {activeAgent.role}
+            </Typography>
+            <Box sx={{ mt: 2, display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" }, gap: 2.5 }}>
+              <AgentDetail label="Receives" body={activeAgent.input} />
+              <AgentDetail label="Produces" body={activeAgent.output} />
+              <AgentDetail label="Guardrail" body={activeAgent.boundary} />
+            </Box>
+          </Box>
+        </Stack>
+      </Box>
+
+      <Box sx={{ mt: { xs: 4, md: 5 } }}>
+        <Typography variant="overline" sx={{ display: "block", mb: 2, color: t.slate, letterSpacing: "0.1em" }}>
+          Human checkpoints
+        </Typography>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, gap: { xs: 2, lg: 3 } }}>
+          {humanGates.map((gate) => (
+            <Box key={gate.number} sx={{ borderTop: `2px solid ${t.productAccent.governance.main}`, pt: 1.5 }}>
+              <Typography sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.625rem", color: t.granite, letterSpacing: "0.08em" }}>
+                GATE {gate.number}
+              </Typography>
+              <Typography sx={{ mt: 0.75, fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
+                {gate.title}
+              </Typography>
+              <Typography sx={{ mt: 0.5, fontSize: "0.8125rem", color: t.slate, lineHeight: 1.55 }}>
+                {gate.body}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      <Box sx={{ mt: { xs: 4, md: 5 }, display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, gap: { xs: 3, md: 5 } }}>
+        <ControlBoundary
+          title="Where AI helps"
+          body="Interpret requests, extract source material, ask questions, draft, compare, recommend, translate, and prioritize maintenance work."
+          color={t.productAccent.creation.main}
+        />
+        <ControlBoundary
+          title="What the product must control"
+          body="Identity, permissions, required fields, status transitions, approval authority, audit history, retention, publishing, and rollback should be deterministic and testable."
+          color={t.productAccent.governance.main}
+        />
+      </Box>
+    </Box>
+  );
+}
+
+function AgentDetail({ label, body }: { label: string; body: string }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  return (
+    <Box>
+      <Typography sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.625rem", color: t.granite, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+        {label}
+      </Typography>
+      <Typography sx={{ mt: 0.5, fontSize: "0.8125rem", color: t.ink, lineHeight: 1.55 }}>
+        {body}
+      </Typography>
+    </Box>
+  );
+}
+
+function ControlBoundary({ title, body, color }: { title: string; body: string; color: string }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  return (
+    <Box sx={{ borderTop: `3px solid ${color}`, pt: 1.75 }}>
+      <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>{title}</Typography>
+      <Typography sx={{ mt: 0.5, fontSize: "0.8125rem", color: t.slate, lineHeight: 1.6 }}>{body}</Typography>
+    </Box>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// STEP 4 — ARTICLE PARTS (radial constellation)
+// ════════════════════════════════════════════════════════════
+const ARTICLE_PARTS = [
   { id: "basics", name: "Basics", role: "Title, article type, knowledge base, sector, country scope, employee audience, access groups, source language, and approver are captured before writing starts.", color: "blue" },
   { id: "templates", name: "Article types", role: "Every item is a knowledge article. FAQ, Business info, How to, and Policy each start with the right structure, while authors can still rename sections and add new blocks.", color: "blue" },
   { id: "sources", name: "Sources", role: "The support rail keeps source uploads, attachment reminders, and related article signals visible while the author writes.", color: "neutral" },
@@ -703,7 +1066,7 @@ const AGENTS = [
   { id: "published", name: "Published", role: "Approved content opens as a PepsiCo-styled article with side metadata, translations, quick links, feedback, and performance data.", color: "ember" },
 ] as const;
 
-function StepAgents() {
+function StepParts() {
   const theme = useTheme();
   const t = theme.palette.tokens;
   const [active, setActive] = useState<string>("sections");
@@ -711,18 +1074,18 @@ function StepAgents() {
   useEffect(() => {
     const id = setInterval(() => {
       setActive((cur) => {
-        const i = AGENTS.findIndex((a) => a.id === cur);
-        return AGENTS[(i + 1) % AGENTS.length].id;
+        const i = ARTICLE_PARTS.findIndex((a) => a.id === cur);
+        return ARTICLE_PARTS[(i + 1) % ARTICLE_PARTS.length].id;
       });
     }, 2800);
     return () => clearInterval(id);
   }, []);
 
-  const activeAgent = AGENTS.find((a) => a.id === active)!;
+  const activeAgent = ARTICLE_PARTS.find((a) => a.id === active)!;
   return (
     <Box>
       <StepHeader
-        kicker="03"
+        kicker="04"
         title="Article building blocks"
         sub="The creator is structured, but not locked down. Authors start from an article-type template, then add the section types the article actually needs."
       />
@@ -735,7 +1098,7 @@ function StepAgents() {
       >
         {/* Radial constellation */}
         <Box sx={{ flex: "1 1 55%", display: "flex", justifyContent: "center" }}>
-          <AgentConstellation active={active} onSelect={setActive} />
+          <PartConstellation active={active} onSelect={setActive} />
         </Box>
 
         {/* Active building-block detail */}
@@ -755,7 +1118,7 @@ function StepAgents() {
               mb: 1.25,
             }}
           >
-            PART · {String(AGENTS.findIndex((a) => a.id === active) + 1).padStart(2, "0")} OF {AGENTS.length}
+            PART · {String(ARTICLE_PARTS.findIndex((a) => a.id === active) + 1).padStart(2, "0")} OF {ARTICLE_PARTS.length}
           </Box>
           <Typography sx={{ fontSize: "2rem", fontWeight: 600, color: t.ink, mb: 1 }}>
             {activeAgent.name}
@@ -764,7 +1127,7 @@ function StepAgents() {
             {activeAgent.role}
           </Typography>
           <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
-            {AGENTS.map((a) => (
+            {ARTICLE_PARTS.map((a) => (
               <Box
                 key={a.id}
                 onClick={() => setActive(a.id)}
@@ -790,7 +1153,7 @@ function StepAgents() {
   );
 }
 
-function AgentConstellation({
+function PartConstellation({
   active,
   onSelect,
 }: {
@@ -803,7 +1166,7 @@ function AgentConstellation({
   const cx = size / 2;
   const cy = size / 2;
   const radius = 165;
-  const n = AGENTS.length;
+  const n = ARTICLE_PARTS.length;
 
   return (
     <Box
@@ -822,7 +1185,7 @@ function AgentConstellation({
       />
 
       {/* Connection lines from center to each article part */}
-      {AGENTS.map((a, i) => {
+      {ARTICLE_PARTS.map((a, i) => {
         const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
         const x = cx + Math.cos(angle) * radius;
         const y = cy + Math.sin(angle) * radius;
@@ -880,7 +1243,7 @@ function AgentConstellation({
       </text>
 
       {/* Article-part nodes */}
-      {AGENTS.map((a, i) => {
+      {ARTICLE_PARTS.map((a, i) => {
         const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
         const x = cx + Math.cos(angle) * radius;
         const y = cy + Math.sin(angle) * radius;
@@ -938,7 +1301,7 @@ function AgentConstellation({
 }
 
 // ════════════════════════════════════════════════════════════
-// STEP 4 — SEQUENCE (swim-lane)
+// STEP 5 — ARTICLE LIFECYCLE
 // ════════════════════════════════════════════════════════════
 function StepSequence() {
   const theme = useTheme();
@@ -984,7 +1347,7 @@ function StepSequence() {
   return (
     <Box>
       <StepHeader
-        kicker="04"
+        kicker="05"
         title="Review and publish"
         sub="Four clear stages show who is involved, what happens, and what the product produces."
       />
@@ -1144,7 +1507,7 @@ function Insight({ title, body }: { title: string; body: string }) {
 }
 
 // ════════════════════════════════════════════════════════════
-// STEP 5 — STATE (live counts as layered stack)
+// STEP 6 — STATE (live counts as layered stack)
 // ════════════════════════════════════════════════════════════
 function StepState({ stats }: { stats: LiveStats }) {
   const theme = useTheme();
@@ -1156,7 +1519,7 @@ function StepState({ stats }: { stats: LiveStats }) {
   return (
     <Box>
       <StepHeader
-        kicker="05"
+        kicker="06"
         title="Library state"
         sub="Live counts from the current workspace: drafts, published articles, profiles, and messages."
       />
@@ -1344,7 +1707,7 @@ function BigStat({
 }
 
 // ════════════════════════════════════════════════════════════
-// STEP 6 — READY (the graduation moment)
+// STEP 7 — READY (the graduation moment)
 // ────────────────────────────────────────────────────────────
 // The visitor just spent ~2 minutes here. Don't waste the close
 // on "thanks for reading." Reframe it as "pick your next move":

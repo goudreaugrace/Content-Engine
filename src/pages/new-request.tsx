@@ -2462,7 +2462,9 @@ export default function NewRequest() {
       const nextTitle =
         articleImportSource && f.title.trim()
           ? f.title
-          : titleFromGuidedPrompt(sourcePrompt, value);
+          : guidedDemoMode || sourcePrompt === GUIDED_DEMO.prompt
+            ? GUIDED_DEMO.title
+            : titleFromGuidedPrompt(sourcePrompt, value);
       const nextSummary =
         articleImportSource && f.summary.trim()
           ? f.summary

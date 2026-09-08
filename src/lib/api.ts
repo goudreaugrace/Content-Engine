@@ -1,4 +1,5 @@
 // Typed fetch wrapper. Mirrors server/lib/types.ts shapes.
+import { getDemoUser } from "./demo-users";
 
 /**
  * Source-article status. No "approved" — approval triggers an atomic
@@ -659,7 +660,8 @@ export type MarketProfile = {
  * swap is one-file.
  */
 export function currentUser(): { name: string; email: string } {
-  return { name: "Demo User", email: "content-owner@pepsico.com" };
+  const user = getDemoUser();
+  return { name: user.contentOwnerKey ?? user.name, email: user.email };
 }
 
 async function request<T>(url: string, opts: RequestInit = {}): Promise<T> {
@@ -708,6 +710,15 @@ export const api = {
       countries?: string[];
       knowledgeBase?: Article["knowledgeBase"];
       sector?: string;
+      contentType?: Article["contentType"];
+      lead?: string;
+      references?: ArticleReference[];
+      canonicalSlug?: string;
+      aliases?: string[];
+      topics?: string[];
+      visibility?: Article["visibility"];
+      effectiveAt?: string;
+      nextReviewAt?: string;
       globalJustification?: string;
       sections?: Article["sections"];
       taxonomy?: Article["taxonomy"];

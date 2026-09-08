@@ -184,13 +184,42 @@ articlesRouter.patch("/:id/owner", async (req, res) => {
 });
 
 articlesRouter.patch("/:id", async (req, res) => {
-  const { body, title, seo, countries, knowledgeBase, sector, globalJustification, sections, taxonomy, relationships } = req.body as {
+  const {
+    body,
+    title,
+    seo,
+    countries,
+    knowledgeBase,
+    sector,
+    contentType,
+    lead,
+    references,
+    canonicalSlug,
+    aliases,
+    topics,
+    visibility,
+    effectiveAt,
+    nextReviewAt,
+    globalJustification,
+    sections,
+    taxonomy,
+    relationships,
+  } = req.body as {
     body?: string;
     title?: string;
     seo?: Article["seo"];
     countries?: string[];
     knowledgeBase?: Article["knowledgeBase"];
     sector?: string;
+    contentType?: Article["contentType"];
+    lead?: string;
+    references?: Article["references"];
+    canonicalSlug?: string;
+    aliases?: string[];
+    topics?: string[];
+    visibility?: Article["visibility"];
+    effectiveAt?: string;
+    nextReviewAt?: string;
     globalJustification?: string;
     sections?: Article["sections"];
     taxonomy?: Article["taxonomy"];
@@ -200,7 +229,27 @@ articlesRouter.patch("/:id", async (req, res) => {
   if (!article) return res.status(404).json({ error: "not found" });
 
   // At least one field has to change for the patch to be meaningful.
-  if (body === undefined && title === undefined && seo === undefined && countries === undefined && knowledgeBase === undefined && sector === undefined && globalJustification === undefined && sections === undefined && taxonomy === undefined && relationships === undefined) {
+  if (
+    body === undefined &&
+    title === undefined &&
+    seo === undefined &&
+    countries === undefined &&
+    knowledgeBase === undefined &&
+    sector === undefined &&
+    contentType === undefined &&
+    lead === undefined &&
+    references === undefined &&
+    canonicalSlug === undefined &&
+    aliases === undefined &&
+    topics === undefined &&
+    visibility === undefined &&
+    effectiveAt === undefined &&
+    nextReviewAt === undefined &&
+    globalJustification === undefined &&
+    sections === undefined &&
+    taxonomy === undefined &&
+    relationships === undefined
+  ) {
     return res
       .status(400)
       .json({ error: "Provide at least one editable article field." });
@@ -221,6 +270,8 @@ articlesRouter.patch("/:id", async (req, res) => {
   // Shallow merge here lets callers send a partial SEO payload if they want.
   const nextSeo = seo
     ? {
+        ...article.seo,
+        ...seo,
         title: typeof seo.title === "string" ? seo.title : article.seo.title,
         metaDescription:
           typeof seo.metaDescription === "string"
@@ -229,6 +280,12 @@ articlesRouter.patch("/:id", async (req, res) => {
         keywords: Array.isArray(seo.keywords)
           ? seo.keywords
           : article.seo.keywords,
+        keyQuestions: Array.isArray(seo.keyQuestions)
+          ? seo.keyQuestions
+          : article.seo.keyQuestions,
+        entities: Array.isArray(seo.entities)
+          ? seo.entities
+          : article.seo.entities,
       }
     : article.seo;
 
@@ -241,6 +298,15 @@ articlesRouter.patch("/:id", async (req, res) => {
     countries: Array.isArray(countries) ? countries.map((country) => country.trim()).filter(Boolean) : article.countries,
     knowledgeBase: knowledgeBase ?? article.knowledgeBase,
     sector: sector ?? article.sector,
+    contentType: contentType ?? article.contentType,
+    lead: lead ?? article.lead,
+    references: references ?? article.references,
+    canonicalSlug: canonicalSlug ?? article.canonicalSlug,
+    aliases: aliases ?? article.aliases,
+    topics: topics ?? article.topics,
+    visibility: visibility ?? article.visibility,
+    effectiveAt: effectiveAt ?? article.effectiveAt,
+    nextReviewAt: nextReviewAt ?? article.nextReviewAt,
     globalJustification: globalJustification ?? article.globalJustification,
     sections: sections ?? article.sections,
     taxonomy: taxonomy ?? article.taxonomy,

@@ -45,6 +45,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 // disk in case we want it back for a future "rewrite whole article" feature.
 import ApprovalChecklist from "../components/approval-checklist";
 import { usePersonaMode } from "../lib/persona";
+import { useDemoUser } from "../lib/demo-users";
 import { getPOCReviewMessage } from "../lib/poc-review-messages";
 import { getViewingContentOwner, sectorsForContentOwner } from "../lib/content-owner-view";
 
@@ -251,6 +252,7 @@ export default function ArticleDetail() {
   const theme = useTheme();
   const t = theme.palette.tokens;
   const [personaMode] = usePersonaMode();
+  const [demoUser] = useDemoUser();
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -350,7 +352,7 @@ export default function ArticleDetail() {
     );
 
   const meta = statusMeta[article.status];
-  const isContentOwner = personaMode === "non-admin";
+  const isContentOwner = personaMode === "non-admin" || (personaMode === "super-admin" && demoUser.contentOwner);
   const fromTeamArticles = searchParams.get("from") === "team-articles";
   const isOwnerReviewLocked = isContentOwner && article.status === "needs-review";
   const reviewContext = (article.approvalResults ?? [])
@@ -1131,7 +1133,7 @@ export default function ArticleDetail() {
               ) : (
                 <ArticleDocument
                   body={displayedBody}
-                  sections={selectedLocale === primaryLocale ? article.sections : undefined}
+                  sections={!primaryLocale || selectedLocale === primaryLocale ? article.sections : undefined}
                   market={article.market}
                   title={article.title}
                   lead={article.lead}

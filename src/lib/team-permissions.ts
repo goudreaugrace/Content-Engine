@@ -1,3 +1,5 @@
+import { getDemoUser } from "./demo-users";
+
 export type TeamRole = "content-owner" | "team-admin";
 export type MemberStatus = "active" | "new" | "handoff" | "scheduled-removal" | "inactive";
 export type TransferStatus = "pending" | "approved" | "declined" | "cancelled";
@@ -64,10 +66,17 @@ export type TeamPermissionsState = {
 };
 
 export const CURRENT_TEAM_ADMIN_ID = "casey-morgan";
+export const ALFONSO_TEAM_ADMIN_ID = "alfonso-ibarra";
 export const NEW_CONTENT_OWNER_KEY = "New Owner";
+
+export function currentTeamAdminId(): string {
+  const storyUser = getDemoUser();
+  return storyUser.teamAdminId ?? CURRENT_TEAM_ADMIN_ID;
+}
 
 export const TEAM_ADMINS: TeamAdmin[] = [
   { id: CURRENT_TEAM_ADMIN_ID, name: "Casey Morgan", team: "Employee Services" },
+  { id: ALFONSO_TEAM_ADMIN_ID, name: "Alfonso Ibarra", team: "Content Governance" },
   { id: "alexis-nguyen", name: "Alexis Nguyen", team: "People Operations" },
   { id: "cameron-reed", name: "Cameron Reed", team: "Finance Operations" },
   { id: "jamie-park", name: "Jamie Park", team: "Supply Chain Enablement" },
@@ -121,12 +130,18 @@ export const HANDOFF_ARTICLES_BY_MEMBER: Record<
   ],
 };
 
-const STORAGE_KEY = "content-engine-team-permissions-v2";
+const STORAGE_KEY = "content-engine-team-permissions-v4";
 const SEEN_OUTCOMES_STORAGE_KEY = "content-engine-team-permissions-seen-outcomes-v1";
 const CHANGE_EVENT = "content-engine-team-permissions-change";
 
 const initialState: TeamPermissionsState = {
   members: [
+    { id: "alina-corral", contentOwnerKey: "Alina Corral", firstName: "Alina", lastName: "Corral", email: "alina.corral@pepsico.com", role: "content-owner", sectors: ["global"], knowledgeBases: ["mypepsico"], status: "active", teamAdminId: ALFONSO_TEAM_ADMIN_ID },
+    { id: "itzel-ayala-quezada", contentOwnerKey: "Itzel Ayala Quezada", firstName: "Itzel", lastName: "Ayala Quezada", email: "itzel.ayala.quezada@pepsico.com", role: "content-owner", sectors: ["global"], knowledgeBases: ["mypepsico"], status: "active", teamAdminId: ALFONSO_TEAM_ADMIN_ID },
+    { id: "marco-diaz", contentOwnerKey: "Marco Diaz", firstName: "Marco", lastName: "Diaz", email: "marco.diaz@pepsico.com", role: "content-owner", sectors: ["global"], knowledgeBases: ["mypepsico"], status: "active", teamAdminId: ALFONSO_TEAM_ADMIN_ID },
+    { id: "sofia-gonzalez", contentOwnerKey: "Sofia Gonzalez", firstName: "Sofia", lastName: "Gonzalez", email: "sofia.gonzalez@pepsico.com", role: "content-owner", sectors: ["global"], knowledgeBases: ["mypepsico"], status: "active", teamAdminId: ALFONSO_TEAM_ADMIN_ID },
+    { id: "harper-singh", contentOwnerKey: "Harper Singh", firstName: "Harper", lastName: "Singh", email: "harper.singh@pepsico.com", role: "content-owner", sectors: ["global"], knowledgeBases: ["pfp"], status: "active", teamAdminId: "alexis-nguyen" },
+    { id: "priya-rai", contentOwnerKey: "Priya Rai", firstName: "Priya", lastName: "Rai", email: "priya.rai@pepsico.com", role: "content-owner", sectors: ["europe"], knowledgeBases: ["pfp"], status: "active", teamAdminId: "alexis-nguyen" },
     {
       id: "maya-johnson",
       contentOwnerKey: "Demo User",
@@ -334,14 +349,15 @@ function getSeenOutcomeKeys(): Set<string> {
 
 export function getTeamPermissionsAlertCount(): number {
   const state = getTeamPermissionsState();
+  const activeTeamAdminId = currentTeamAdminId();
   const pendingIncoming = state.transfers.filter(
     (request) =>
-      request.receiverAdminId === CURRENT_TEAM_ADMIN_ID && request.status === "pending",
+      request.receiverAdminId === activeTeamAdminId && request.status === "pending",
   ).length;
   const seen = getSeenOutcomeKeys();
   const unseenOutgoingOutcomes = state.transfers.filter(
     (request) =>
-      request.senderAdminId === CURRENT_TEAM_ADMIN_ID &&
+      request.senderAdminId === activeTeamAdminId &&
       (request.status === "approved" || request.status === "declined") &&
       !seen.has(outcomeKey(request)),
   ).length;
@@ -351,10 +367,11 @@ export function getTeamPermissionsAlertCount(): number {
 export function markTeamPermissionsOutcomesSeen(): void {
   if (typeof window === "undefined") return;
   const seen = getSeenOutcomeKeys();
+  const activeTeamAdminId = currentTeamAdminId();
   getTeamPermissionsState().transfers
     .filter(
       (request) =>
-        request.senderAdminId === CURRENT_TEAM_ADMIN_ID &&
+        request.senderAdminId === activeTeamAdminId &&
         (request.status === "approved" || request.status === "declined"),
     )
     .forEach((request) => seen.add(outcomeKey(request)));

@@ -43,6 +43,13 @@ const tokens = {
   pepsiBlueDeep: "#00205B",
   pepsiNavy: "#00205B",
   brandSky: "#B9DAF5",
+  // Product accents translate PepsiCo's broader corporate palette into
+  // operational roles. Components should choose a role, not a raw hue.
+  productAccent: {
+    creation: { main: "#0065A8", ink: "#003B5C", soft: "#EAF5FC" },
+    governance: { main: "#6F9238", ink: "#3E651F", soft: "#EDF5DC" },
+    guidance: { main: "#E2A633", ink: "#7A5200", soft: "#FFF3D8" },
+  },
   articleFrameBg: "#FFFFFF",
   articleDocumentBg: "#FAFAFA",
   articleRailBg: "#FAFAFA",

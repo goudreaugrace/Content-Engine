@@ -296,6 +296,13 @@ export default function AppLayout() {
           const selected = item.exact
             ? location.pathname === item.path
             : location.pathname.startsWith(item.path);
+          const navTone = item.section === "Admin"
+            ? t.productAccent.governance
+            : item.section === "Reference"
+              ? t.productAccent.guidance
+              : item.path === "/new"
+                ? t.productAccent.creation
+                : { ink: t.pepsiBlueStrong, soft: t.pepsiBlueSubtle, main: t.pepsiBlue };
           // M3 rail pattern: in compact mode, section headers collapse to a
           // thin divider so the grouping is still legible without text.
           const sectionMarker = showSection ? (
@@ -331,10 +338,10 @@ export default function AppLayout() {
                 color: t.slate,
                 "&:hover": { backgroundColor: alpha(t.ink, 0.04) },
                 "&.Mui-selected": {
-                  backgroundColor: t.pepsiBlueSubtle,
-                  color: t.pepsiBlueStrong,
-                  "&:hover": { backgroundColor: alpha(t.pepsiBlue, 0.16) },
-                  "& .MuiListItemIcon-root": { color: t.pepsiBlueStrong },
+                  backgroundColor: navTone.soft,
+                  color: navTone.ink,
+                  "&:hover": { backgroundColor: alpha(navTone.main, 0.16) },
+                  "& .MuiListItemIcon-root": { color: navTone.ink },
                   "& .MuiListItemText-primary": { fontWeight: 600 },
                 },
               }}
@@ -594,6 +601,11 @@ function PersonaSwitcher({
 }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const personaTone = mode === "super-admin"
+    ? t.productAccent.governance
+    : mode === "admin"
+      ? t.productAccent.guidance
+      : t.productAccent.creation;
 
   if (compact) {
     const next: PersonaMode =
@@ -610,9 +622,9 @@ function PersonaSwitcher({
               height: 40,
               mx: "auto",
               display: "flex",
-              color: mode === "non-admin" ? t.slate : t.pepsiBlueStrong,
-              bgcolor: mode === "non-admin" ? "transparent" : t.pepsiBlueSubtle,
-              "&:hover": { bgcolor: alpha(t.ink, 0.04) },
+              color: personaTone.ink,
+              bgcolor: personaTone.soft,
+              "&:hover": { bgcolor: alpha(personaTone.main, 0.2) },
             }}
             aria-label="Switch persona"
           >
@@ -641,12 +653,14 @@ function PersonaSwitcher({
           "& .MuiInputBase-root": {
             height: 36,
             borderRadius: 999,
-            bgcolor: t.surfaceContainerLow,
+            bgcolor: personaTone.soft,
             fontSize: "0.75rem",
             fontWeight: 600,
           },
-          "& .MuiInputLabel-root": { fontSize: "0.75rem" },
-          "& .MuiSelect-select": { py: 0.75 },
+          "& .MuiInputLabel-root": { fontSize: "0.75rem", color: personaTone.ink },
+          "& .MuiOutlinedInput-notchedOutline": { borderColor: alpha(personaTone.main, 0.45) },
+          "& .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline": { borderColor: personaTone.main },
+          "& .MuiSelect-select": { py: 0.75, color: personaTone.ink },
         }}
       >
         <MenuItem value="super-admin">Super Admin</MenuItem>

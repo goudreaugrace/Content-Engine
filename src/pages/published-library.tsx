@@ -793,7 +793,7 @@ function NonAdminArticlesPage({
           value={
             counts.writing > 0 ? (
               <Stack direction="row" spacing={0.75} alignItems="center">
-                <CircularProgress size={13} thickness={5} sx={{ color: t.pepsiBlueStrong }} />
+                <CircularProgress size={13} thickness={5} sx={{ color: t.productAccent.guidance.ink }} />
                 <span>{counts.writing}</span>
               </Stack>
             ) : (
@@ -804,7 +804,7 @@ function NonAdminArticlesPage({
         <KpiItem
           label="Needs your review"
           value={counts.authorReview}
-          accent={counts.authorReview > 0 ? t.pepsiBlue : undefined}
+          accent={counts.authorReview > 0 ? t.productAccent.creation.main : undefined}
         />
         <KpiItem
           label={isTeamView ? "Team approvals" : "Awaiting approval"}
@@ -816,7 +816,7 @@ function NonAdminArticlesPage({
           value={counts.stale}
           accent={counts.stale > 0 ? t.errorInk : undefined}
         />
-        <KpiItem label="Published" value={counts.published} />
+        <KpiItem label="Published" value={counts.published} accent={counts.published > 0 ? t.productAccent.governance.main : undefined} />
       </KpiRow>
       </Box>
 

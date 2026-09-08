@@ -273,7 +273,7 @@ export default function PrePublishedTab({
         <KpiItem
           label="Needs author review"
           value={counts["needs-author-review"]}
-          accent={counts["needs-author-review"] > 0 ? t.pepsiBlue : undefined}
+          accent={counts["needs-author-review"] > 0 ? t.productAccent.creation.main : undefined}
         />
         <KpiItem
           label="Needs review"

@@ -6460,10 +6460,10 @@ export default function NewRequest() {
                 sx={{
                   textTransform: "none",
                   fontWeight: 700,
-                  color: t.pepsiBlueStrong,
+                  color: t.productAccent.governance.ink,
                   borderRadius: "8px",
                   px: 1.25,
-                  "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                  "&:hover": { bgcolor: t.productAccent.governance.soft },
                 }}
               >
                 Create from files
@@ -6479,11 +6479,11 @@ export default function NewRequest() {
                 sx={{
                   textTransform: "none",
                   fontWeight: 800,
-                  color: t.pepsiBlueStrong,
+                  color: t.productAccent.guidance.ink,
                   borderRadius: "8px",
                   px: 1.25,
                   "&:hover": {
-                    bgcolor: t.pepsiBlueSubtle,
+                    bgcolor: t.productAccent.guidance.soft,
                   },
                 }}
               >
@@ -6581,8 +6581,8 @@ export default function NewRequest() {
                     textTransform: "none",
                     fontSize: "0.875rem",
                     fontWeight: 600,
-                    color: t.pepsiBlueStrong,
-                    "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                    color: t.productAccent.governance.ink,
+                    "&:hover": { bgcolor: t.productAccent.governance.soft },
                   }}
                 >
                   Create from files
@@ -6597,10 +6597,10 @@ export default function NewRequest() {
                     textTransform: "none",
                     fontSize: "0.875rem",
                     fontWeight: 600,
-                    color: t.pepsiBlueStrong,
-                    bgcolor: t.brandSky,
+                    color: t.productAccent.guidance.ink,
+                    bgcolor: t.productAccent.guidance.soft,
                     boxShadow: "none",
-                    "&:hover": { bgcolor: t.pepsiBlueSubtle, boxShadow: "none" },
+                    "&:hover": { bgcolor: t.productAccent.guidance.soft, boxShadow: "none" },
                   }}
                 >
                   Switch to form
@@ -6743,9 +6743,9 @@ export default function NewRequest() {
                         borderRadius: 999,
                         textTransform: "none",
                         fontWeight: 650,
-                        color: t.pepsiBlueStrong,
-                        bgcolor: guidedDemoMode ? t.pepsiBlueSubtle : "transparent",
-                        "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                        color: t.productAccent.guidance.ink,
+                        bgcolor: guidedDemoMode ? t.productAccent.guidance.soft : "transparent",
+                        "&:hover": { bgcolor: t.productAccent.guidance.soft },
                       }}
                     >
                       Try a demo example
@@ -8247,9 +8247,9 @@ export default function NewRequest() {
                     borderRadius: 999,
                     textTransform: "none",
                     fontWeight: 600,
-                    color: t.pepsiBlueStrong,
-                    bgcolor: t.brandSky,
-                    "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                    color: t.productAccent.guidance.ink,
+                    bgcolor: t.productAccent.guidance.soft,
+                    "&:hover": { bgcolor: t.productAccent.guidance.soft },
                   }}
                 >
                   Switch to form
@@ -8324,7 +8324,7 @@ export default function NewRequest() {
                           transition: "border-color 120ms ease, background-color 120ms ease",
                           "&:hover": handsOffSubmitting
                             ? {}
-                            : { borderColor: t.pepsiBlue, bgcolor: t.pepsiBlueSubtle },
+                            : { borderColor: t.productAccent.governance.main, bgcolor: t.productAccent.governance.soft },
                         }}
                       >
                         <Stack alignItems="center" spacing={0.75} textAlign="center">
@@ -8335,8 +8335,8 @@ export default function NewRequest() {
                               borderRadius: "50%",
                               display: "grid",
                               placeItems: "center",
-                              bgcolor: t.brandSky,
-                              color: t.pepsiBlueStrong,
+                              bgcolor: t.productAccent.governance.soft,
+                              color: t.productAccent.governance.ink,
                             }}
                           >
                             <UploadFileOutlinedIcon sx={{ fontSize: 20 }} />
@@ -8439,7 +8439,14 @@ export default function NewRequest() {
                     startIcon={<AddIcon sx={{ fontSize: 18 }} />}
                     onClick={addHandsOffArticle}
                     disabled={handsOffSubmitting}
-                    sx={{ alignSelf: "flex-start", px: 0.75, textTransform: "none", fontWeight: 700 }}
+                    sx={{
+                      alignSelf: "flex-start",
+                      px: 0.75,
+                      textTransform: "none",
+                      fontWeight: 700,
+                      color: t.productAccent.governance.ink,
+                      "&:hover": { bgcolor: t.productAccent.governance.soft },
+                    }}
                   >
                     Add another article
                   </Button>

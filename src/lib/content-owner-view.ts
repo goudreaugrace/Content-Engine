@@ -8,6 +8,10 @@ export const DEFAULT_CONTENT_OWNER = "Demo User";
  * iteration; for now they ensure a Content Owner only sees permitted sectors.
  */
 export const CONTENT_OWNER_SECTOR_ACCESS: Record<string, string[]> = {
+  "Alina Corral": ["global"],
+  "Itzel Ayala Quezada": ["global"],
+  "Marco Diaz": ["global"],
+  "Sofia Gonzalez": ["global"],
   "Demo User": ["pfna", "latam", "global"],
   Test: ["pfna", "pbna"],
   Demo: ["pbna"],
@@ -16,6 +20,10 @@ export const CONTENT_OWNER_SECTOR_ACCESS: Record<string, string[]> = {
 };
 
 export const CONTENT_OWNER_KB_ACCESS: Record<string, string[]> = {
+  "Alina Corral": ["mypepsico"],
+  "Itzel Ayala Quezada": ["mypepsico"],
+  "Marco Diaz": ["mypepsico"],
+  "Sofia Gonzalez": ["mypepsico"],
   "Demo User": ["mypepsico", "pfp"],
   Test: ["mypepsico"],
   Demo: ["pfp"],

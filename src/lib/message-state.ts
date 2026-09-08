@@ -1,5 +1,7 @@
 import type { PersonaMode } from "./persona";
 import { getViewingContentOwner } from "./content-owner-view";
+import { getDemoUser } from "./demo-users";
+import { POC_REVIEW_MESSAGES } from "./poc-review-messages";
 
 const STORAGE_KEY = "content-engine-read-message-ids-v1";
 const TRASH_STORAGE_KEY = "content-engine-message-trash-v1";
@@ -76,15 +78,29 @@ export const MESSAGE_TRASH_POLICY = {
 // to server-side recipient/read records rather than remaining in the client.
 const UNREAD_MESSAGE_IDS: Record<Exclude<PersonaMode, "non-admin">, string[]> = {
   admin: ["msg-2", "msg-3", "owner-needed-sofia", "transfer-message-transfer-incoming-1"],
-  "super-admin": ["msg-3"],
+  "super-admin": ["msg-3", "super-ai-daily-brief"],
 };
 
+const reviewMessageIdsForOwner = (ownerName: string) =>
+  POC_REVIEW_MESSAGES
+    .filter((message) => message.ownerName === ownerName)
+    .map((message) => "review-" + message.articleId);
+
 const CONTENT_OWNER_UNREAD_MESSAGES: Record<string, string[]> = {
-  "Demo User": ["msg-1"],
-  Test: ["msg-2"],
+  "Alina Corral": [
+    "review-due-ka-cog-content-design",
+    ...reviewMessageIdsForOwner("Alina Corral"),
+  ],
+  "Itzel Ayala Quezada": [],
+  "Marco Diaz": [],
+  "Sofia Gonzalez": [],
+  "Demo User": reviewMessageIdsForOwner("Demo User"),
+  Test: ["msg-2", ...reviewMessageIdsForOwner("Test")],
   Demo: [],
   "Test Author": [],
   "New Owner": ["welcome-new-owner"],
+  "Harper Singh": [],
+  "Priya Rai": [],
 };
 
 export function getReadMessageIds(): Set<string> {
@@ -109,10 +125,16 @@ export function markMessagesRead(ids: Iterable<string>): Set<string> {
 
 export function getUnreadMessageCount(personaMode: PersonaMode): number {
   const readIds = getReadMessageIds();
+  const storyUser = getDemoUser();
   const messageIds =
     personaMode === "non-admin"
       ? (CONTENT_OWNER_UNREAD_MESSAGES[getViewingContentOwner()] ?? [])
-      : UNREAD_MESSAGE_IDS[personaMode];
+      : personaMode === "super-admin" && storyUser.contentOwnerKey
+        ? Array.from(new Set([
+            ...UNREAD_MESSAGE_IDS["super-admin"],
+            ...(CONTENT_OWNER_UNREAD_MESSAGES[storyUser.contentOwnerKey] ?? []),
+          ]))
+        : UNREAD_MESSAGE_IDS[personaMode];
   return messageIds.filter((id) => !readIds.has(id)).length;
 }
 

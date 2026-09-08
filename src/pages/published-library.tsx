@@ -49,6 +49,9 @@ import {
 } from "../lib/api";
 import { localeFor } from "../lib/market";
 import { usePersonaMode } from "../lib/persona";
+import { useDemoUser } from "../lib/demo-users";
+import StoryUserSelect from "../components/story-user-select";
+import ArticleApprovalBatch from "../components/article-approval-batch";
 import { getViewingContentOwner, setViewingContentOwner } from "../lib/content-owner-view";
 import { sectorShortLabel } from "../lib/sector";
 import {
@@ -63,6 +66,7 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
 import {
   CURRENT_TEAM_ADMIN_ID,
+  TEAM_ADMINS,
   getTeamPermissionsState,
   ownershipHandoffForArticle,
   ownershipHandoffUrgency,
@@ -81,8 +85,6 @@ type TeamArticleSortDirection = "up" | "down";
 type TeamArticleSort = { key: TeamArticleSortKey; direction: TeamArticleSortDirection } | null;
 
 const NON_ADMIN_USER = "Demo User";
-const NON_ADMIN_REPORTS = new Set(["Test", "Demo", "Test Author"]);
-const NON_ADMIN_AUTHORS = new Set([NON_ADMIN_USER, ...NON_ADMIN_REPORTS]);
 const NON_ADMIN_OWNER_LABELS: Record<string, string> = {
   "Demo User": "Maya Johnson",
   Test: "Jordan Lee",
@@ -98,6 +100,8 @@ const NON_ADMIN_TRANSFER_OWNERS = [
   { name: "New Owner", email: "nia.williams@pepsico.com" },
 ];
 const TEAM_ARTICLES_PER_PAGE = 15;
+const TEAM_ADMIN_POC_IDS = ["casey-morgan", "alexis-nguyen"] as const;
+const TEAM_ADMIN_POC_KEY = "content-engine-team-admin-poc-user-v1";
 
 function isAgentWriting(job: Job): boolean {
   return job.input.authorReviewRequired === true && job.status !== "complete" && job.status !== "failed";
@@ -148,14 +152,13 @@ function nonAdminWorkflowStatus(
 }
 
 function teamArticleStatusRank(article: Article, status: NonAdminWorkflowStatus): number {
-  const owner = article.submittedBy?.name ?? "";
   if (status === "needs-author-review") return 0;
-  if (status === "needs-review") return NON_ADMIN_REPORTS.has(owner) ? 1 : 2;
+  if (status === "needs-review") return 1;
   return {
-    "needs-info": 3,
-    stale: 4,
-    rejected: 5,
-    published: 6,
+    "needs-info": 2,
+    stale: 3,
+    rejected: 4,
+    published: 5,
   }[status];
 }
 
@@ -192,8 +195,34 @@ function daysSinceDate(iso?: string): number {
   return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24)));
 }
 
+function businessDaysUntilDate(iso?: string): number {
+  if (!iso) return Number.POSITIVE_INFINITY;
+  const today = new Date();
+  const due = new Date(iso);
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+  if (due < today) return -1;
+  let businessDays = 0;
+  const cursor = new Date(today);
+  while (cursor < due) {
+    cursor.setDate(cursor.getDate() + 1);
+    const weekday = cursor.getDay();
+    if (weekday !== 0 && weekday !== 6) businessDays += 1;
+  }
+  return businessDays;
+}
+
 function adminReviewAge(article: PublishedArticle): number {
   return daysSinceDate(article.lastReviewedAt ?? article.publishedAt);
+}
+
+function adminDaysUntilReview(article: PublishedArticle): number {
+  return businessDaysUntilDate(article.nextReviewAt);
+}
+
+function adminReviewDueSoon(article: PublishedArticle): boolean {
+  const daysUntilReview = adminDaysUntilReview(article);
+  return Number.isFinite(daysUntilReview) && daysUntilReview >= 0 && daysUntilReview <= 14;
 }
 
 function adminIsExtremelyOld(article: PublishedArticle): boolean {
@@ -216,6 +245,7 @@ function adminNeedsWatch(article: PublishedArticle): boolean {
   if (article.staleness.level === "archived") return false;
   return (
     adminIsCritical(article) ||
+    adminReviewDueSoon(article) ||
     article.staleness.level === "aging" ||
     adminIsLowTraffic(article) ||
     article.metrics.trend === "down" ||
@@ -226,6 +256,10 @@ function adminNeedsWatch(article: PublishedArticle): boolean {
 function adminHealthSignals(article: PublishedArticle): Array<{ label: string; severity: "high" | "medium" | "low" }> {
   const signals: Array<{ label: string; severity: "high" | "medium" | "low" }> = [];
   const reviewAge = adminReviewAge(article);
+  const daysUntilReview = adminDaysUntilReview(article);
+  if (Number.isFinite(daysUntilReview) && daysUntilReview >= 0 && daysUntilReview <= 14) {
+    signals.push({ label: daysUntilReview === 0 ? "Review due today" : `Review due in ${daysUntilReview} days`, severity: daysUntilReview <= 7 ? "high" : "medium" });
+  }
   if (article.staleness.level === "stale") signals.push({ label: "Stale", severity: "high" });
   else if (article.staleness.level === "aging") signals.push({ label: "Review due soon", severity: "medium" });
   if (reviewAge >= 365 && Number.isFinite(reviewAge)) signals.push({ label: `${Math.round(reviewAge / 30)}mo since review`, severity: "high" });
@@ -239,6 +273,7 @@ function adminHealthSignals(article: PublishedArticle): Array<{ label: string; s
 }
 
 function defaultAdminAlertAction(article: PublishedArticle): AdminAlertAction {
+  if (adminReviewDueSoon(article)) return "review";
   if (article.recommendation?.kind === "archive" || article.metrics.views30d < 10) return "archive";
   if (article.recommendation?.kind === "consolidate") return "consolidate";
   if (article.staleness.level === "stale" || adminIsExtremelyOld(article)) return "review";
@@ -271,7 +306,7 @@ function defaultAdminAlertReason(article: PublishedArticle, action: AdminAlertAc
  *   - PublishedLibrary  → the page shell with sub-tabs + shared header
  *   - PublishedTab      → the existing published-articles list (header removed)
  */
-type ArticlesSubTab = "my-articles" | "published";
+type ArticlesSubTab = "my-articles" | "approve" | "published";
 
 export default function PublishedLibrary() {
   const theme = useTheme();
@@ -281,7 +316,11 @@ export default function PublishedLibrary() {
 
   const tabParam = searchParams.get("tab");
   const activeTab: ArticlesSubTab =
-    tabParam === "my-articles" || tabParam === "needs-review" ? "my-articles" : "published";
+    tabParam === "approve"
+      ? "approve"
+      : tabParam === "my-articles" || tabParam === "needs-review"
+        ? "my-articles"
+        : "published";
 
   const setTab = (next: ArticlesSubTab) => {
     const sp = new URLSearchParams(searchParams);
@@ -293,11 +332,76 @@ export default function PublishedLibrary() {
   const [myCount, setMyCount] = useState<number | null>(null);
   const [pubCount, setPubCount] = useState<number | null>(null);
   const [personaMode] = usePersonaMode();
+  const [demoUser] = useDemoUser();
   const isSuperAdmin = personaMode === "super-admin";
+  const [pocTeamAdminId, setPocTeamAdminId] = useState<string>(() => {
+    if (typeof window === "undefined") return CURRENT_TEAM_ADMIN_ID;
+    const stored = localStorage.getItem(TEAM_ADMIN_POC_KEY);
+    return TEAM_ADMIN_POC_IDS.includes(stored as (typeof TEAM_ADMIN_POC_IDS)[number]) ? stored! : CURRENT_TEAM_ADMIN_ID;
+  });
 
-  if (personaMode === "non-admin") {
-    return <NonAdminArticlesPage />;
+  const setTeamAdminPocUser = (id: string) => {
+    setPocTeamAdminId(id);
+    localStorage.setItem(TEAM_ADMIN_POC_KEY, id);
+    setMyCount(null);
+    setPubCount(null);
+  };
+  const activeTeamAdminId =
+    personaMode === "super-admin" && demoUser.teamAdmin
+      ? demoUser.teamAdminId
+      : personaMode === "admin"
+        ? pocTeamAdminId
+        : undefined;
+  const activeTeamAdmin = TEAM_ADMINS.find((admin) => admin.id === activeTeamAdminId);
+  const isTeamAdminWorkspace = personaMode === "admin" || (isSuperAdmin && demoUser.teamAdmin);
+  const approvalTeamAdminId = activeTeamAdminId ?? CURRENT_TEAM_ADMIN_ID;
+  const [approvalArticles, setApprovalArticles] = useState<Article[]>([]);
+  const [approvalLoading, setApprovalLoading] = useState(true);
+  const [approvalError, setApprovalError] = useState<string | null>(null);
+
+  const loadApprovalArticles = useCallback(async () => {
+    setApprovalLoading(true);
+    try {
+      const ownerKeys = new Set(
+        getTeamPermissionsState().members
+          .filter(
+            (member) =>
+              member.teamAdminId === approvalTeamAdminId &&
+              member.role === "content-owner" &&
+              member.status !== "inactive",
+          )
+          .map((member) => member.contentOwnerKey),
+      );
+      const data = await api.listArticles();
+      setApprovalArticles(
+        data
+          .filter(
+            (article) =>
+              article.status === "needs-review" &&
+              ownerKeys.has(article.submittedBy?.name ?? ""),
+          )
+          .sort(
+            (a, b) =>
+              new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime(),
+          ),
+      );
+      setApprovalError(null);
+    } catch (e: any) {
+      setApprovalError(e?.message ?? String(e));
+    } finally {
+      setApprovalLoading(false);
+    }
+  }, [approvalTeamAdminId]);
+
+  useEffect(() => {
+    loadApprovalArticles();
+    return subscribeToTeamPermissions(loadApprovalArticles);
+  }, [loadApprovalArticles]);
+
+  if (personaMode === "super-admin" && !demoUser.teamAdmin) {
+    return <NonAdminArticlesPage ownerKey={demoUser.contentOwnerKey} />;
   }
+  if (personaMode === "non-admin") return <NonAdminArticlesPage />;
 
   return (
     <Box sx={{ maxWidth: 1520, mx: "auto" }}>
@@ -314,18 +418,33 @@ export default function PublishedLibrary() {
           <Box>
           <Stack direction="row" spacing={1.25} alignItems="center">
             <Typography variant="h4" component="h1">
-              All Articles
+              {isTeamAdminWorkspace ? "Team Articles" : "All Articles"}
             </Typography>
-            {isSuperAdmin && (
-              <Chip
+            {isSuperAdmin && demoUser.teamAdmin ? (
+              <StoryUserSelect />
+            ) : personaMode === "admin" ? (
+              <TextField
+                select
                 size="small"
-                label="Super Admin"
-                sx={{ bgcolor: t.pepsiBlueSubtle, color: t.pepsiBlueStrong, fontWeight: 600 }}
-              />
-            )}
+                label="POC: View as Team Admin"
+                value={pocTeamAdminId}
+                onChange={(event) => setTeamAdminPocUser(event.target.value)}
+                sx={{ minWidth: 260 }}
+                SelectProps={{ MenuProps: { PaperProps: { sx: { mt: 0.5 } } } }}
+              >
+                {TEAM_ADMINS.filter((admin) => TEAM_ADMIN_POC_IDS.includes(admin.id as (typeof TEAM_ADMIN_POC_IDS)[number])).map((admin) => (
+                  <MenuItem key={admin.id} value={admin.id}>
+                    <Box>
+                      <Typography sx={{ fontSize: "0.8125rem", fontWeight: 600 }}>{admin.name}</Typography>
+                      <Typography variant="caption">{admin.team}</Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </TextField>
+            ) : null}
           </Stack>
           <Typography color="text.secondary" sx={{ mt: 0.75, maxWidth: "62ch" }}>
-            {isSuperAdmin
+            {isSuperAdmin && !demoUser.teamAdmin
               ? "Monitor organization-wide content health, spot owner follow-ups, and keep published knowledge current."
               : "This team-approval workspace is ready to be refined around the articles and people an admin supports."}
           </Typography>
@@ -369,12 +488,55 @@ export default function PublishedLibrary() {
           }}
         >
           <Tab value="published" label={<Stack direction="row" spacing={1} alignItems="baseline"><span>Published Health</span>{pubCount !== null && <Box component="span" sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.6875rem", color: t.granite }}>{pubCount}</Box>}</Stack>} />
+          <Tab
+            value="approve"
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <span>Approve Articles</span>
+                <Box
+                  component="span"
+                  sx={{
+                    minWidth: 22,
+                    height: 22,
+                    px: 0.65,
+                    borderRadius: 999,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: approvalArticles.length > 0 ? t.pepsiBlue : t.surfaceContainerLow,
+                    color: approvalArticles.length > 0 ? "#FFFFFF" : t.granite,
+                    fontFamily: theme.palette.fonts.mono,
+                    fontSize: "0.6875rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  {approvalLoading ? "…" : approvalArticles.length}
+                </Box>
+              </Stack>
+            }
+          />
           <Tab value="my-articles" label={<Stack direction="row" spacing={1} alignItems="baseline"><span>Team Articles</span>{myCount !== null && <Box component="span" sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.6875rem", color: t.granite, fontWeight: 600 }}>{myCount}</Box>}</Stack>} />
         </Tabs>
-        {activeTab === "my-articles" ? (
-          <NonAdminArticlesPage embedded onLoaded={setMyCount} />
+        {activeTab === "approve" ? (
+          <ArticleApprovalBatch
+            articles={approvalArticles}
+            loading={approvalLoading}
+            loadError={approvalError}
+            reviewerName={personaMode === "super-admin" && demoUser.teamAdmin ? demoUser.name : activeTeamAdmin?.name ?? "Demo Reviewer"}
+            onSubmitted={loadApprovalArticles}
+          />
+        ) : activeTab === "my-articles" ? (
+          <NonAdminArticlesPage
+            embedded
+            teamAdminId={activeTeamAdminId}
+            onLoaded={setMyCount}
+          />
         ) : (
-          <PublishedTab onLoaded={setPubCount} teamScoped={!isSuperAdmin} />
+          <PublishedTab
+            onLoaded={setPubCount}
+            teamScoped
+            teamAdminId={activeTeamAdminId}
+          />
         )}
       </Box>
     </Box>
@@ -387,16 +549,22 @@ export default function PublishedLibrary() {
 // ────────────────────────────────────────────────────────────
 function NonAdminArticlesPage({
   embedded = false,
+  teamAdminId,
+  ownerKey,
   onLoaded,
 }: {
   embedded?: boolean;
+  teamAdminId?: string;
+  ownerKey?: string;
   onLoaded?: (count: number) => void;
 } = {}) {
   const navigate = useNavigate();
   const [pageParams, setPageParams] = useSearchParams();
   const theme = useTheme();
   const t = theme.palette.tokens;
-  const isTeamView = embedded;
+  const isTeamView = embedded || Boolean(teamAdminId);
+  const effectiveTeamAdminId = teamAdminId ?? CURRENT_TEAM_ADMIN_ID;
+  const [personaMode] = usePersonaMode();
   const createdArticleId = !embedded ? pageParams.get("created") : null;
   const requestedWritingCount = !embedded ? Number(pageParams.get("writing") ?? 0) : 0;
   const [articles, setArticles] = useState<Article[]>([]);
@@ -416,6 +584,12 @@ function NonAdminArticlesPage({
   const [transferArticle, setTransferArticle] = useState<Article | null>(null);
   const [transferOwner, setTransferOwner] = useState(NON_ADMIN_USER);
   const [transferSaving, setTransferSaving] = useState(false);
+
+  useEffect(() => {
+    if (!ownerKey) return;
+    setViewingOwner(ownerKey);
+    setViewingContentOwner(ownerKey);
+  }, [ownerKey]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -460,7 +634,7 @@ function NonAdminArticlesPage({
     const options = permissionMembers
       .filter(
         (member) =>
-          member.teamAdminId === CURRENT_TEAM_ADMIN_ID &&
+          member.teamAdminId === effectiveTeamAdminId &&
           member.role === "content-owner" &&
           member.status !== "inactive" &&
           !(
@@ -471,7 +645,12 @@ function NonAdminArticlesPage({
       )
       .map((member) => ({ name: member.contentOwnerKey, email: member.email }));
     return options.length > 0 ? options : NON_ADMIN_TRANSFER_OWNERS;
-  }, [permissionMembers]);
+  }, [effectiveTeamAdminId, permissionMembers]);
+
+  const teamOwnerKeys = useMemo(
+    () => new Set(contentOwnerOptions.map((owner) => owner.name)),
+    [contentOwnerOptions],
+  );
 
   const publishedById = useMemo(() => {
     return new Map(publishedArticles.map((article) => [article.id, article]));
@@ -493,12 +672,12 @@ function NonAdminArticlesPage({
     return articles
       .filter((a) =>
         isTeamView
-          ? NON_ADMIN_AUTHORS.has(a.submittedBy?.name ?? "")
+          ? teamOwnerKeys.has(a.submittedBy?.name ?? "")
           : a.submittedBy?.name === viewingOwner,
       )
       .sort((a, b) => {
-        const reportA = NON_ADMIN_REPORTS.has(a.submittedBy?.name ?? "") ? -1 : 0;
-        const reportB = NON_ADMIN_REPORTS.has(b.submittedBy?.name ?? "") ? -1 : 0;
+        const reportA = teamOwnerKeys.has(a.submittedBy?.name ?? "") ? -1 : 0;
+        const reportB = teamOwnerKeys.has(b.submittedBy?.name ?? "") ? -1 : 0;
         const statusA = nonAdminWorkflowStatus(a, publishedById, publishedBySourceId);
         const statusB = nonAdminWorkflowStatus(b, publishedById, publishedBySourceId);
         if (statusA === "needs-author-review" && statusB !== "needs-author-review") return -1;
@@ -511,7 +690,7 @@ function NonAdminArticlesPage({
         if (priority[statusA] !== priority[statusB]) return priority[statusA] - priority[statusB];
         return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
       });
-  }, [articles, isTeamView, publishedById, publishedBySourceId, viewingOwner]);
+  }, [articles, isTeamView, publishedById, publishedBySourceId, teamOwnerKeys, viewingOwner]);
 
   const scopedWritingJobs = useMemo(
     () =>
@@ -519,11 +698,11 @@ function NonAdminArticlesPage({
         .filter(isAgentWriting)
         .filter((job) =>
           isTeamView
-            ? NON_ADMIN_AUTHORS.has(job.input.submittedBy?.name ?? "")
+            ? teamOwnerKeys.has(job.input.submittedBy?.name ?? "")
             : job.input.submittedBy?.name === viewingOwner,
         )
         .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
-    [isTeamView, jobs, viewingOwner],
+    [isTeamView, jobs, teamOwnerKeys, viewingOwner],
   );
 
   useEffect(() => {
@@ -541,7 +720,7 @@ function NonAdminArticlesPage({
         (a) =>
           nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "needs-review" &&
           (isTeamView
-            ? NON_ADMIN_REPORTS.has(a.submittedBy?.name ?? "")
+            ? teamOwnerKeys.has(a.submittedBy?.name ?? "")
             : a.submittedBy?.name === viewingOwner),
       ).length,
       stale: scoped.filter(
@@ -551,7 +730,7 @@ function NonAdminArticlesPage({
         (a) => nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "published",
       ).length,
     }),
-    [scoped, scopedWritingJobs.length, isTeamView, publishedById, publishedBySourceId, viewingOwner],
+    [scoped, scopedWritingJobs.length, isTeamView, publishedById, publishedBySourceId, teamOwnerKeys, viewingOwner],
   );
 
   const availableStatuses = useMemo(() => {
@@ -703,9 +882,9 @@ function NonAdminArticlesPage({
           <Box>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ sm: "center" }}>
               <Typography variant="h4" component="h1">
-                My Articles
+                {isTeamView ? "Team Articles" : "My Articles"}
               </Typography>
-              <TextField
+              {personaMode === "super-admin" ? <StoryUserSelect /> : <TextField
                 select
                 size="small"
                 label="POC: View as content owner"
@@ -725,13 +904,15 @@ function NonAdminArticlesPage({
                     </Stack>
                   </MenuItem>
                 ))}
-              </TextField>
+              </TextField>}
             </Stack>
             <Typography color="text.secondary" sx={{ mt: 0.75, maxWidth: "62ch" }}>
-              Track your article status, keep your knowledge current, and respond to review feedback in one place.
+              {isTeamView
+                ? "Review and approve work from Alina, Itzel, Marco, and Sofia."
+                : "Track your article status, keep your knowledge current, and respond to review feedback in one place."}
             </Typography>
           </Box>
-          <Button
+          {!isTeamView && <Button
             variant="contained"
             size="small"
             startIcon={<AddIcon sx={{ fontSize: 16 }} />}
@@ -739,7 +920,7 @@ function NonAdminArticlesPage({
             sx={{ whiteSpace: "nowrap" }}
           >
             New article
-          </Button>
+          </Button>}
         </Stack>
       )}
 
@@ -1144,10 +1325,17 @@ function NonAdminArticleRow({
   const ownershipHandoff = ownershipHandoffForArticle(article.id);
   const needsOwner = canTransfer && ownershipHandoff && !ownershipHandoff.successorMemberId;
   const ownerUrgency = ownershipHandoff ? ownershipHandoffUrgency(ownershipHandoff) : null;
-  const needsApproval =
-    status === "needs-review" && NON_ADMIN_REPORTS.has(owner);
+  const needsApproval = status === "needs-review" && canTransfer;
   const needsStaleReview = status === "stale";
   const updatedAt = article.reviewedAt ?? article.submittedAt;
+  const reviewDaysRemaining =
+    status === "published"
+      ? businessDaysUntilDate(article.nextReviewAt)
+      : Number.POSITIVE_INFINITY;
+  const reviewDueSoon =
+    Number.isFinite(reviewDaysRemaining) &&
+    reviewDaysRemaining >= 0 &&
+    reviewDaysRemaining <= 14;
 
   return (
     <TableRow hover sx={{ cursor: "pointer" }} onClick={onOpen}>
@@ -1168,7 +1356,26 @@ function NonAdminArticleRow({
         </Typography>
       </TableCell>
       <TableCell>
-        <ArticleStatusChip status={status} urgent={needsApproval || needsStaleReview} />
+        <Stack spacing={0.5} alignItems="flex-start">
+          <ArticleStatusChip status={status} urgent={needsApproval || needsStaleReview} />
+          {reviewDueSoon && (
+            <Chip
+              size="small"
+              label={
+                reviewDaysRemaining === 0
+                  ? "Review due today"
+                  : `Review due in ${reviewDaysRemaining} days`
+              }
+              sx={{
+                height: 20,
+                fontSize: "0.625rem",
+                bgcolor: t.emberBg,
+                color: t.emberStrong,
+                fontWeight: 600,
+              }}
+            />
+          )}
+        </Stack>
       </TableCell>
       <TableCell>
         <Stack spacing={0.5} alignItems="flex-start">
@@ -1288,15 +1495,35 @@ function statusLabel(status: ArticleStatus): string {
 function PublishedTab({
   onLoaded,
   teamScoped = false,
+  teamAdminId,
 }: {
   onLoaded?: (count: number) => void;
   teamScoped?: boolean;
+  teamAdminId?: string;
 }) {
   const navigate = useNavigate();
   const theme = useTheme();
   const t = theme.palette.tokens;
 
   const [articles, setArticles] = useState<PublishedArticle[]>([]);
+  const [permissionMembers, setPermissionMembers] = useState(
+    () => getTeamPermissionsState().members,
+  );
+  const effectiveTeamAdminId = teamAdminId ?? CURRENT_TEAM_ADMIN_ID;
+  const teamOwnerKeys = useMemo(
+    () =>
+      new Set(
+        permissionMembers
+          .filter(
+            (member) =>
+              member.teamAdminId === effectiveTeamAdminId &&
+              member.role === "content-owner" &&
+              member.status !== "inactive",
+          )
+          .map((member) => member.contentOwnerKey),
+      ),
+    [effectiveTeamAdminId, permissionMembers],
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -1304,7 +1531,7 @@ function PublishedTab({
   const [search, setSearch] = useState("");
   const [countryFilter, setMarketFilter] = useState<string>("all");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
-  const [healthFilter, setHealthFilter] = useState<AdminHealthFilter>("watchlist");
+  const [healthFilter, setHealthFilter] = useState<AdminHealthFilter>("all");
   const [stalenessFilter, setStalenessFilter] = useState<StalenessFilter>("all");
   const [actionFilter, setActionFilter] = useState<ActionFilter>("all");
   const [alertArticle, setAlertArticle] = useState<PublishedArticle | null>(null);
@@ -1337,6 +1564,14 @@ function PublishedTab({
     }
   }, [viewMode]);
 
+  useEffect(
+    () =>
+      subscribeToTeamPermissions(() =>
+        setPermissionMembers(getTeamPermissionsState().members),
+      ),
+    [],
+  );
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -1348,7 +1583,7 @@ function PublishedTab({
         ? (() => {
             const teamArticlesById = new Map(
               sourceArticles
-                .filter((article) => NON_ADMIN_AUTHORS.has(article.submittedBy?.name ?? ""))
+                .filter((article) => teamOwnerKeys.has(article.submittedBy?.name ?? ""))
                 .map((article) => [article.id, article]),
             );
             return publishedData
@@ -1375,7 +1610,7 @@ function PublishedTab({
     } finally {
       setLoading(false);
     }
-  }, [onLoaded, teamScoped]);
+  }, [onLoaded, teamOwnerKeys, teamScoped]);
 
   useEffect(() => {
     load();
@@ -1440,7 +1675,7 @@ function PublishedTab({
     search.trim() !== "" ||
     countryFilter !== "all" ||
     sectorFilter !== "all" ||
-    healthFilter !== "watchlist" ||
+    healthFilter !== "all" ||
     stalenessFilter !== "all" ||
     actionFilter !== "all";
 
@@ -1448,7 +1683,7 @@ function PublishedTab({
     setSearch("");
     setMarketFilter("all");
     setSectorFilter("all");
-    setHealthFilter("watchlist");
+    setHealthFilter("all");
     setStalenessFilter("all");
     setActionFilter("all");
   };
@@ -1528,7 +1763,7 @@ function PublishedTab({
               Owner follow-up queue
             </Typography>
             <Typography sx={{ color: t.slate, fontSize: "0.8125rem", mt: 0.25 }}>
-              Default view shows stale, old, low-traffic, declining, and recommendation-backed articles first.
+              Default view shows every published article. Use Health or Recommended next step to focus the follow-up queue.
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center">
@@ -1557,12 +1792,12 @@ function PublishedTab({
             value={healthFilter}
             onChange={(v) => setHealthFilter(v as AdminHealthFilter)}
             options={[
+              { value: "all", label: `All articles (${counts.total})` },
               { value: "watchlist", label: `Watchlist (${counts.watchlist})` },
               { value: "critical", label: `Critical (${counts.critical})` },
               { value: "extremely-old", label: `Extremely old (${counts.extremelyOld})` },
               { value: "low-traffic", label: `Low traffic (${counts.lowTraffic})` },
               { value: "declining", label: `Declining (${counts.declining})` },
-              { value: "all", label: `All articles (${counts.total})` },
             ]}
           />
           <FilterSelect

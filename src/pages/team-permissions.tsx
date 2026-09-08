@@ -48,7 +48,7 @@ import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 import { KpiItem, KpiRow } from "../components/kpi-row";
 import {
-  CURRENT_TEAM_ADMIN_ID,
+  currentTeamAdminId,
   HANDOFF_ARTICLES_BY_MEMBER,
   KNOWLEDGE_BASE_OPTIONS,
   OUTSIDE_TEAM_MEMBERS,
@@ -109,6 +109,7 @@ function optionLabels(ids: string[], options: Array<{ id: string; label: string 
 export default function TeamPermissions() {
   const theme = useTheme();
   const t = theme.palette.tokens;
+  const activeTeamAdminId = currentTeamAdminId();
   const [searchParams] = useSearchParams();
   const [state, setState] = useState<TeamPermissionsState>(() => getTeamPermissionsState());
   const [tab, setTab] = useState<TabValue>(() =>
@@ -150,23 +151,23 @@ export default function TeamPermissions() {
   const currentMembers = useMemo(
     () => state.members.filter(
       (member) =>
-        member.teamAdminId === CURRENT_TEAM_ADMIN_ID &&
+        member.teamAdminId === activeTeamAdminId &&
         member.status !== "inactive" &&
         !(member.status === "scheduled-removal" && member.accessEndsAt && new Date(member.accessEndsAt).getTime() <= Date.now()),
     ),
     [state.members],
   );
   const incoming = state.transfers.filter(
-    (request) => request.receiverAdminId === CURRENT_TEAM_ADMIN_ID,
+    (request) => request.receiverAdminId === activeTeamAdminId,
   );
   const outgoing = state.transfers.filter(
-    (request) => request.senderAdminId === CURRENT_TEAM_ADMIN_ID,
+    (request) => request.senderAdminId === activeTeamAdminId,
   );
   const pendingCount = state.transfers.filter(
     (request) =>
       request.status === "pending" &&
-      (request.receiverAdminId === CURRENT_TEAM_ADMIN_ID ||
-        request.senderAdminId === CURRENT_TEAM_ADMIN_ID),
+      (request.receiverAdminId === activeTeamAdminId ||
+        request.senderAdminId === activeTeamAdminId),
   ).length;
   const activeHandoffs = state.handoffs.filter(
     (handoff) => !handoff.successorMemberId && new Date(handoff.deadline).getTime() > Date.now(),
@@ -242,7 +243,7 @@ export default function TeamPermissions() {
         contentOwnerKey: `${memberForm.firstName} ${memberForm.lastName}`,
         ...memberForm,
         status: "new",
-        teamAdminId: CURRENT_TEAM_ADMIN_ID,
+        teamAdminId: activeTeamAdminId,
       };
       persist({ ...state, members: [...state.members, nextMember] });
       setToast(`Invitation sent to ${memberForm.email}.`);
@@ -360,7 +361,7 @@ export default function TeamPermissions() {
       memberId: person.id,
       memberName: person.name,
       memberEmail: person.email,
-      senderAdminId: CURRENT_TEAM_ADMIN_ID,
+      senderAdminId: activeTeamAdminId,
       receiverAdminId: person.currentAdminId,
       status: "pending",
       requestedAt: new Date().toISOString(),
@@ -375,7 +376,7 @@ export default function TeamPermissions() {
           id: `log-${Date.now()}`,
           requestId: id,
           action: "requested",
-          actorAdminId: CURRENT_TEAM_ADMIN_ID,
+          actorAdminId: activeTeamAdminId,
           occurredAt: request.requestedAt,
           note: `You requested ${person.name}’s transfer from ${teamAdminTeam(person.currentAdminId)} to your team.`,
         },
@@ -398,7 +399,7 @@ export default function TeamPermissions() {
           id: `log-${Date.now()}`,
           requestId: request.id,
           action: "cancelled",
-          actorAdminId: CURRENT_TEAM_ADMIN_ID,
+          actorAdminId: activeTeamAdminId,
           occurredAt: updatedAt,
           note: `You cancelled the transfer request for ${request.memberName}.`,
         },
@@ -461,7 +462,7 @@ export default function TeamPermissions() {
           id: `log-${Date.now()}`,
           requestId: decisionRequest.id,
           action: decisionMode === "approve" ? "accepted" : "declined",
-          actorAdminId: CURRENT_TEAM_ADMIN_ID,
+          actorAdminId: activeTeamAdminId,
           occurredAt: updatedAt,
           note:
             decisionMode === "approve"
@@ -682,7 +683,7 @@ export default function TeamPermissions() {
       {tab === "activity" && (
         <Box sx={{ mt: 3 }}>
           <Alert severity="info" icon={<HistoryOutlinedIcon />} sx={{ mb: 2 }}>
-            This log shows profile-transfer requests involving your team. “You” refers to Casey Morgan. Decisions are retained for Super Admin review but are not scored against either Team Admin.
+            This log shows profile-transfer requests involving your team. “You” refers to {teamAdminName(activeTeamAdminId)}. Decisions are retained for Super Admin review but are not scored against either Team Admin.
           </Alert>
           <Stack spacing={1.25}>
             {[...state.transferLog]
@@ -693,7 +694,7 @@ export default function TeamPermissions() {
                     <Box>
                       <Typography sx={{ fontWeight: 600 }}>{entry.note}</Typography>
                       <Typography variant="caption">
-                        {entry.actorAdminId === CURRENT_TEAM_ADMIN_ID ? "You" : teamAdminName(entry.actorAdminId)} · {entry.action}
+                        {entry.actorAdminId === activeTeamAdminId ? "You" : teamAdminName(entry.actorAdminId)} · {entry.action}
                       </Typography>
                     </Box>
                     <Typography variant="caption">{dateLabel(entry.occurredAt)}</Typography>

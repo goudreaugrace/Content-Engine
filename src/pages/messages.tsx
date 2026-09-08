@@ -41,7 +41,8 @@ import {
   type TrashedMessageRecord,
 } from "../lib/message-state";
 import { getViewingContentOwner, subscribeToViewingContentOwner } from "../lib/content-owner-view";
-import { getPOCReviewMessage } from "../lib/poc-review-messages";
+import { getPOCReviewMessage, POC_REVIEW_MESSAGES } from "../lib/poc-review-messages";
+import { useDemoUser } from "../lib/demo-users";
 import {
   CURRENT_TEAM_ADMIN_ID,
   getTeamPermissionsState,
@@ -66,21 +67,89 @@ type Message = {
   actionLabel?: string;
   contextLabel?: string;
   hideContextAction?: boolean;
+  topic?: MessageTopic;
+  governanceAction?: boolean;
 };
 
-type MessageTopic = "article" | "owner-needed" | "transfer";
+type MessageTopic =
+  | "my-content"
+  | "article-review"
+  | "content-health"
+  | "governance"
+  | "ownership"
+  | "transfer"
+  | "search-ai"
+  | "adoption-training"
+  | "ai-summary"
+  | "support"
+  | "system";
+
+type MessageRoleView = "content-owner" | "team-admin" | "super-admin";
+
+const TOPIC_LABELS: Record<MessageRoleView, Partial<Record<MessageTopic, string>>> = {
+  "content-owner": {
+    "article-review": "Review & publishing",
+    "content-health": "Content health",
+    governance: "Governance & guidance",
+    support: "Help & support",
+    system: "System notices",
+    ownership: "Ownership request",
+  },
+  "team-admin": {
+    "article-review": "Article reviews",
+    "content-health": "Team content health",
+    governance: "Governance actions",
+    ownership: "Ownership & coverage",
+    transfer: "Team changes",
+    support: "Help & support",
+    system: "System notices",
+  },
+  "super-admin": {
+    "my-content": "My Content",
+    "ai-summary": "AI daily brief",
+    governance: "Governance actions",
+    ownership: "Ownership gaps",
+    "content-health": "Content quality",
+    "search-ai": "Search & AI gaps",
+    "adoption-training": "Adoption & training",
+    support: "Support escalations",
+    system: "System notices",
+    "article-review": "Article reviews",
+  },
+};
 
 function messageTopic(message: Message): MessageTopic {
+  if (message.topic) return message.topic;
   if (message.id.startsWith("transfer-") || message.contextLabel === "Profile transfer") {
     return "transfer";
   }
   if (message.id.startsWith("owner-needed") || message.subject.toLowerCase().startsWith("owner needed")) {
-    return "owner-needed";
+    return "ownership";
   }
-  return "article";
+  if (message.id.startsWith("welcome-")) return "system";
+  if (message.id === "msg-3") return "governance";
+  return "article-review";
+}
+
+function isSuperAdminAction(message: Message) {
+  return message.governanceAction === true;
 }
 
 const MAYA_REVIEW_MESSAGE = getPOCReviewMessage("ka-0ff5f3a8")!;
+
+const REVIEW_INBOX_MESSAGES: Message[] = POC_REVIEW_MESSAGES.map((review) => ({
+  id: "review-" + review.articleId,
+  subject: review.subject,
+  body: review.body,
+  article: review.articleTitle,
+  articlePath: "/articles/" + review.articleId,
+  sender: review.sender,
+  recipients: ["non-admin"],
+  ownerNames: [review.ownerName],
+  timestamp: review.timestamp,
+  unread: true,
+  status: "Action needed",
+}));
 
 function transferDate(value: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -91,18 +160,22 @@ function transferDate(value: string) {
 }
 
 const MESSAGES: Message[] = [
+  ...REVIEW_INBOX_MESSAGES,
   {
-    id: "msg-1",
-    subject: MAYA_REVIEW_MESSAGE.subject,
-    body: MAYA_REVIEW_MESSAGE.body,
-    article: "Something vague",
-    articlePath: "/articles/ka-0ff5f3a8",
-    sender: MAYA_REVIEW_MESSAGE.sender,
-    recipients: ["non-admin"],
-    ownerNames: ["Demo User"],
-    timestamp: "Today · 10:24 AM",
+    id: "review-due-ka-cog-content-design",
+    subject: "Review due in 5 business days: Content UX design guidelines",
+    body: "Your published article is due for its 180-day content review on September 15, 2026. Confirm that the guidance, links, targeting, and metadata are still accurate, then mark the article as reviewed or submit any required updates.",
+    article: "Content UX design guidelines",
+    articlePath: "/my-articles/pub-cog-content-design?from=team-articles",
+    sender: "Content Engine",
+    recipients: ["non-admin", "super-admin"],
+    ownerNames: ["Alina Corral"],
+    timestamp: "Today · 9:00 AM",
     unread: true,
     status: "Action needed",
+    actionLabel: "Review Article",
+    contextLabel: "Review cadence",
+    topic: "content-health",
   },
   {
     id: "msg-2",
@@ -123,12 +196,42 @@ const MESSAGES: Message[] = [
     body: "Several published articles are receiving views outside their intended regions. Please confirm location tags with the assigned owners.",
     article: "Content health: regional coverage",
     articlePath: "/",
-    sender: "Morgan Chen · Super Admin",
+    sender: "Alfonso Ibarra · Super Admin",
     recipients: ["admin", "super-admin"],
-    ownerNames: ["Demo User", "Test", "Demo", "Test Author"],
     timestamp: "Aug 11 · 9:05 AM",
     unread: true,
     status: "Action needed",
+    governanceAction: true,
+  },
+  {
+    id: "super-ai-daily-brief",
+    subject: "Your daily AI brief: 3 items to review",
+    body: "While you were away, Content Engine grouped three signals that may need your attention:\n\n1. Search and AI demand: Employees asked 46 variations of the same travel-policy question. Genius and Ask Pep both reported insufficient information.\n\n2. Ownership: Three published benefits articles have no active owner and are approaching review deadlines.\n\n3. Support: Human-support escalations for access-related questions increased this month.\n\nThese are AI-identified signals, not governance decisions. Review the evidence before assigning or escalating work.",
+    article: "Super Admin daily overview",
+    articlePath: "/super-admin",
+    sender: "Content Engine · AI brief",
+    recipients: ["super-admin"],
+    timestamp: "Today · 8:00 AM",
+    unread: true,
+    status: "FYI",
+    actionLabel: "Open Dashboard",
+    contextLabel: "AI-generated daily summary",
+    topic: "ai-summary",
+  },
+  {
+    id: "super-adoption-update",
+    subject: "Content training completion improved",
+    body: "Content-owner training completion reached 82% month to date, up 7 percentage points from last month. No action is required.",
+    article: "Adoption and training report",
+    articlePath: "/super-admin",
+    sender: "Content Engine",
+    recipients: ["super-admin"],
+    timestamp: "Sep 2 · 2:10 PM",
+    unread: false,
+    status: "FYI",
+    actionLabel: "View Adoption Report",
+    contextLabel: "Adoption & training",
+    topic: "adoption-training",
   },
   {
     id: "msg-4",
@@ -191,8 +294,8 @@ const SENT_MESSAGES: Message[] = [
     id: "sent-1",
     subject: "Please confirm the article's knowledge base",
     body: "Before approving this update, please confirm whether this belongs in myPepsiCo KB or PFP KB. I have included the current audience settings for reference.",
-    article: "How to Apply for an Amex Card",
-    articlePath: "/articles/a-001",
+    article: "How to request a corporate credit card",
+    articlePath: "/articles/ka-fec0f30f",
     sender: "You · Team Admin",
     sentTo: "Sofia Ramirez · Content Owner",
     recipients: ["admin", "super-admin"],
@@ -207,6 +310,7 @@ export default function Messages() {
   const theme = useTheme();
   const t = theme.palette.tokens;
   const [personaMode] = usePersonaMode();
+  const [demoUser] = useDemoUser();
   const [viewingOwner, setViewingOwner] = useState(getViewingContentOwner);
   const [tab, setTab] = useState<"inbox" | "sent" | "trash">("inbox");
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadMessageIds());
@@ -218,6 +322,13 @@ export default function Messages() {
   const [readFilter, setReadFilter] = useState<"all" | "unread" | "read">("all");
   const [openMessage, setOpenMessage] = useState<Message | null>(null);
   const [permissionsState, setPermissionsState] = useState(getTeamPermissionsState);
+  const hybridOwner = personaMode === "super-admin" ? demoUser.contentOwnerKey : undefined;
+  const roleView: MessageRoleView =
+    personaMode === "admin"
+      ? "team-admin"
+      : personaMode === "super-admin"
+        ? "super-admin"
+        : "content-owner";
 
   useEffect(
     () => subscribeToViewingContentOwner(() => setViewingOwner(getViewingContentOwner())),
@@ -228,6 +339,11 @@ export default function Messages() {
     [],
   );
   useEffect(() => setTrashRecords(getTrashedMessageRecords(personaMode)), [personaMode]);
+  useEffect(() => {
+    setTopicFilter("all");
+    setStatusFilter("all");
+    setReadFilter("all");
+  }, [roleView]);
 
   const transferInbox = useMemo<Message[]>(
     () =>
@@ -304,32 +420,69 @@ export default function Messages() {
     [permissionsState.transfers],
   );
 
-  const inbox = useMemo(() =>
-    [...MESSAGES, ...transferInbox].filter(
-      (message) =>
-        message.recipients.includes(personaMode) &&
-        !(personaMode === "admin" && message.sender.startsWith(`${teamAdminName(CURRENT_TEAM_ADMIN_ID)} ·`)) &&
-        (personaMode !== "non-admin" || message.ownerNames?.includes(viewingOwner)),
-    ),
-  [personaMode, viewingOwner, transferInbox]);
+  const inbox = useMemo(() => {
+    return [...MESSAGES, ...transferInbox].filter((message) => {
+      if (hybridOwner) {
+        const isMyContentMessage = Boolean(message.ownerNames?.includes(hybridOwner));
+        const isSuperAdminMessage =
+          !message.ownerNames?.length && message.recipients.includes("super-admin");
+        return isMyContentMessage || isSuperAdminMessage;
+      }
+      return message.recipients.includes(personaMode) &&
+        !(personaMode === "admin" && message.sender.startsWith(teamAdminName(CURRENT_TEAM_ADMIN_ID) + " ·")) &&
+        (personaMode !== "non-admin" || message.ownerNames?.includes(viewingOwner));
+    });
+  }, [personaMode, hybridOwner, viewingOwner, transferInbox]);
   const trashedIds = useMemo(() => new Set(trashRecords.map((record) => record.id)), [trashRecords]);
   const visibleInbox = inbox.filter((message) => !trashedIds.has(message.id));
   const unread = visibleInbox.filter((message) => message.unread && !readIds.has(message.id));
   const sent = useMemo(
-    () => [...SENT_MESSAGES, ...transferSent].filter((message) => message.recipients.includes(personaMode)),
-    [personaMode, transferSent],
+    () => [...SENT_MESSAGES, ...transferSent].filter((message) =>
+      !(personaMode === "super-admin" && demoUser.contentOwnerKey) && message.recipients.includes(personaMode),
+    ),
+    [personaMode, demoUser.contentOwnerKey, transferSent],
   );
   const visibleSent = sent.filter((message) => !trashedIds.has(message.id));
   const trashMessagesList = [...inbox, ...sent].filter((message) => trashedIds.has(message.id));
   const unfilteredMessages = tab === "inbox" ? visibleInbox : tab === "sent" ? visibleSent : trashMessagesList;
-  const displayedMessages = unfilteredMessages.filter((message) => {
-    if (statusFilter !== "all" && message.status !== statusFilter) return false;
-    if (topicFilter !== "all" && messageTopic(message) !== topicFilter) return false;
-    const isUnread = message.unread && !readIds.has(message.id);
-    if (readFilter === "unread" && !isUnread) return false;
-    if (readFilter === "read" && isUnread) return false;
-    return true;
-  });
+  const availableTopicValues: MessageTopic[] = hybridOwner
+    ? [
+        ...(unfilteredMessages.some((message) => message.ownerNames?.includes(hybridOwner))
+          ? (["my-content"] as MessageTopic[])
+          : []),
+        ...Array.from(
+          new Set(
+            unfilteredMessages
+              .filter((message) => !message.ownerNames?.includes(hybridOwner))
+              .map((message) => messageTopic(message)),
+          ),
+        ),
+      ]
+    : Array.from(new Set(unfilteredMessages.map((message) => messageTopic(message))));
+  const availableTopicOptions = availableTopicValues
+    .filter((topic) => Boolean(TOPIC_LABELS[roleView][topic]))
+    .map((topic) => ({ value: topic, label: TOPIC_LABELS[roleView][topic]! }))
+    .sort((a, b) => {
+      if (a.value === "my-content") return -1;
+      if (b.value === "my-content") return 1;
+      return a.label.localeCompare(b.label);
+    });
+  const displayedMessages = unfilteredMessages
+    .filter((message) => {
+      if (statusFilter !== "all" && message.status !== statusFilter) return false;
+      if (
+        topicFilter !== "all" &&
+        (topicFilter === "my-content"
+          ? !hybridOwner || !message.ownerNames?.includes(hybridOwner)
+          : Boolean(hybridOwner && message.ownerNames?.includes(hybridOwner)) ||
+            messageTopic(message) !== topicFilter)
+      ) return false;
+      const isUnread = message.unread && !readIds.has(message.id);
+      if (readFilter === "unread" && !isUnread) return false;
+      if (readFilter === "read" && isUnread) return false;
+      return true;
+    })
+    .sort((a, b) => Number(isSuperAdminAction(b)) - Number(isSuperAdminAction(a)));
   const deletableReadMessages = displayedMessages.filter(
     (message) => tab !== "trash" && (!message.unread || readIds.has(message.id)),
   );
@@ -414,9 +567,9 @@ export default function Messages() {
             onChange={(event) => setTopicFilter(event.target.value as typeof topicFilter)}
           >
             <MenuItem value="all">All topics</MenuItem>
-            <MenuItem value="owner-needed">Owner needed</MenuItem>
-            <MenuItem value="transfer">Transfers</MenuItem>
-            <MenuItem value="article">Article messages</MenuItem>
+            {availableTopicOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+            ))}
           </Select>
         </FormControl>
         <FormControl size="small" sx={{ minWidth: 180 }}>
@@ -451,6 +604,7 @@ export default function Messages() {
       <Stack spacing={1.5} sx={{ mt: 2 }}>
         {displayedMessages.map((message) => {
           const isUnread = message.unread && !readIds.has(message.id);
+          const governanceAction = isSuperAdminAction(message);
           return (
             <Card
               key={message.id}
@@ -469,7 +623,9 @@ export default function Messages() {
                 }
               }}
               sx={{
-                borderColor: isUnread ? t.pepsiBlue : t.border,
+                borderColor: governanceAction || isUnread ? t.pepsiBlue : t.border,
+                borderLeftWidth: governanceAction ? 4 : 1,
+                bgcolor: governanceAction ? t.pepsiBlueSubtle : t.paper,
                 boxShadow: "none",
                 cursor: "pointer",
                 transition: "border-color 150ms ease, box-shadow 150ms ease",
@@ -485,11 +641,21 @@ export default function Messages() {
                       {message.subject}
                     </Typography>
                   </Stack>
-                  <Chip
-                    size="small"
-                    label={message.status}
-                    sx={{ alignSelf: { xs: "flex-start", sm: "center" }, bgcolor: message.status === "Action needed" ? t.emberBg : t.mist, color: message.status === "Action needed" ? t.emberStrong : t.slate, fontWeight: 600 }}
-                  />
+                  <Stack direction="row" spacing={0.75} alignItems="center" sx={{ alignSelf: { xs: "flex-start", sm: "center" } }}>
+                    {governanceAction && (
+                      <Chip
+                        size="small"
+                        label="Governance action"
+                        variant="outlined"
+                        sx={{ borderColor: t.pepsiBlue, color: t.pepsiBlue, fontWeight: 650, bgcolor: t.paper }}
+                      />
+                    )}
+                    <Chip
+                      size="small"
+                      label={message.status}
+                      sx={{ bgcolor: message.status === "Action needed" ? t.emberBg : t.mist, color: message.status === "Action needed" ? t.emberStrong : t.slate, fontWeight: 600 }}
+                    />
+                  </Stack>
                 </Stack>
                 <Typography
                   sx={{

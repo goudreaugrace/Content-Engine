@@ -18,11 +18,19 @@ import PublishedArticleDetail from "./pages/published-article-detail";
 import OwnerArticlePerformance from "./pages/owner-article-performance";
 import Messages from "./pages/messages";
 import TeamPermissions from "./pages/team-permissions";
+import SuperAdminDashboard from "./pages/super-admin-dashboard";
+import SuperAdminActions from "./pages/super-admin-actions";
+import SuperAdminReport from "./pages/super-admin-report";
+import ReportsSchedules from "./pages/reports-schedules";
 
 export default function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
+        <Route path="/super-admin" element={<SuperAdminDashboard />} />
+        <Route path="/super-admin/actions" element={<SuperAdminActions />} />
+        <Route path="/super-admin/reports/:reportType" element={<SuperAdminReport />} />
+        <Route path="/super-admin/reports-schedules" element={<ReportsSchedules />} />
         <Route path="/" element={<PublishedLibrary />} />
         <Route path="/articles/:id" element={<ArticleDetail />} />
         <Route path="/review" element={<ReviewQueue />} />

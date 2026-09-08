@@ -24,6 +24,7 @@ import {
 import { usePersonaMode, type PersonaMode } from "../lib/persona";
 import { getUnreadMessageCount, subscribeToMessageReadChanges } from "../lib/message-state";
 import { subscribeToViewingContentOwner } from "../lib/content-owner-view";
+import { useDemoUser } from "../lib/demo-users";
 import {
   getTeamPermissionsAlertCount,
   subscribeToTeamPermissions,
@@ -41,6 +42,8 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
+import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
 
 // M3 navigation drawer / rail widths.
 //  - Expanded (272): drawer with icons + labels + section headers.
@@ -66,10 +69,13 @@ type NavItem = {
   badgeCount?: number;
   adminOnly?: boolean;
   teamAdminOnly?: boolean;
+  superAdminOnly?: boolean;
 };
 
 const navItems: NavItem[] = [
   { label: "New Article", path: "/new", icon: <AddCircleOutlineIcon sx={{ fontSize: 20 }} /> },
+  { label: "Dashboard", path: "/super-admin", icon: <SpaceDashboardOutlinedIcon sx={{ fontSize: 20 }} />, exact: true, superAdminOnly: true },
+  { label: "Reports & Schedules", path: "/super-admin/reports-schedules", icon: <AssessmentOutlinedIcon sx={{ fontSize: 20 }} />, superAdminOnly: true },
   // Review Cycle used to be its own top-level page. It now lives as the
   // default "Needs review" tab on the All Articles page, so the sidebar
   // carries a single entry that lands on the merged surface.
@@ -91,6 +97,8 @@ export default function AppLayout() {
   const t = theme.palette.tokens;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [personaMode, setPersonaMode] = usePersonaMode();
+  const [demoUser] = useDemoUser();
+  const storyRole = demoUser.teamAdmin ? "super admin · team admin" : "super admin · content owner";
 
   useEffect(() => {
     if (personaMode === "non-admin" && location.pathname.startsWith("/admin")) {
@@ -100,19 +108,20 @@ export default function AppLayout() {
 
   const handlePersonaModeChange = (next: PersonaMode) => {
     setPersonaMode(next);
-    navigate("/?tab=my-articles");
+    navigate(next === "super-admin" ? "/super-admin" : next === "non-admin" ? "/?tab=my-articles" : "/");
   };
+
 
   const [messageUnreadCount, setMessageUnreadCount] = useState(() =>
     getUnreadMessageCount(personaMode),
   );
   const [teamPermissionsAlertCount, setTeamPermissionsAlertCount] = useState(() =>
-    personaMode === "admin" ? getTeamPermissionsAlertCount() : 0,
+    personaMode === "admin" || (personaMode === "super-admin" && demoUser.teamAdmin) ? getTeamPermissionsAlertCount() : 0,
   );
   useEffect(() => {
     const refreshCounts = () => {
       setMessageUnreadCount(getUnreadMessageCount(personaMode));
-      setTeamPermissionsAlertCount(personaMode === "admin" ? getTeamPermissionsAlertCount() : 0);
+      setTeamPermissionsAlertCount(personaMode === "admin" || (personaMode === "super-admin" && demoUser.teamAdmin) ? getTeamPermissionsAlertCount() : 0);
     };
     refreshCounts();
     const unsubscribeMessages = subscribeToMessageReadChanges(refreshCounts);
@@ -123,11 +132,12 @@ export default function AppLayout() {
       unsubscribeOwner();
       unsubscribePermissions();
     };
-  }, [personaMode]);
+  }, [demoUser, personaMode]);
   // Build the nav list with role-specific labels and the Messages unread badge.
   const visibleNavItems = navItems.filter((it) => {
+    if (it.superAdminOnly && personaMode !== "super-admin") return false;
     if (personaMode === "non-admin" && (it.adminOnly || it.teamAdminOnly)) return false;
-    if (personaMode === "super-admin" && it.teamAdminOnly) return false;
+    if (it.teamAdminOnly && personaMode !== "admin" && !(personaMode === "super-admin" && demoUser.teamAdmin)) return false;
     return true;
   });
   const navItemsWithBadges: NavItem[] = visibleNavItems.map((it) =>
@@ -138,7 +148,7 @@ export default function AppLayout() {
       : it.path === "/"
       ? {
           ...it,
-          label: personaMode === "non-admin" ? "My Articles" : it.label,
+          label: personaMode === "admin" ? it.label : personaMode === "super-admin" && demoUser.teamAdmin ? "Team Articles" : "My Articles",
         }
       : it,
   );
@@ -445,7 +455,7 @@ export default function AppLayout() {
         }}
       >
         {compact ? (
-          <Tooltip title={personaMode === "super-admin" ? "Super Admin · organization-wide governance" : personaMode === "admin" ? "Team Admin · team approvals" : "Content Owner · author workspace"} placement="right">
+          <Tooltip title={personaMode === "super-admin" ? demoUser.name + " · " + storyRole : personaMode === "admin" ? "Team Admin · team approvals" : "Content Owner · author workspace"} placement="right">
             <Avatar
               sx={{
                 width: 30,
@@ -456,7 +466,7 @@ export default function AppLayout() {
                 fontWeight: 500,
               }}
             >
-              DU
+              {personaMode === "super-admin" ? demoUser.initials : "DU"}
             </Avatar>
           </Tooltip>
         ) : (
@@ -471,11 +481,11 @@ export default function AppLayout() {
                 fontWeight: 500,
               }}
             >
-              DU
+              {personaMode === "super-admin" ? demoUser.initials : "DU"}
             </Avatar>
             <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography sx={{ fontSize: "0.8125rem", fontWeight: 500, lineHeight: 1.2 }}>
-                Demo User
+                {personaMode === "super-admin" ? demoUser.name : "Demo User"}
               </Typography>
               <Typography
                 sx={{
@@ -485,7 +495,7 @@ export default function AppLayout() {
                 }}
                 noWrap
               >
-                {personaMode === "super-admin" ? "super admin" : personaMode === "admin" ? "team admin" : "content owner"}
+                {personaMode === "super-admin" ? storyRole : personaMode === "admin" ? "team admin" : "content owner"}
               </Typography>
             </Box>
           </>
@@ -588,6 +598,7 @@ export default function AppLayout() {
     </Box>
   );
 }
+
 
 
 function PersonaSwitcher({

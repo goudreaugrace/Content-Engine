@@ -522,7 +522,7 @@ export default function PublishedArticleDetail() {
           article={
             <ArticleDocument
               body={displayedBody}
-              sections={selectedLocale === primaryLocale ? article.sections : undefined}
+              sections={!primaryLocale || selectedLocale === primaryLocale ? article.sections : undefined}
               market={article.market}
               title={article.title}
               lead={article.lead}

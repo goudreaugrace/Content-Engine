@@ -1,5 +1,1330 @@
 [
   {
+    "id": "ka-cog-content-design",
+    "title": "Content UX design guidelines",
+    "contentType": "Knowledge Article",
+    "knowledgeBase": "mypepsico-general",
+    "sector": "global",
+    "market": "Global",
+    "countries": [
+      "US",
+      "CA",
+      "MX",
+      "BR",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "Content UX design guidelines",
+      "metaDescription": "## What Do You Need to Know\nContent User Experience (UX) Design is the practice of structuring, writing, and formatting information so that employees ca",
+      "keywords": [
+        "content design",
+        "UX writing",
+        "plain language",
+        "AI-ready content"
+      ],
+      "summary": "## What Do You Need to Know\nContent User Experience (UX) Design is the practice of structuring, writing, and formatting information so that employees can easily find, understand, and act on it. Well-designed content ensures that our platforms (like myServices, mypepsico, and Now Assist) remain efficient, inclusive, and highly discoverable. As a content owner",
+      "keyQuestions": [
+        "How should I structure a knowledge article?",
+        "How do I write content that Ask Pep can understand?"
+      ],
+      "entities": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ]
+    },
+    "globalJustification": "This content-governance guidance applies to myPepsiCo content owners in every region.",
+    "lead": "## What Do You Need to Know\nContent User Experience (UX) Design is the practice of structuring, writing, and formatting information so that employees can easily find, understand, and act on it. Well-designed content ensures that our platforms (like myServices, mypepsico, and Now Assist) remain efficient, inclusive, and highly discoverable. As a content owner, implementing these four core directives directly reduces user frustration, cuts down on support tickets, and primes our portal assets for enterprise AI features.",
+    "canonicalSlug": "content-ux-design-guidelines",
+    "aliases": [
+      "content design",
+      "UX writing",
+      "plain language",
+      "AI-ready content"
+    ],
+    "topics": [
+      "Content governance",
+      "Content owner training",
+      "content design",
+      "UX writing"
+    ],
+    "references": [
+      {
+        "id": "ref-ka-cog-content-design",
+        "title": "COG-Content-Design_Guide.docx",
+        "kind": "doc",
+        "filePath": "COG-Content-Design_Guide.docx",
+        "source": "submission",
+        "excerpt": "## What Do You Need to Know\nContent User Experience (UX) Design is the practice of structuring, writing, and formatting information so that employees can easily find, understand, and act on it. Well-designed content ensures that our platforms (like myServices, mypepsico, and Now Assist) remain efficient, inclusive, and highly discoverable. As a content owner, implementing these four core directives directly reduces u",
+        "addedAt": "2026-03-16T14:20:00.000Z",
+        "addedBy": "Alina Corral"
+      }
+    ],
+    "relatedArticleIds": [
+      "ka-cog-optimization",
+      "ka-cog-accessibility",
+      "ka-cog-create-policy",
+      "ka-cog-microsite"
+    ],
+    "visibility": {
+      "audiences": [
+        "Content owners"
+      ],
+      "markets": [
+        "global"
+      ],
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "canRead": [
+        "myPepsiCo content owners"
+      ],
+      "cannotRead": [],
+      "security": "restricted",
+      "notes": "Available to authenticated myPepsiCo content owners across regions."
+    },
+    "owner": "Alina Corral",
+    "nextReviewAt": "2026-09-15T18:00:00.000Z",
+    "approvedBy": "Alfonso Ibarra",
+    "body": "# Content UX design guidelines\n\n## What Do You Need to Know\nContent User Experience (UX) Design is the practice of structuring, writing, and formatting information so that employees can easily find, understand, and act on it. Well-designed content ensures that our platforms (like myServices, mypepsico, and Now Assist) remain efficient, inclusive, and highly discoverable. As a content owner, implementing these four core directives directly reduces user frustration, cuts down on support tickets, and primes our portal assets for enterprise AI features.\n\n## Core Content Directives\n1. Writing Tone of Voice: Choose Active Over Passive\nActive voice places the person or object taking the action at the front of the sentence. It makes instructions shorter, more authoritative, and significantly easier to follow.\nWhy it matters: Passive voice stretches sentences, hides accountability, and increases the time it takes for an employee to figure out who is responsible for a task.\nThe fix: Look for sentences containing helper verbs like “is,” “was,” “were,” or “been.” Re-write them so the person or system performing the action comes first.\nPassive (Avoid): \"The form must be submitted by the manager before an equipment request can be approved by HR.\"\nActive (Preferred): \"Managers must submit the form so HR can approve the equipment request.\"\n\n2. Call-to-Actions (CTAs): Make Links Functional and Predictable\nA Call-to-Action (CTA) is any button or link text that directs a user to take their next step. Good CTAs establish immediate expectations about where the user is going.\nWhy it matters: Generic text like \"Click Here\" or \"Read More\" fails to accessibility standards and forces users to read massive amounts of surrounding text just to understand what a link does.\nThe fix: Use clear, action-oriented verbs combined with a precise noun destination. Never use raw URL text paths in your body to copy.\n- Bad CTA: \"To review the updated parental leave changes, click here.\"\n- Good CTA: \"Review the 2026 Parental Leave Policy Document.\"\n3. Plain Language vs. Long Prose: Designing for Inclusivity\nPlain language means writing in a clear, straightforward manner using common vocabulary, short sentences, and visible structural formatting (like bulleted lists and bold headers).\nWhy it matters: Neurodivergence & Cognitive Fatigue: Overly long walls of dense text trigger executive function fatigue and cause users to drop out of tasks. Simplified layouts ease cognitive load for neurodivergent employees.\nGlobal Translation Accuracy: Simple, direct phrasing ensures that automated, real-time machine translations remain accurate across regional teams. Complex jargon or metaphors often break during translation.\nThe fix: Limit paragraphs to 3–4 sentences maximum. Turn complex narrative steps into clear, numbered lists.\n4. Writing for AI: Structuring Data for Search Engines and Bots\nOur internal conversational AI models (such as askpep and Virtual Agents) do not invent answers—they crawl and read the knowledge articles we publish to build summaries for employees.\nWhy it matters: If your article is poorly structured, confusing, or leaves critical information trapped exclusively inside an image asset, the AI bot cannot surface or read it accurately.\nThe fix: The First-Mention Rule: Always spell out an acronym completely on first mention (e.g., \"Web Content Accessibility Guidelines (WCAG)\") before using the shortened version. This lets AI index your document under both terms.\nSemantic Headers: Use a logical nesting order for your section titles (H2 followed by H3). Write headers naturally rather than stuffing them with rigid keywords, allowing AI engines to map context fluidly.\n\n## Quick Wins\n\nThe \"First 100 Words\" Rule: Put the most important solution or takeaway at the very top of your article. Both human readers and search indexing engines heavily prioritize the first two paragraphs.\nThe Blank-Alt-Text Trick: For purely decorative visual lines, brand graphics, or section buffers, leave the image alternative description text blank (alt=\"\"). This seamlessly signals to screen-reading tools to skip the object entirely, avoiding unnecessary disruption.\nThe Title Freshness Stamp: Keep file attachments updated. Appending a clear year indicator to attached files (such as “Travel Expense Procedure Guide 2026”) signals relevance and context to search algorithms, naturally bumping your resource up in the results.\nThe Sentence/Title Case Rule (No ALL CAPS): Avoid writing headlines or Call-To-Action links in ALL CAPITAL LETTERS (e.g., use \"Download the 2026 Expense Guide\" instead of \"DOWNLOAD THE 2026 EXPENSE GUIDE\").\n- Why it's a win for accessibility: Screen-reading software will often mistake words typed in ALL CAPS for individual letters in an acronym and try to spell them out out loud (vocalizing it painfully as \"D-O-W-N-L-O-A-D\"). Furthermore, ALL CAPS strips away the unique \"shape\" of words, making text much harder to skim quickly for neurodivergent employees or readers experiencing cognitive fatigue. Keeping your important links in Title or Sentence case ensures assistive tools read them seamlessly.\n\n## Dos & Don'ts\nDO target your completed drafts within the standard platform threshold of 1,500 to 4,000 characters to ensure text blocks are perfectly optimized for conversational query models.\nDO spell out exact requirements explicitly. Eliminate internal jargon or metaphors that could cause translation issues for global cross-sector users.\nDO pull critical text out of infographics or embedded pictures and paste it plainly into the body field so visually impaired employees and AI crawlers can access it.\nDON'T split your primary text across multiple separate layout widgets on a page. Keep your textual content unified in a single article container to prevent visual failures across mobile devices.\nDON'T use raw, un-labeled hyperlinked system addresses (like raw SharePoint or myServices URLs) directly inside paragraphs. Always wrap them in descriptive, action-focused link text.\nDON'T assume target filters (like Language, Country, or Sector properties) protect restricted information. They only boost search visibility. Always apply explicit Can Read / Cannot Read permissions to secure sensitive items.\n\n## Resources\nContent Optimization: Standard toolbar workspace outlining text hierarchies (H1–H6), table parameters, and link embedding controls.\nDesign Guidelines: Reference repository containing approved style palettes, writing tones, and accessible typography guidelines.\nKnowledge vs Content: Here you’ll find out what criteria determines how we classify, content vs knowledge for MyPepsiCo.\nReviewing your options for MyPepsiCo: Find out more information on the true differences between an Knowledge Article, Topic Page, and Microsite.\n\n## Next Steps\nAudit Your Top Assets: Review your area's top three most frequently visited articles and re-write any passive phrasing into immediate, active-voice statements.\nExecute an Acronym Check: Scan your active portal pages to ensure all shorthand acronyms are explicitly defined in their first mention.\nConsolidate Thin Content: Identify pages containing under 500 characters and merge those short paragraphs into broader, centralized knowledge topics to eliminate navigation clutter.\nComplete Metadata Fields: Open your article details page in myServices, verify that your audience filters are configured accurately, and verify that the VA Ready checkmark is turned on.",
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico-general",
+      "sector": "global",
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "writtenLanguage": "en-US",
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "Content owners"
+      ],
+      "contentType": "Knowledge Article",
+      "topics": [
+        "Content governance",
+        "content design",
+        "UX writing",
+        "plain language",
+        "AI-ready content"
+      ],
+      "businessTerms": [
+        "content design",
+        "UX writing",
+        "plain language",
+        "AI-ready content"
+      ],
+      "systems": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ],
+      "processes": [
+        "How should I structure a knowledge article",
+        "How do I write content that Ask Pep can understand"
+      ]
+    },
+    "relationships": [
+      {
+        "targetArticleId": "ka-cog-optimization",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-accessibility",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-create-policy",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-microsite",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      }
+    ],
+    "submittedBy": {
+      "name": "Alina Corral",
+      "email": "alina.corral@pepsico.com"
+    },
+    "submittedAt": "2026-03-16T14:20:00.000Z",
+    "status": "published",
+    "complianceIssues": [],
+    "reviewedAt": "2026-03-19T18:00:00.000Z",
+    "reviewer": "Alfonso Ibarra",
+    "version": 1,
+    "autoApproveCandidate": false,
+    "publishedArticleId": "pub-cog-content-design",
+    "metrics": {
+      "views30d": 1840,
+      "viewsAllTime": 5520,
+      "trend": "up",
+      "averageEngagementSeconds": 214,
+      "scrollDepthPercent": 76
+    },
+    "feedback": {
+      "helpful": 83,
+      "notHelpful": 9,
+      "shares": 18,
+      "comments": []
+    },
+    "sections": [
+      {
+        "id": "what-do-you-need-to-know",
+        "type": "text",
+        "title": "What Do You Need to Know",
+        "body": "Content User Experience (UX) Design is the practice of structuring, writing, and formatting information so that employees can easily find, understand, and act on it. Well-designed content ensures that our platforms (like myServices, mypepsico, and Now Assist) remain efficient, inclusive, and highly discoverable. As a content owner, implementing these four core directives directly reduces user frustration, cuts down on support tickets, and primes our portal assets for enterprise AI features."
+      },
+      {
+        "id": "core-content-directives",
+        "type": "text",
+        "title": "Core Content Directives",
+        "body": "1. Writing Tone of Voice: Choose Active Over Passive\nActive voice places the person or object taking the action at the front of the sentence. It makes instructions shorter, more authoritative, and significantly easier to follow.\nWhy it matters: Passive voice stretches sentences, hides accountability, and increases the time it takes for an employee to figure out who is responsible for a task.\nThe fix: Look for sentences containing helper verbs like “is,” “was,” “were,” or “been.” Re-write them so the person or system performing the action comes first.\nPassive (Avoid): \"The form must be submitted by the manager before an equipment request can be approved by HR.\"\nActive (Preferred): \"Managers must submit the form so HR can approve the equipment request.\"\n\n2. Call-to-Actions (CTAs): Make Links Functional and Predictable\nA Call-to-Action (CTA) is any button or link text that directs a user to take their next step. Good CTAs establish immediate expectations about where the user is going.\nWhy it matters: Generic text like \"Click Here\" or \"Read More\" fails to accessibility standards and forces users to read massive amounts of surrounding text just to understand what a link does.\nThe fix: Use clear, action-oriented verbs combined with a precise noun destination. Never use raw URL text paths in your body to copy.\n- Bad CTA: \"To review the updated parental leave changes, click here.\"\n- Good CTA: \"Review the 2026 Parental Leave Policy Document.\"\n3. Plain Language vs. Long Prose: Designing for Inclusivity\nPlain language means writing in a clear, straightforward manner using common vocabulary, short sentences, and visible structural formatting (like bulleted lists and bold headers).\nWhy it matters: Neurodivergence & Cognitive Fatigue: Overly long walls of dense text trigger executive function fatigue and cause users to drop out of tasks. Simplified layouts ease cognitive load for neurodivergent employees.\nGlobal Translation Accuracy: Simple, direct phrasing ensures that automated, real-time machine translations remain accurate across regional teams. Complex jargon or metaphors often break during translation.\nThe fix: Limit paragraphs to 3–4 sentences maximum. Turn complex narrative steps into clear, numbered lists.\n4. Writing for AI: Structuring Data for Search Engines and Bots\nOur internal conversational AI models (such as askpep and Virtual Agents) do not invent answers—they crawl and read the knowledge articles we publish to build summaries for employees.\nWhy it matters: If your article is poorly structured, confusing, or leaves critical information trapped exclusively inside an image asset, the AI bot cannot surface or read it accurately.\nThe fix: The First-Mention Rule: Always spell out an acronym completely on first mention (e.g., \"Web Content Accessibility Guidelines (WCAG)\") before using the shortened version. This lets AI index your document under both terms.\nSemantic Headers: Use a logical nesting order for your section titles (H2 followed by H3). Write headers naturally rather than stuffing them with rigid keywords, allowing AI engines to map context fluidly."
+      },
+      {
+        "id": "quick-wins",
+        "type": "text",
+        "title": "Quick Wins",
+        "body": "The \"First 100 Words\" Rule: Put the most important solution or takeaway at the very top of your article. Both human readers and search indexing engines heavily prioritize the first two paragraphs.\nThe Blank-Alt-Text Trick: For purely decorative visual lines, brand graphics, or section buffers, leave the image alternative description text blank (alt=\"\"). This seamlessly signals to screen-reading tools to skip the object entirely, avoiding unnecessary disruption.\nThe Title Freshness Stamp: Keep file attachments updated. Appending a clear year indicator to attached files (such as “Travel Expense Procedure Guide 2026”) signals relevance and context to search algorithms, naturally bumping your resource up in the results.\nThe Sentence/Title Case Rule (No ALL CAPS): Avoid writing headlines or Call-To-Action links in ALL CAPITAL LETTERS (e.g., use \"Download the 2026 Expense Guide\" instead of \"DOWNLOAD THE 2026 EXPENSE GUIDE\").\n- Why it's a win for accessibility: Screen-reading software will often mistake words typed in ALL CAPS for individual letters in an acronym and try to spell them out out loud (vocalizing it painfully as \"D-O-W-N-L-O-A-D\"). Furthermore, ALL CAPS strips away the unique \"shape\" of words, making text much harder to skim quickly for neurodivergent employees or readers experiencing cognitive fatigue. Keeping your important links in Title or Sentence case ensures assistive tools read them seamlessly."
+      },
+      {
+        "id": "dos-donts-table",
+        "type": "table",
+        "title": "Dos & Don'ts",
+        "columns": [
+          {
+            "id": "do",
+            "header": "Do"
+          },
+          {
+            "id": "dont",
+            "header": "Don't"
+          }
+        ],
+        "rows": [
+          {
+            "id": "dos-donts",
+            "cells": {
+              "do": "- target your completed drafts within the standard platform threshold of 1,500 to 4,000 characters to ensure text blocks are perfectly optimized for conversational query models.\n- spell out exact requirements explicitly. Eliminate internal jargon or metaphors that could cause translation issues for global cross-sector users.\n- pull critical text out of infographics or embedded pictures and paste it plainly into the body field so visually impaired employees and AI crawlers can access it.",
+              "dont": "- split your primary text across multiple separate layout widgets on a page. Keep your textual content unified in a single article container to prevent visual failures across mobile devices.\n- use raw, un-labeled hyperlinked system addresses (like raw SharePoint or myServices URLs) directly inside paragraphs. Always wrap them in descriptive, action-focused link text.\n- assume target filters (like Language, Country, or Sector properties) protect restricted information. They only boost search visibility. Always apply explicit Can Read / Cannot Read permissions to secure sensitive items."
+            }
+          }
+        ]
+      },
+      {
+        "id": "resources",
+        "type": "text",
+        "title": "Resources",
+        "body": "- Content Optimization: Standard toolbar workspace outlining text hierarchies (H1–H6), table parameters, and link embedding controls.\n- Design Guidelines: Reference repository containing approved style palettes, writing tones, and accessible typography guidelines.\n- Knowledge vs Content: Here you’ll find out what criteria determines how we classify, content vs knowledge for MyPepsiCo.\n- Reviewing your options for MyPepsiCo: Find out more information on the true differences between an Knowledge Article, Topic Page, and Microsite."
+      },
+      {
+        "id": "next-steps",
+        "type": "text",
+        "title": "Next Steps",
+        "body": "- Audit Your Top Assets: Review your area's top three most frequently visited articles and re-write any passive phrasing into immediate, active-voice statements.\n- Execute an Acronym Check: Scan your active portal pages to ensure all shorthand acronyms are explicitly defined in their first mention.\n- Consolidate Thin Content: Identify pages containing under 500 characters and merge those short paragraphs into broader, centralized knowledge topics to eliminate navigation clutter.\n- Complete Metadata Fields: Open your article details page in myServices, verify that your audience filters are configured accurately, and verify that the VA Ready checkmark is turned on."
+      }
+    ]
+  },
+  {
+    "id": "ka-cog-optimization",
+    "title": "Portal content optimization process",
+    "contentType": "Knowledge Article",
+    "knowledgeBase": "mypepsico-general",
+    "sector": "global",
+    "market": "Global",
+    "countries": [
+      "US",
+      "CA",
+      "MX",
+      "BR",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "Portal content optimization process",
+      "metaDescription": "## What Do You Need to Know\nTo support a governed, scalable, and AI-ready platform, all content published on our employee portal must follow a standardi",
+      "keywords": [
+        "content optimization",
+        "metadata",
+        "user criteria",
+        "search"
+      ],
+      "summary": "## What Do You Need to Know\nTo support a governed, scalable, and AI-ready platform, all content published on our employee portal must follow a standardized, predictable framework. Aligning your documentation with out-of-the-box (OOB) ServiceNow configurations makes information easier for human users to scan while ensuring that search algorithms and conversat",
+      "keyQuestions": [
+        "How do I optimize portal content?",
+        "Which metadata fields improve content discovery?"
+      ],
+      "entities": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ]
+    },
+    "globalJustification": "This content-governance guidance applies to myPepsiCo content owners in every region.",
+    "lead": "## What Do You Need to Know\nTo support a governed, scalable, and AI-ready platform, all content published on our employee portal must follow a standardized, predictable framework. Aligning your documentation with out-of-the-box (OOB) ServiceNow configurations makes information easier for human users to scan while ensuring that search algorithms and conversational virtual agents (like askpep and Now Assist) can ingest, index, and accurately surface your pages. We want to make sure all our portal pages are easy for employees to read and easy for our virtual assistant (askpep) to search.\nIn the myPepsiCo platform ecosystem, a Knowledge Article (KA) is only valuable if the right audience can discover it at the exact moment of need. With over 300,000 global employees across multiple sectors, properly configuring User Criteria and Metadata is not just an administrative step—it is the foundational layer driving global information architecture, portal personalization, and conversational AI ingestion.\n- User Criteria establishes hard platform boundaries, dictating explicitly who can see or edit an article.\n- Metadata (incorporating the \"Golden Fields\") acts as the optimization engine, indexing search properties and training language models to fetch context-specific answers.\nFollowing this unified step-by-step lifecycle prevents content fragmentation, eliminates duplicate data footprints, resolves \"content drift\" and search results dilution, and optimizes findability across global markets.",
+    "canonicalSlug": "portal-content-optimization-process",
+    "aliases": [
+      "content optimization",
+      "metadata",
+      "user criteria",
+      "search"
+    ],
+    "topics": [
+      "Content governance",
+      "Content owner training",
+      "content optimization",
+      "metadata"
+    ],
+    "references": [
+      {
+        "id": "ref-ka-cog-optimization",
+        "title": "COG-Portal Content Optimization Process.docx",
+        "kind": "doc",
+        "filePath": "COG-Portal Content Optimization Process.docx",
+        "source": "submission",
+        "excerpt": "## What Do You Need to Know\nTo support a governed, scalable, and AI-ready platform, all content published on our employee portal must follow a standardized, predictable framework. Aligning your documentation with out-of-the-box (OOB) ServiceNow configurations makes information easier for human users to scan while ensuring that search algorithms and conversational virtual agents (like askpep and Now Assist) can ingest",
+        "addedAt": "2026-09-03T15:35:00.000Z",
+        "addedBy": "Alina Corral"
+      }
+    ],
+    "relatedArticleIds": [
+      "ka-cog-content-design",
+      "ka-cog-accessibility",
+      "ka-cog-create-policy",
+      "ka-cog-microsite"
+    ],
+    "visibility": {
+      "audiences": [
+        "Content owners"
+      ],
+      "markets": [
+        "global"
+      ],
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "canRead": [
+        "myPepsiCo content owners"
+      ],
+      "cannotRead": [],
+      "security": "restricted",
+      "notes": "Available to authenticated myPepsiCo content owners across regions."
+    },
+    "owner": "Alina Corral",
+    "nextReviewAt": "2027-02-28T18:00:00.000Z",
+    "body": "# Portal content optimization process\n\n## What Do You Need to Know\nTo support a governed, scalable, and AI-ready platform, all content published on our employee portal must follow a standardized, predictable framework. Aligning your documentation with out-of-the-box (OOB) ServiceNow configurations makes information easier for human users to scan while ensuring that search algorithms and conversational virtual agents (like askpep and Now Assist) can ingest, index, and accurately surface your pages. We want to make sure all our portal pages are easy for employees to read and easy for our virtual assistant (askpep) to search.\nIn the myPepsiCo platform ecosystem, a Knowledge Article (KA) is only valuable if the right audience can discover it at the exact moment of need. With over 300,000 global employees across multiple sectors, properly configuring User Criteria and Metadata is not just an administrative step—it is the foundational layer driving global information architecture, portal personalization, and conversational AI ingestion.\n- User Criteria establishes hard platform boundaries, dictating explicitly who can see or edit an article.\n- Metadata (incorporating the \"Golden Fields\") acts as the optimization engine, indexing search properties and training language models to fetch context-specific answers.\nFollowing this unified step-by-step lifecycle prevents content fragmentation, eliminates duplicate data footprints, resolves \"content drift\" and search results dilution, and optimizes findability across global markets.\n\n## Step-by-Step Process\n### Step 1: Identify and Map Existing Content\nBefore writing any text or configuring pages, conduct a thorough audit of your active content landscape.\n\n- Action: Take a full inventory of everything currently present or planned for your section, including hyperlinks, text strings, standalone forms, PDFs, graphics, and interactive buttons.\n- AI & Search Value: Mapping assets gives you a macro-overview of your functional tree and ensures you are formatting clean data modules instead of unstructured text dumps.\n\n### Step 2: Remove Duplicates and Fragmented Pages\nCleanse your data pool to guarantee that a single, definitive corporate source of truth exists for every policy or procedure.\n- Action: Review your inventory and immediately archive or delete outdated references. Consolidate \"thin pages\"—any standalone links or tiny blocks containing under 500 characters—by moving their text directly into a comprehensive parent page.\n- AI & Search Value: Thin pages dilute algorithmic relevance. Consolidating them resolves search \"ghost results\" and stops askpep from picking up historical, conflicting drafts.\n\n### Step 3: Architect Page Layout and Navigation Treeline\nStructure your material inside vetted, baseline parameters to maintain cognitive comfort and readability.\nAction: Restrict internal site menus to a maximum depth of Level 6 (L6). Ensure all essential operational files fit the 1,500-to-4,000-character sweet spot. Ensure structural layouts remain fixed: left-hand navigation stays on the left, while Quick Links widgets live on the right.\nAI & Search Value: Straying beyond 6,000 characters overwhelms LLM token capacities, causing search systems or bots to hallucinate or drop page priority scores entirely.\n\n### Step 4: Author Plain-Text, Inclusive, and Search-Optimized Copy\nBake clarity, scannability, and compliance rules directly into the copy during the writing phase.\nSentence-Case Header Architecture: Write article titles and section headers naturally in sentence case (e.g., Childcare support policies for North America). Avoid ALL CAPS, as it breaks screen-readers and digital translation engines.\nThe Short Description Rule: Summarize the core purpose of the policy in a single sentence, placing the primary search phrase near the very beginning to maximize search result relevance weights.\nAcronyms & Text Extraction: Spell out all technical abbreviations on first reference (e.g., Out-of-the-Box (OOB)). Extract all critical policy instructions from background graphics or infographics and type them directly into the body field as plain text. Ensure headings progress cleanly from H1 down through H6.\nAI & Search Value: Text trapped within flattened image files is completely invisible to screen readers, localization layers, standard spiders, and AI crawlers. Spelled-out phrasing creates foundational semantic strings that virtual engines require to connect varied user intents to your solutions.\n\n### Step 5: Document User Criteria Boundaries\nUser criteria must be explicitly defined at the document configuration layer rather than relying purely on text descriptions inside the article layout.\nDefine Access to View: Configure the native ServiceNow Can Read and Cannot Read fields to safeguard targeted information boundaries. By default, standard portal bases may be broad, but sensitive guidelines must apply restricted parameters.\nDefine Access to Edit: Document exactly one designated Author and one Approver in the backend configuration to protect the article lifecycle from unsanctioned text modifications.\nDifferentiate Targeting vs. Security: Never assume that applying a geographic country filter protects a restricted document. Geographic profiles only boost search visibility—true structural isolation must be enforced with explicit Can Read or Cannot Read security properties.\n\n### Step 6: Formulate Metadata and the Five \"Golden Fields\"\nWhen writing a new knowledge asset, you must document the five foundational backend fields inside the administration panel to guarantee correct routing and regional filtering:\nMetadata Field\nDefinition & Operational Mandate\nLanguage\nThe exact language code the body copy is written in (e.g., en-US or es-ES).\nCountry\nThe primary target market where the information applies.\nSector\nThe operational division targeted (e.g., North America, EMEA, LATAM).\nCan Read\nInclusion filters specifying employee groups authorized to see the file.\nCannot Read\nStrict exclusion rules designed to explicitly block specific organizational segments.\n\n### Step 7: Configure Advanced AI Settings & Synonyms\n- Meta-Field Synonyms: Complete the backend Meta Field textbox with realistic synonyms, departmental shorthand, common abbreviations, and frequent misspellings (e.g., linking \"phishing\" to \"avoiding online scams\") to expand discoverability.\n- The \"VA Ready\" Checkbox: If the article contains actionable guidance written directly in clean text format, select the VA Ready checkmark inside the myServices form. This explicitly grants the askpep AI authorization to digest, quote, and synthesize your text for conversational chat inputs.\n\n## Quick Wins\n- Front-Load All Titles: Place the primary application noun or platform name at the absolute beginning of your title (e.g., use \"ServiceNow: Requesting Access\" instead of \"How to request access inside the ServiceNow platform\"). Search mechanics index the first 2–3 words with heavy weight.\n- Rename Attachment Files Every Year: Even if a policy doesn’t technically change, re-upload the file with the updated year appended (e.g., change Leave_Policy.pdf to Leave_Policy_2026.pdf). This indicates high data freshness to index spiders.\n- Front-Load Body Takeaways: Write paragraph takeaways or core instructions in the very first sentence of a list block to assist user scannability and quick bot extraction.\n\n## Dos & Don'ts\n## Dos\n- DO Use Words Employees Actually Type: Write headings and descriptors naturally. Modern semantic search systems value conversational structure and context over rigid keyword stuffing.\n- DO Describe Embedded Elements in Plain Text: Describe all images, charts, and diagrams in open text blocks directly inside the body field so visually impaired employees and conversational bots can read them.\n- DO Explicitly Define Acronyms: Spell out any internal roles or enterprise shorthand completely upon their first occurrence on the page to safeguard automated localization accuracy.\n- DO Leverage OOB Templates: Rely entirely on standard ServiceNow Knowledge Article layout elements to guarantee responsive mobile rendering and natural platform discovery.\n- DO Set a Future Lifecycle Review Date: Always configure a clear recurring validation milestone (Annual, Semiannual, or Trigger-based) to systematically deprecate stale information.\n- DO Adhere to the 4-Click Rule: Design your structural directory assuming an employee should need no more than 4 distinct link selections from the main homepage to access your solution.\n\n## Don'ts\n- DON'T Hide Core Policies in Attachments: Avoid putting vital answers exclusively inside attached offline documents (such as un-indexed PDFs or local files). AI crawlers cannot cleanly scrape trapped graphics; convert them into live text layers.\n- DON'T Ignore Attachment Naming Schemes: If attachments are required, include the year in the file name (e.g., Parental Leave Guide NA 2026) to signal freshness to index spiders.\n- DON'T Duplicate Extraneous Process Details: Do not intermix heavy, step-by-step systemic transactions or backend procedures directly into the core high-level policy text. Link out to separate auxiliary how-to KAs instead.\n- DON'T Rely on Audience Metadata for Security Control: Never assume that applying Country or Sector profiling filters acts as data protection. To hide sensitive content, you must configure strict platform security access rules (Can Read / Cannot Read).\n- DON'T Split Core Text Across Multiple Layout Widgets: Do not place more than one content publishing component outside the standard Knowledge Article container; keep textual components centralized to prevent alignment failure.\n- DON'T Stuff Headings with Keywords: Write section dividers naturally; modern AI parsing systems emphasize true semantic relevance over rigid, unnatural phrase repetitions.\n\n## Resources\n- Global-to-Local: Read this helpful article before you publish, for better understanding of maximizing your reach to your target audience(s).\n- Knowledge vs Content: Here you’ll find out what criteria determines how we classify content vs. knowledge for MyPepsiCo.\n- Reviewing your options for MyPepsiCo: Find out more information on the true differences between a Knowledge Article, Topic Page, and Microsite.\n- Content Optimization: Standard toolbar workspace outlining text hierarchies (H1–H6), table parameters, and link embedding controls.\n\n## Next Steps\n- Audit Your Current Section Inventory: Run a macro sweep across your functional digital footprint to identify and consolidate pages holding less than 500 characters.\n- Execute an Acronym & Image Scrub: Review high-traffic instructional pieces, spell out standalone abbreviations on first mention, and translate embedded infographic data directly into the body text field.\n- Validate Portal Target Tag Parameters: Access your active articles list in myServices to ensure Language, Country, and Sector constraints are configured, and activate the VA Ready flag for authorized text assets.",
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico-general",
+      "sector": "global",
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "writtenLanguage": "en-US",
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "Content owners"
+      ],
+      "contentType": "Knowledge Article",
+      "topics": [
+        "Content governance",
+        "content optimization",
+        "metadata",
+        "user criteria",
+        "search"
+      ],
+      "businessTerms": [
+        "content optimization",
+        "metadata",
+        "user criteria",
+        "search"
+      ],
+      "systems": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ],
+      "processes": [
+        "How do I optimize portal content",
+        "Which metadata fields improve content discovery"
+      ]
+    },
+    "relationships": [
+      {
+        "targetArticleId": "ka-cog-content-design",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-accessibility",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-create-policy",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-microsite",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      }
+    ],
+    "submittedBy": {
+      "name": "Alina Corral",
+      "email": "alina.corral@pepsico.com"
+    },
+    "submittedAt": "2026-09-03T15:35:00.000Z",
+    "status": "needs-info",
+    "complianceIssues": [],
+    "reviewedAt": null,
+    "version": 1,
+    "metrics": {
+      "views30d": 0,
+      "viewsAllTime": 0,
+      "trend": "up",
+      "averageEngagementSeconds": 0,
+      "scrollDepthPercent": 0
+    },
+    "feedback": {
+      "helpful": 0,
+      "notHelpful": 0,
+      "shares": 0,
+      "comments": []
+    },
+    "infoNeeded": "Please clarify how the optimization process should distinguish regional targeting metadata from true Can Read / Cannot Read security controls.",
+    "sections": [
+      {
+        "id": "what-do-you-need-to-know",
+        "type": "text",
+        "title": "What Do You Need to Know",
+        "body": "To support a governed, scalable, and AI-ready platform, all content published on our employee portal must follow a standardized, predictable framework. Aligning your documentation with out-of-the-box (OOB) ServiceNow configurations makes information easier for human users to scan while ensuring that search algorithms and conversational virtual agents (like askpep and Now Assist) can ingest, index, and accurately surface your pages. We want to make sure all our portal pages are easy for employees to read and easy for our virtual assistant (askpep) to search.\nIn the myPepsiCo platform ecosystem, a Knowledge Article (KA) is only valuable if the right audience can discover it at the exact moment of need. With over 300,000 global employees across multiple sectors, properly configuring User Criteria and Metadata is not just an administrative step—it is the foundational layer driving global information architecture, portal personalization, and conversational AI ingestion.\n- User Criteria establishes hard platform boundaries, dictating explicitly who can see or edit an article.\n- Metadata (incorporating the \"Golden Fields\") acts as the optimization engine, indexing search properties and training language models to fetch context-specific answers.\nFollowing this unified step-by-step lifecycle prevents content fragmentation, eliminates duplicate data footprints, resolves \"content drift\" and search results dilution, and optimizes findability across global markets."
+      },
+      {
+        "id": "step-by-step-process",
+        "type": "accordion",
+        "title": "Step-by-Step Process",
+        "items": [
+          {
+            "id": "step-1",
+            "title": "Step 1: Identify and Map Existing Content",
+            "body": "Before writing any text or configuring pages, conduct a thorough audit of your active content landscape.\n\n- Action: Take a full inventory of everything currently present or planned for your section, including hyperlinks, text strings, standalone forms, PDFs, graphics, and interactive buttons.\n- AI & Search Value: Mapping assets gives you a macro-overview of your functional tree and ensures you are formatting clean data modules instead of unstructured text dumps."
+          },
+          {
+            "id": "step-2",
+            "title": "Step 2: Remove Duplicates and Fragmented Pages",
+            "body": "Cleanse your data pool to guarantee that a single, definitive corporate source of truth exists for every policy or procedure.\n- Action: Review your inventory and immediately archive or delete outdated references. Consolidate \"thin pages\"—any standalone links or tiny blocks containing under 500 characters—by moving their text directly into a comprehensive parent page.\n- AI & Search Value: Thin pages dilute algorithmic relevance. Consolidating them resolves search \"ghost results\" and stops askpep from picking up historical, conflicting drafts."
+          },
+          {
+            "id": "step-3",
+            "title": "Step 3: Architect Page Layout and Navigation Treeline",
+            "body": "Structure your material inside vetted, baseline parameters to maintain cognitive comfort and readability.\nAction: Restrict internal site menus to a maximum depth of Level 6 (L6). Ensure all essential operational files fit the 1,500-to-4,000-character sweet spot. Ensure structural layouts remain fixed: left-hand navigation stays on the left, while Quick Links widgets live on the right.\nAI & Search Value: Straying beyond 6,000 characters overwhelms LLM token capacities, causing search systems or bots to hallucinate or drop page priority scores entirely."
+          },
+          {
+            "id": "step-4",
+            "title": "Step 4: Author Plain-Text, Inclusive, and Search-Optimized Copy",
+            "body": "Bake clarity, scannability, and compliance rules directly into the copy during the writing phase.\nSentence-Case Header Architecture: Write article titles and section headers naturally in sentence case (e.g., Childcare support policies for North America). Avoid ALL CAPS, as it breaks screen-readers and digital translation engines.\nThe Short Description Rule: Summarize the core purpose of the policy in a single sentence, placing the primary search phrase near the very beginning to maximize search result relevance weights.\nAcronyms & Text Extraction: Spell out all technical abbreviations on first reference (e.g., Out-of-the-Box (OOB)). Extract all critical policy instructions from background graphics or infographics and type them directly into the body field as plain text. Ensure headings progress cleanly from H1 down through H6.\nAI & Search Value: Text trapped within flattened image files is completely invisible to screen readers, localization layers, standard spiders, and AI crawlers. Spelled-out phrasing creates foundational semantic strings that virtual engines require to connect varied user intents to your solutions."
+          },
+          {
+            "id": "step-5",
+            "title": "Step 5: Document User Criteria Boundaries",
+            "body": "User criteria must be explicitly defined at the document configuration layer rather than relying purely on text descriptions inside the article layout.\nDefine Access to View: Configure the native ServiceNow Can Read and Cannot Read fields to safeguard targeted information boundaries. By default, standard portal bases may be broad, but sensitive guidelines must apply restricted parameters.\nDefine Access to Edit: Document exactly one designated Author and one Approver in the backend configuration to protect the article lifecycle from unsanctioned text modifications.\nDifferentiate Targeting vs. Security: Never assume that applying a geographic country filter protects a restricted document. Geographic profiles only boost search visibility—true structural isolation must be enforced with explicit Can Read or Cannot Read security properties."
+          },
+          {
+            "id": "step-6",
+            "title": "Step 6: Formulate Metadata and the Five \"Golden Fields\"",
+            "body": "When writing a new knowledge asset, you must document the five foundational backend fields inside the administration panel to guarantee correct routing and regional filtering:\nMetadata Field\nDefinition & Operational Mandate\nLanguage\nThe exact language code the body copy is written in (e.g., en-US or es-ES).\nCountry\nThe primary target market where the information applies.\nSector\nThe operational division targeted (e.g., North America, EMEA, LATAM).\nCan Read\nInclusion filters specifying employee groups authorized to see the file.\nCannot Read\nStrict exclusion rules designed to explicitly block specific organizational segments."
+          },
+          {
+            "id": "step-7",
+            "title": "Step 7: Configure Advanced AI Settings & Synonyms",
+            "body": "- Meta-Field Synonyms: Complete the backend Meta Field textbox with realistic synonyms, departmental shorthand, common abbreviations, and frequent misspellings (e.g., linking \"phishing\" to \"avoiding online scams\") to expand discoverability.\n- The \"VA Ready\" Checkbox: If the article contains actionable guidance written directly in clean text format, select the VA Ready checkmark inside the myServices form. This explicitly grants the askpep AI authorization to digest, quote, and synthesize your text for conversational chat inputs."
+          }
+        ]
+      },
+      {
+        "id": "quick-wins",
+        "type": "text",
+        "title": "Quick Wins",
+        "body": "- Front-Load All Titles: Place the primary application noun or platform name at the absolute beginning of your title (e.g., use \"ServiceNow: Requesting Access\" instead of \"How to request access inside the ServiceNow platform\"). Search mechanics index the first 2–3 words with heavy weight.\n- Rename Attachment Files Every Year: Even if a policy doesn’t technically change, re-upload the file with the updated year appended (e.g., change Leave_Policy.pdf to Leave_Policy_2026.pdf). This indicates high data freshness to index spiders.\n- Front-Load Body Takeaways: Write paragraph takeaways or core instructions in the very first sentence of a list block to assist user scannability and quick bot extraction."
+      },
+      {
+        "id": "dos-donts-table",
+        "type": "table",
+        "title": "Dos & Don'ts",
+        "columns": [
+          {
+            "id": "do",
+            "header": "Do"
+          },
+          {
+            "id": "dont",
+            "header": "Don't"
+          }
+        ],
+        "rows": [
+          {
+            "id": "dos-donts",
+            "cells": {
+              "do": "- Use Words Employees Actually Type: Write headings and descriptors naturally. Modern semantic search systems value conversational structure and context over rigid keyword stuffing.\n- Describe Embedded Elements in Plain Text: Describe all images, charts, and diagrams in open text blocks directly inside the body field so visually impaired employees and conversational bots can read them.\n- Explicitly Define Acronyms: Spell out any internal roles or enterprise shorthand completely upon their first occurrence on the page to safeguard automated localization accuracy.\n- Leverage OOB Templates: Rely entirely on standard ServiceNow Knowledge Article layout elements to guarantee responsive mobile rendering and natural platform discovery.\n- Set a Future Lifecycle Review Date: Always configure a clear recurring validation milestone (Annual, Semiannual, or Trigger-based) to systematically deprecate stale information.\n- Adhere to the 4-Click Rule: Design your structural directory assuming an employee should need no more than 4 distinct link selections from the main homepage to access your solution.",
+              "dont": "- Hide Core Policies in Attachments: Avoid putting vital answers exclusively inside attached offline documents (such as un-indexed PDFs or local files). AI crawlers cannot cleanly scrape trapped graphics; convert them into live text layers.\n- Ignore Attachment Naming Schemes: If attachments are required, include the year in the file name (e.g., Parental Leave Guide NA 2026) to signal freshness to index spiders.\n- Duplicate Extraneous Process Details: Do not intermix heavy, step-by-step systemic transactions or backend procedures directly into the core high-level policy text. Link out to separate auxiliary how-to KAs instead.\n- Rely on Audience Metadata for Security Control: Never assume that applying Country or Sector profiling filters acts as data protection. To hide sensitive content, you must configure strict platform security access rules (Can Read / Cannot Read).\n- Split Core Text Across Multiple Layout Widgets: Do not place more than one content publishing component outside the standard Knowledge Article container; keep textual components centralized to prevent alignment failure.\n- Stuff Headings with Keywords: Write section dividers naturally; modern AI parsing systems emphasize true semantic relevance over rigid, unnatural phrase repetitions."
+            }
+          }
+        ]
+      },
+      {
+        "id": "resources",
+        "type": "text",
+        "title": "Resources",
+        "body": "- Global-to-Local: Read this helpful article before you publish, for better understanding of maximizing your reach to your target audience(s).\n- Knowledge vs Content: Here you’ll find out what criteria determines how we classify content vs. knowledge for MyPepsiCo.\n- Reviewing your options for MyPepsiCo: Find out more information on the true differences between a Knowledge Article, Topic Page, and Microsite.\n- Content Optimization: Standard toolbar workspace outlining text hierarchies (H1–H6), table parameters, and link embedding controls."
+      },
+      {
+        "id": "next-steps",
+        "type": "text",
+        "title": "Next Steps",
+        "body": "- Audit Your Current Section Inventory: Run a macro sweep across your functional digital footprint to identify and consolidate pages holding less than 500 characters.\n- Execute an Acronym & Image Scrub: Review high-traffic instructional pieces, spell out standalone abbreviations on first mention, and translate embedded infographic data directly into the body text field.\n- Validate Portal Target Tag Parameters: Access your active articles list in myServices to ensure Language, Country, and Sector constraints are configured, and activate the VA Ready flag for authorized text assets."
+      }
+    ]
+  },
+  {
+    "id": "ka-cog-accessibility",
+    "title": "Designing for accessibility and digital inclusivity",
+    "contentType": "Knowledge Article",
+    "knowledgeBase": "mypepsico-general",
+    "sector": "global",
+    "market": "Global",
+    "countries": [
+      "US",
+      "CA",
+      "MX",
+      "BR",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "Designing for accessibility and digital inclusivity",
+      "metaDescription": "## What do you need to know\nPlanning accessibility and inclusivity at the absolute beginning of our process is an operational requirement. This approach",
+      "keywords": [
+        "accessibility",
+        "digital inclusivity",
+        "WCAG",
+        "accessible design"
+      ],
+      "summary": "## What do you need to know\nPlanning accessibility and inclusivity at the absolute beginning of our process is an operational requirement. This approach leverages the \"Curb-Cut Effect\": when you design intentionally for non-typical experiences, you naturally make the digital touchpoint easier, clearer, and more intuitive for all experiences.\nThe Business and",
+      "keyQuestions": [
+        "What accessibility standard should portal content meet?",
+        "How large should interactive touch targets be?"
+      ],
+      "entities": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ]
+    },
+    "globalJustification": "This content-governance guidance applies to myPepsiCo content owners in every region.",
+    "lead": "## What do you need to know\nPlanning accessibility and inclusivity at the absolute beginning of our process is an operational requirement. This approach leverages the \"Curb-Cut Effect\": when you design intentionally for non-typical experiences, you naturally make the digital touchpoint easier, clearer, and more intuitive for all experiences.\nThe Business and Brand Value of Visual Accessibility\nVisual accessibility ensures interfaces are readable, perceivable, and understandable for users with diverse visual abilities, devices, and environments. Proactively baking this into our content architecture drives direct operational value:",
+    "canonicalSlug": "designing-for-accessibility-and-digital-inclusivity",
+    "aliases": [
+      "accessibility",
+      "digital inclusivity",
+      "WCAG",
+      "accessible design"
+    ],
+    "topics": [
+      "Content governance",
+      "Content owner training",
+      "accessibility",
+      "digital inclusivity"
+    ],
+    "references": [
+      {
+        "id": "ref-ka-cog-accessibility",
+        "title": "COG-Digital-Inclusivity-Accessibility.docx",
+        "kind": "doc",
+        "filePath": "COG-Digital-Inclusivity-Accessibility.docx",
+        "source": "submission",
+        "excerpt": "## What do you need to know\nPlanning accessibility and inclusivity at the absolute beginning of our process is an operational requirement. This approach leverages the \"Curb-Cut Effect\": when you design intentionally for non-typical experiences, you naturally make the digital touchpoint easier, clearer, and more intuitive for all experiences.\nThe Business and Brand Value of Visual Accessibility\nVisual accessibility en",
+        "addedAt": "2026-07-18T13:15:00.000Z",
+        "addedBy": "Itzel Ayala Quezada"
+      }
+    ],
+    "relatedArticleIds": [
+      "ka-cog-content-design",
+      "ka-cog-optimization",
+      "ka-cog-create-policy",
+      "ka-cog-microsite"
+    ],
+    "visibility": {
+      "audiences": [
+        "Content owners"
+      ],
+      "markets": [
+        "global"
+      ],
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "canRead": [
+        "myPepsiCo content owners"
+      ],
+      "cannotRead": [],
+      "security": "restricted",
+      "notes": "Available to authenticated myPepsiCo content owners across regions."
+    },
+    "owner": "Itzel Ayala Quezada",
+    "nextReviewAt": "2027-02-28T18:00:00.000Z",
+    "approvedBy": "Alfonso Ibarra",
+    "body": "# Designing for accessibility and digital inclusivity\n\n## What do you need to know\nPlanning accessibility and inclusivity at the absolute beginning of our process is an operational requirement. This approach leverages the \"Curb-Cut Effect\": when you design intentionally for non-typical experiences, you naturally make the digital touchpoint easier, clearer, and more intuitive for all experiences.\nThe Business and Brand Value of Visual Accessibility\nVisual accessibility ensures interfaces are readable, perceivable, and understandable for users with diverse visual abilities, devices, and environments. Proactively baking this into our content architecture drives direct operational value:\n\nInvisible Audience Impact: Millions of users navigate with hidden permanent, temporary, or situational visual limitations (such as low vision, color blindness, or screen glare).\nCognitive Load Reduction: Proper accessibility stops interfaces from triggering executive function fatigue, maximizing an employee's scanning efficiency and task completion speeds.\nBrand Experience Elevation: Accessible structures yield interfaces that feel intentional, confident, consistent across devices, and trustworthy, directly reinforcing enterprise values.\n\nDecoding Our WCAG Baseline Compliance\nThe Web Content Accessibility Guidelines (WCAG) serve as international benchmarks to measure and evaluate digital access. Our strict framework target follows the technical benchmarks of WCAG 2.1 Level AA Compliance:\n\nLevel A (Basic Access): Inadequate on its own for corporate usability.\nLevel AA (Usable and Inclusive): Our absolute platform standard and ServiceNow layout target.\nLevel AAA (Enhanced Accessibility): The optimal design benchmark.\n## Quick Wins\nImplement these precise design token adjustments immediately during the wireframing phase to guarantee early technical alignment:\n\nRethink Pure Black and White Vibrancy\nThe Quick Win: Eliminate high-contrast extremes that induce visual strain. Replace pure white (#FFFFFF) and pure black (#000000) with softer alternatives from the corporate palette: Gray 100 (#FCFCFC) for backgrounds and Gray 1000 (#222222) for high-legibility text blocks.\nWhy it matters: Softening stark contrasts significantly lowers visual fatigue and enhances readability across long-form instructional articles.\n\nEnforce Symmetrical Light and Dark Mode Contexts\nThe Quick Win: Build out and validate components under both illumination models. Light mode excels in well-lit working areas, while Dark mode is ideal for low-light layouts or helping photosensitive users reduce sensory processing friction.\nWhy it matters: Dual-mode compliance satisfies neuroinclusive parameters and protects an employee's visual comfort under diverse field environments.\n\nExpand Touch Padding on Interactive Targets\nThe Quick Win: Maintain strict component dimension thresholds across all buttons, active links, icon controls, and fields:\n\nWCAG Absolute Minimum Target: 24 × 24 CSS pixels (px).\nTouch Surface Interface Recommendation: 44 × 44 px or larger.\nWhy it matters: Utilizing background container padding expands the clickable hit zone seamlessly without altering your clean layout sizes, preventing motor errors for mobile and desktop users alike.\n\n## Dos & Don'ts\n## DO\nDO Enforce the Digital Typography Baseline: Standardize your primary body copy to a digital framework baseline of 16 px (1 rem) for desktop screens and 14 px (0.875 rem) for mobile breakpoints to preserve readability across variable displays.\nDO Maintain a Consistent Scale Hierarchy: Build page structures leveraging a balanced structure of exactly 6 heading levels (H1–H6) and 4 body text classes using medium and bold weights uniformly across layout shifts.\nDO Adapt Spacing to Breakpoints: Ensure font tracking, line heights, and margins dynamically adapt based on text scale categories to remain crisp when rendering on small tablets up to high-resolution 2K and 4K display monitors.\nDO Leverage OOB Platform Capabilities: Rely directly on ServiceNow out-of-the-box (OOB) widgets and structural templates to ensure that code complies with underlying accessibility markers natively.\n\n## DON'T\nDON'T Treat Accessibility as a Final Polish Phase: Never pass content to a review cycle without configuring accessibility tokens first. Addressing visual issues downstream causes layout breaks, extensive rework, and security review rejections.\nDON'T Stuff High-Density Color Themes Unchecked: Do not combine brand colors without verifying contrast ratios. While our standard color systems work for campaigns, portal applications require the expanded Digital Color Palette to denote specific interaction feedbacks and alert states clearly.\nDON'T Use Text-Trapped Graphical Elements: Never allow images or promotional banner layers to serve as the only method for sharing operational tasks, as screen readers cannot crawl raw graphics.\n\n## Resources\nUser Experience (UX) Model & Content Structure Guidelines: Our basic guidelines to set you on the right path for a well designed article or page.\nPepsiCo Corporate Brand Guidelines: Click here to visit the portal for up-to-date information on all things PepsiCo brand, asset downloads, instructions, and design best practices.\nKnowledge vs Content: Here you’ll find out what criteria determines how we classify, content vs knowledge for MyPepsiCo.\n\n## Next Steps\nAudit Interface Controls: Check your active forms and application pages to verify that every single touchpoint matches the 44 × 44 px hit target threshold.\nExecute a Color Contrast Sweep: Run background checks on all dark and light themes to ensure the elimination of stark pure black and white values.\nMap Structural Headings: Audit draft layouts across active devices to ensure that heading levels progress sequentially from H1 down to H6 without skipping milestones, maximizing screen-reader compatibility.",
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico-general",
+      "sector": "global",
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "writtenLanguage": "en-US",
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "Content owners"
+      ],
+      "contentType": "Knowledge Article",
+      "topics": [
+        "Content governance",
+        "accessibility",
+        "digital inclusivity",
+        "WCAG",
+        "accessible design"
+      ],
+      "businessTerms": [
+        "accessibility",
+        "digital inclusivity",
+        "WCAG",
+        "accessible design"
+      ],
+      "systems": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ],
+      "processes": [
+        "What accessibility standard should portal content meet",
+        "How large should interactive touch targets be"
+      ]
+    },
+    "relationships": [
+      {
+        "targetArticleId": "ka-cog-content-design",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-optimization",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-create-policy",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-microsite",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      }
+    ],
+    "submittedBy": {
+      "name": "Itzel Ayala Quezada",
+      "email": "itzel.ayala.quezada@pepsico.com"
+    },
+    "submittedAt": "2026-07-18T13:15:00.000Z",
+    "status": "published",
+    "complianceIssues": [],
+    "reviewedAt": "2026-07-22T18:05:00.000Z",
+    "reviewer": "Alfonso Ibarra",
+    "version": 1,
+    "autoApproveCandidate": false,
+    "publishedArticleId": "pub-cog-accessibility",
+    "metrics": {
+      "views30d": 1260,
+      "viewsAllTime": 3780,
+      "trend": "up",
+      "averageEngagementSeconds": 214,
+      "scrollDepthPercent": 76
+    },
+    "feedback": {
+      "helpful": 57,
+      "notHelpful": 6,
+      "shares": 18,
+      "comments": []
+    },
+    "sections": [
+      {
+        "id": "what-do-you-need-to-know",
+        "type": "text",
+        "title": "What do you need to know",
+        "body": "Planning accessibility and inclusivity at the absolute beginning of our process is an operational requirement. This approach leverages the \"Curb-Cut Effect\": when you design intentionally for non-typical experiences, you naturally make the digital touchpoint easier, clearer, and more intuitive for all experiences.\nThe Business and Brand Value of Visual Accessibility\nVisual accessibility ensures interfaces are readable, perceivable, and understandable for users with diverse visual abilities, devices, and environments. Proactively baking this into our content architecture drives direct operational value:\n\nInvisible Audience Impact: Millions of users navigate with hidden permanent, temporary, or situational visual limitations (such as low vision, color blindness, or screen glare).\nCognitive Load Reduction: Proper accessibility stops interfaces from triggering executive function fatigue, maximizing an employee's scanning efficiency and task completion speeds.\nBrand Experience Elevation: Accessible structures yield interfaces that feel intentional, confident, consistent across devices, and trustworthy, directly reinforcing enterprise values.\n\nDecoding Our WCAG Baseline Compliance\nThe Web Content Accessibility Guidelines (WCAG) serve as international benchmarks to measure and evaluate digital access. Our strict framework target follows the technical benchmarks of WCAG 2.1 Level AA Compliance:\n\nLevel A (Basic Access): Inadequate on its own for corporate usability.\nLevel AA (Usable and Inclusive): Our absolute platform standard and ServiceNow layout target.\nLevel AAA (Enhanced Accessibility): The optimal design benchmark."
+      },
+      {
+        "id": "quick-wins",
+        "type": "text",
+        "title": "Quick Wins",
+        "body": "Implement these precise design token adjustments immediately during the wireframing phase to guarantee early technical alignment:\n\nRethink Pure Black and White Vibrancy\nThe Quick Win: Eliminate high-contrast extremes that induce visual strain. Replace pure white (#FFFFFF) and pure black (#000000) with softer alternatives from the corporate palette: Gray 100 (#FCFCFC) for backgrounds and Gray 1000 (#222222) for high-legibility text blocks.\nWhy it matters: Softening stark contrasts significantly lowers visual fatigue and enhances readability across long-form instructional articles.\n\nEnforce Symmetrical Light and Dark Mode Contexts\nThe Quick Win: Build out and validate components under both illumination models. Light mode excels in well-lit working areas, while Dark mode is ideal for low-light layouts or helping photosensitive users reduce sensory processing friction.\nWhy it matters: Dual-mode compliance satisfies neuroinclusive parameters and protects an employee's visual comfort under diverse field environments.\n\nExpand Touch Padding on Interactive Targets\nThe Quick Win: Maintain strict component dimension thresholds across all buttons, active links, icon controls, and fields:\n\nWCAG Absolute Minimum Target: 24 × 24 CSS pixels (px).\nTouch Surface Interface Recommendation: 44 × 44 px or larger.\nWhy it matters: Utilizing background container padding expands the clickable hit zone seamlessly without altering your clean layout sizes, preventing motor errors for mobile and desktop users alike."
+      },
+      {
+        "id": "dos-donts-table",
+        "type": "table",
+        "title": "Dos & Don'ts",
+        "columns": [
+          {
+            "id": "do",
+            "header": "Do"
+          },
+          {
+            "id": "dont",
+            "header": "Don't"
+          }
+        ],
+        "rows": [
+          {
+            "id": "dos-donts",
+            "cells": {
+              "do": "- Enforce the Digital Typography Baseline: Standardize your primary body copy to a digital framework baseline of 16 px (1 rem) for desktop screens and 14 px (0.875 rem) for mobile breakpoints to preserve readability across variable displays.\n- Maintain a Consistent Scale Hierarchy: Build page structures leveraging a balanced structure of exactly 6 heading levels (H1–H6) and 4 body text classes using medium and bold weights uniformly across layout shifts.\n- Adapt Spacing to Breakpoints: Ensure font tracking, line heights, and margins dynamically adapt based on text scale categories to remain crisp when rendering on small tablets up to high-resolution 2K and 4K display monitors.\n- Leverage OOB Platform Capabilities: Rely directly on ServiceNow out-of-the-box (OOB) widgets and structural templates to ensure that code complies with underlying accessibility markers natively.",
+              "dont": "- Treat Accessibility as a Final Polish Phase: Never pass content to a review cycle without configuring accessibility tokens first. Addressing visual issues downstream causes layout breaks, extensive rework, and security review rejections.\n- Stuff High-Density Color Themes Unchecked: Do not combine brand colors without verifying contrast ratios. While our standard color systems work for campaigns, portal applications require the expanded Digital Color Palette to denote specific interaction feedbacks and alert states clearly.\n- Use Text-Trapped Graphical Elements: Never allow images or promotional banner layers to serve as the only method for sharing operational tasks, as screen readers cannot crawl raw graphics."
+            }
+          }
+        ]
+      },
+      {
+        "id": "resources",
+        "type": "text",
+        "title": "Resources",
+        "body": "- User Experience (UX) Model & Content Structure Guidelines: Our basic guidelines to set you on the right path for a well designed article or page.\n- PepsiCo Corporate Brand Guidelines: Click here to visit the portal for up-to-date information on all things PepsiCo brand, asset downloads, instructions, and design best practices.\n- Knowledge vs Content: Here you’ll find out what criteria determines how we classify, content vs knowledge for MyPepsiCo."
+      },
+      {
+        "id": "next-steps",
+        "type": "text",
+        "title": "Next Steps",
+        "body": "- Audit Interface Controls: Check your active forms and application pages to verify that every single touchpoint matches the 44 × 44 px hit target threshold.\n- Execute a Color Contrast Sweep: Run background checks on all dark and light themes to ensure the elimination of stark pure black and white values.\n- Map Structural Headings: Audit draft layouts across active devices to ensure that heading levels progress sequentially from H1 down to H6 without skipping milestones, maximizing screen-reader compatibility."
+      }
+    ]
+  },
+  {
+    "id": "ka-cog-create-policy",
+    "title": "How to create and format a new policy",
+    "contentType": "Policy",
+    "knowledgeBase": "mypepsico",
+    "sector": "global",
+    "market": "Global",
+    "countries": [
+      "US",
+      "CA",
+      "MX",
+      "BR",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "How to create and format a new policy",
+      "metaDescription": "## What do you need to know\nThis tutorial provides Human Resources Business Partners (HRBPs) with a comprehensive, step-by-step walkthrough to create, f",
+      "keywords": [
+        "create policy",
+        "Amaze Builder",
+        "ServiceNow",
+        "policy article"
+      ],
+      "summary": "## What do you need to know\nThis tutorial provides Human Resources Business Partners (HRBPs) with a comprehensive, step-by-step walkthrough to create, format, and publish a new policy article within the myServices portal using ServiceNow and the Amaze Article Builder. Following this standardized framework ensures your policy content remains compliant with we",
+      "keyQuestions": [
+        "How do I create a policy article in ServiceNow?",
+        "Which fields are required before policy approval?"
+      ],
+      "entities": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ]
+    },
+    "globalJustification": "This content-governance guidance applies to myPepsiCo content owners in every region.",
+    "lead": "## What do you need to know\nThis tutorial provides Human Resources Business Partners (HRBPs) with a comprehensive, step-by-step walkthrough to create, format, and publish a new policy article within the myServices portal using ServiceNow and the Amaze Article Builder. Following this standardized framework ensures your policy content remains compliant with web accessibility laws (WCAG 2.1 Level AA), seamlessly renders on mobile devices, and is fully discoverable via global search and the askpep conversational AI agent.",
+    "canonicalSlug": "how-to-create-and-format-a-new-policy",
+    "aliases": [
+      "create policy",
+      "Amaze Builder",
+      "ServiceNow",
+      "policy article",
+      "How do I create a policy article in ServiceNow",
+      "Which fields are required before policy approval"
+    ],
+    "topics": [
+      "Content governance",
+      "Content owner training",
+      "create policy",
+      "Amaze Builder",
+      "Policy",
+      "myPepsiCo",
+      "ServiceNow",
+      "Ask Pep",
+      "policy article"
+    ],
+    "references": [
+      {
+        "id": "ref-ka-cog-create-policy",
+        "title": "COG-How-To-Create-A-Policy.doc",
+        "kind": "doc",
+        "filePath": "COG-How-To-Create-A-Policy.doc",
+        "source": "submission",
+        "excerpt": "## What do you need to know\nThis tutorial provides Human Resources Business Partners (HRBPs) with a comprehensive, step-by-step walkthrough to create, format, and publish a new policy article within the myServices portal using ServiceNow and the Amaze Article Builder. Following this standardized framework ensures your policy content remains compliant with web accessibility laws (WCAG 2.1 Level AA), seamlessly renders",
+        "addedAt": "2026-08-29T16:45:00.000Z",
+        "addedBy": "Marco Diaz"
+      }
+    ],
+    "relatedArticleIds": [
+      "ka-cog-content-design",
+      "ka-cog-optimization",
+      "ka-cog-accessibility",
+      "ka-cog-microsite"
+    ],
+    "visibility": {
+      "audiences": [
+        "Content owners"
+      ],
+      "markets": [
+        "global"
+      ],
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "canRead": [
+        "myPepsiCo content owners"
+      ],
+      "cannotRead": [],
+      "security": "restricted",
+      "notes": "Available to authenticated myPepsiCo content owners across regions."
+    },
+    "owner": "Marco Diaz",
+    "nextReviewAt": "2027-02-28T18:00:00.000Z",
+    "body": "# How to create and format a new policy\n\n## What do you need to know\nThis tutorial provides Human Resources Business Partners (HRBPs) with a comprehensive, step-by-step walkthrough to create, format, and publish a new policy article within the myServices portal using ServiceNow and the Amaze Article Builder. Following this standardized framework ensures your policy content remains compliant with web accessibility laws (WCAG 2.1 Level AA), seamlessly renders on mobile devices, and is fully discoverable via global search and the askpep conversational AI agent.\n\n## Step-by-Step Instructions\n### Step 1: Create a New Article Form in the Backend\nNavigate to the ServiceNow backend by visiting https://pepsico.service-now.com/ or accessing the Knowledge Center via the myServices portal.\nOn the Knowledge Home page, click All.\nType \"Create New\" in the navigation search bar.\nScroll to the Knowledge section and click the Create New option.\nSelect your designated Knowledge Base from the menu (use the built-in search bar if necessary).\nUnder the Article Template configuration, choose Standard and click Next.\n\n### Step 2: Complete the \"Golden Fields\" and Metadata\nTo ensure correct audience filtering and AI indexing, fill in the required administrative form details:\nFill Out Audience Targeting (The \"Golden Fields\"): Configure the five core targeting fields exactly—Language, Country, Sector, Can Read, and Cannot Read.\nSet Ownership & Governance Fields: Explicitly fill out the form fields defining the policy Owner, Approver, Effective Date, Version Control, and Lifecycle Review Milestones.\nEnable askpep Virtual Agent: Manually check the box labeled \"VA Ready\" in your backend myServices settings. This grants explicit authorization for the askpep bot to index, digest, and summarize your policy text for conversational employee inquiries.\nClick Save to create and log the base backend article.\n\n### Step 3: Upload Supplementary Policy Attachments\nIf your knowledge article references official policy manuals, forms, or downloadable sheets, attach them before entering the visual canvas layout:\nEnsure you are viewing the principal article form layout (exit Fullscreen mode if active).\nLocate the top header tools panel and click the Manage Attachments icon (represented by a paperclip utility).\nClick Choose File, select your target PDF or document from your device directory, and select Open. Note: The attached document will load into the header and automatically display on the right-hand panel of the live portal page.\n\n### Step 4: Design and Format in the Amaze Builder Canvas\nScroll down to the main Article Body section of the backend article form.\nClick the Edit in Amaze Builder button to launch the visual design interface.\nClick on the Templates icon to open the templates sidebar tray.\nSelect the myPepsiCo tab to reveal pre-populated, approved corporate templates.\nSelect and insert the HR Business Partner Policy Template.\nPopulate the text blocks using the interactive, floating Settings / Styles panel to modify your layout. Use the standard blueprint fields:\nDescription (Purpose, When HR should use it, and Key Principles)\nEligibility and Scope (Covered populations, exclusions, and variations)\nRelated Content & Resources\nClick Save on the canvas editor tool to commit the formatting layers into the article placeholder.\n\n## Dos & Don'ts\n## Dos\nDO Leverage Out-of-the-Box (OOB) Templates: Rely entirely on the pre-populated templates in the myPepsiCo workspace tab to preserve mobile responsive rendering metrics.\nDO Use Vertical Stacking: Always leverage vertical alignment blocks rather than complex multi-column horizontal structures to ensure text doesn't wrap or clip on mobile layouts.\nDO Hyperlink with Action Text: Ensure every external reference is an action-oriented hyperlink title descriptor (e.g., [myServices Knowledge Operations Guide]) rather than a raw, exposed SharePoint folder path.\nDO Write Descriptive Headings: Keep your section headers clear, natural, and descriptive to assist human scanning and semantic AI search comprehension.\n## Don'ts\nDON'T Forget to Spell Out Acronyms: Never use shorthand acronyms without explicitly defining them in full on their first mention within the article text.\nDON'T Copy-Paste Raw Layout Formatting: Avoid forcing hardcoded layouts; keep text structures straightforward within the template blocks to guarantee platform accessibility.\nDON'T Leave Content Un-reviewed: Never submit a policy without defining a recurring validation checkpoint (Annual or Semiannual lifecycle review date) to prevent stale information rot.\n\n## Resources\nLearning from a Great Policy Layout: See a gold standard policy example to help you determine if you’re on the right path with yours.\nDesigning for All by Designing First for Accessibility: Click here to access a comprehensive guide on tips, best practices, and more on how to make sure you create is inclusive and accessible to all PepsiCo employees.\nContent Optimization: Standard toolbar workspace outlining text hierarchies (H1–H6), table parameters, and link embedding controls.\n\n## Next Steps\nDraft Content Strategy: Consolidate your core policy text into immediate, active-voice statements, ensuring thin content (under 500 characters) is merged into broader topics.\nVerify User Criteria: Open the myServices backend form and validate that your primary audience restrictions, location rules, and language scopes match your intended group.\nActivate the Review Workflow: Once your Amaze canvas layout is saved, click submit to switch the article state into Review, which alerts the Level 1 Approver to verify and publish the policy to the portal.",
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico",
+      "sector": "global",
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "writtenLanguage": "en-US",
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "Content owners"
+      ],
+      "contentType": "Policy",
+      "topics": [
+        "Content governance",
+        "Content owner training",
+        "create policy",
+        "Amaze Builder",
+        "Policy",
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep",
+        "policy article"
+      ],
+      "businessTerms": [
+        "create policy",
+        "Amaze Builder",
+        "ServiceNow",
+        "policy article"
+      ],
+      "systems": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ],
+      "processes": [
+        "How do I create a policy article in ServiceNow",
+        "Which fields are required before policy approval"
+      ]
+    },
+    "relationships": [
+      {
+        "targetArticleId": "ka-cog-content-design",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-optimization",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-accessibility",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-microsite",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      }
+    ],
+    "submittedBy": {
+      "name": "Marco Diaz",
+      "email": "marco.diaz@pepsico.com"
+    },
+    "submittedAt": "2026-08-29T16:45:00.000Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "reviewedAt": null,
+    "version": 1,
+    "autoApproveCandidate": true,
+    "metrics": {
+      "views30d": 0,
+      "viewsAllTime": 0,
+      "trend": "up",
+      "averageEngagementSeconds": 0,
+      "scrollDepthPercent": 0
+    },
+    "feedback": {
+      "helpful": 0,
+      "notHelpful": 0,
+      "shares": 0,
+      "comments": []
+    },
+    "approvalResults": [
+      {
+        "id": "required-fields",
+        "label": "Required metadata is complete",
+        "severity": "ok"
+      },
+      {
+        "id": "accessible-structure",
+        "label": "Accessible article structure",
+        "severity": "ok"
+      },
+      {
+        "id": "approver",
+        "label": "Assigned approver: Alfonso Ibarra",
+        "severity": "ok"
+      }
+    ],
+    "sections": [
+      {
+        "id": "what-do-you-need-to-know",
+        "type": "text",
+        "title": "What do you need to know",
+        "body": "This tutorial provides Human Resources Business Partners (HRBPs) with a comprehensive, step-by-step walkthrough to create, format, and publish a new policy article within the myServices portal using ServiceNow and the Amaze Article Builder. Following this standardized framework ensures your policy content remains compliant with web accessibility laws (WCAG 2.1 Level AA), seamlessly renders on mobile devices, and is fully discoverable via global search and the askpep conversational AI agent."
+      },
+      {
+        "id": "step-by-step-instructions",
+        "type": "accordion",
+        "title": "Step-by-Step Instructions",
+        "items": [
+          {
+            "id": "step-1",
+            "title": "Step 1: Create a New Article Form in the Backend",
+            "body": "Navigate to the ServiceNow backend by visiting https://pepsico.service-now.com/ or accessing the Knowledge Center via the myServices portal.\nOn the Knowledge Home page, click All.\nType \"Create New\" in the navigation search bar.\nScroll to the Knowledge section and click the Create New option.\nSelect your designated Knowledge Base from the menu (use the built-in search bar if necessary).\nUnder the Article Template configuration, choose Standard and click Next."
+          },
+          {
+            "id": "step-2",
+            "title": "Step 2: Complete the \"Golden Fields\" and Metadata",
+            "body": "To ensure correct audience filtering and AI indexing, fill in the required administrative form details:\nFill Out Audience Targeting (The \"Golden Fields\"): Configure the five core targeting fields exactly—Language, Country, Sector, Can Read, and Cannot Read.\nSet Ownership & Governance Fields: Explicitly fill out the form fields defining the policy Owner, Approver, Effective Date, Version Control, and Lifecycle Review Milestones.\nEnable askpep Virtual Agent: Manually check the box labeled \"VA Ready\" in your backend myServices settings. This grants explicit authorization for the askpep bot to index, digest, and summarize your policy text for conversational employee inquiries.\nClick Save to create and log the base backend article."
+          },
+          {
+            "id": "step-3",
+            "title": "Step 3: Upload Supplementary Policy Attachments",
+            "body": "If your knowledge article references official policy manuals, forms, or downloadable sheets, attach them before entering the visual canvas layout:\nEnsure you are viewing the principal article form layout (exit Fullscreen mode if active).\nLocate the top header tools panel and click the Manage Attachments icon (represented by a paperclip utility).\nClick Choose File, select your target PDF or document from your device directory, and select Open. Note: The attached document will load into the header and automatically display on the right-hand panel of the live portal page."
+          },
+          {
+            "id": "step-4",
+            "title": "Step 4: Design and Format in the Amaze Builder Canvas",
+            "body": "Scroll down to the main Article Body section of the backend article form.\nClick the Edit in Amaze Builder button to launch the visual design interface.\nClick on the Templates icon to open the templates sidebar tray.\nSelect the myPepsiCo tab to reveal pre-populated, approved corporate templates.\nSelect and insert the HR Business Partner Policy Template.\nPopulate the text blocks using the interactive, floating Settings / Styles panel to modify your layout. Use the standard blueprint fields:\nDescription (Purpose, When HR should use it, and Key Principles)\nEligibility and Scope (Covered populations, exclusions, and variations)\nRelated Content & Resources\nClick Save on the canvas editor tool to commit the formatting layers into the article placeholder."
+          }
+        ]
+      },
+      {
+        "id": "dos-donts-table",
+        "type": "table",
+        "title": "Dos & Don'ts",
+        "columns": [
+          {
+            "id": "do",
+            "header": "Do"
+          },
+          {
+            "id": "dont",
+            "header": "Don't"
+          }
+        ],
+        "rows": [
+          {
+            "id": "dos-donts",
+            "cells": {
+              "do": "- Leverage Out-of-the-Box (OOB) Templates: Rely entirely on the pre-populated templates in the myPepsiCo workspace tab to preserve mobile responsive rendering metrics.\n- Use Vertical Stacking: Always leverage vertical alignment blocks rather than complex multi-column horizontal structures to ensure text doesn't wrap or clip on mobile layouts.\n- Hyperlink with Action Text: Ensure every external reference is an action-oriented hyperlink title descriptor (e.g., [myServices Knowledge Operations Guide]) rather than a raw, exposed SharePoint folder path.\n- Write Descriptive Headings: Keep your section headers clear, natural, and descriptive to assist human scanning and semantic AI search comprehension.",
+              "dont": "- Forget to Spell Out Acronyms: Never use shorthand acronyms without explicitly defining them in full on their first mention within the article text.\n- Copy-Paste Raw Layout Formatting: Avoid forcing hardcoded layouts; keep text structures straightforward within the template blocks to guarantee platform accessibility.\n- Leave Content Un-reviewed: Never submit a policy without defining a recurring validation checkpoint (Annual or Semiannual lifecycle review date) to prevent stale information rot."
+            }
+          }
+        ]
+      },
+      {
+        "id": "resources",
+        "type": "text",
+        "title": "Resources",
+        "body": "- Learning from a Great Policy Layout: See a gold standard policy example to help you determine if you’re on the right path with yours.\n- Designing for All by Designing First for Accessibility: Click here to access a comprehensive guide on tips, best practices, and more on how to make sure you create is inclusive and accessible to all PepsiCo employees.\n- Content Optimization: Standard toolbar workspace outlining text hierarchies (H1–H6), table parameters, and link embedding controls."
+      },
+      {
+        "id": "next-steps",
+        "type": "text",
+        "title": "Next Steps",
+        "body": "- Draft Content Strategy: Consolidate your core policy text into immediate, active-voice statements, ensuring thin content (under 500 characters) is merged into broader topics.\n- Verify User Criteria: Open the myServices backend form and validate that your primary audience restrictions, location rules, and language scopes match your intended group.\n- Activate the Review Workflow: Once your Amaze canvas layout is saved, click submit to switch the article state into Review, which alerts the Level 1 Approver to verify and publish the policy to the portal."
+      }
+    ]
+  },
+  {
+    "id": "ka-cog-microsite",
+    "title": "MyPepsiCo microsite qualification checklist",
+    "contentType": "Knowledge Article",
+    "knowledgeBase": "mypepsico-general",
+    "sector": "global",
+    "market": "Global",
+    "countries": [
+      "US",
+      "CA",
+      "MX",
+      "BR",
+      "GB",
+      "IN"
+    ],
+    "seo": {
+      "title": "MyPepsiCo microsite qualification checklist",
+      "metaDescription": "## What do you need to know\nOur digital platform strategy is engineered to minimize duplication and prevent employee portal fragmentation. Most internal",
+      "keywords": [
+        "microsite",
+        "qualification checklist",
+        "content intake",
+        "governance"
+      ],
+      "summary": "## What do you need to know\nOur digital platform strategy is engineered to minimize duplication and prevent employee portal fragmentation. Most internal communications, tools, and resources must utilize standard out-of-the-box (OOB) templates, such as singular Knowledge Articles (KAs) or central Topic Pages.\nA Microsite is a standalone, multi-page interconne",
+      "keyQuestions": [
+        "When does content qualify for a MyPepsiCo microsite?",
+        "What governance commitments are required for a microsite?"
+      ],
+      "entities": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ]
+    },
+    "globalJustification": "This content-governance guidance applies to myPepsiCo content owners in every region.",
+    "lead": "## What do you need to know\nOur digital platform strategy is engineered to minimize duplication and prevent employee portal fragmentation. Most internal communications, tools, and resources must utilize standard out-of-the-box (OOB) templates, such as singular Knowledge Articles (KAs) or central Topic Pages.\nA Microsite is a standalone, multi-page interconnected content ecosystem reserved exclusively for highly complex initiatives. To protect engineering capacity, the Digital Employee Experience (DEEx) team only approves microsite requests that clear the mandatory qualification gates and directly align with our core strategic \"Big Rocks\". Projects that fail to meet these criteria are inherently considered low-impact for a custom build and must be deployed using standard OOB portal components.",
+    "canonicalSlug": "mypepsico-microsite-qualification-checklist",
+    "aliases": [
+      "microsite",
+      "qualification checklist",
+      "content intake",
+      "governance"
+    ],
+    "topics": [
+      "Content governance",
+      "Content owner training",
+      "microsite",
+      "qualification checklist"
+    ],
+    "references": [
+      {
+        "id": "ref-ka-cog-microsite",
+        "title": "COG-Microsite-Checklist.docx",
+        "kind": "doc",
+        "filePath": "COG-Microsite-Checklist.docx",
+        "source": "submission",
+        "excerpt": "## What do you need to know\nOur digital platform strategy is engineered to minimize duplication and prevent employee portal fragmentation. Most internal communications, tools, and resources must utilize standard out-of-the-box (OOB) templates, such as singular Knowledge Articles (KAs) or central Topic Pages.\nA Microsite is a standalone, multi-page interconnected content ecosystem reserved exclusively for highly compl",
+        "addedAt": "2026-09-02T14:10:00.000Z",
+        "addedBy": "Sofia Gonzalez"
+      }
+    ],
+    "relatedArticleIds": [
+      "ka-cog-content-design",
+      "ka-cog-optimization",
+      "ka-cog-accessibility",
+      "ka-cog-create-policy"
+    ],
+    "visibility": {
+      "audiences": [
+        "Content owners"
+      ],
+      "markets": [
+        "global"
+      ],
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "canRead": [
+        "myPepsiCo content owners"
+      ],
+      "cannotRead": [],
+      "security": "restricted",
+      "notes": "Available to authenticated myPepsiCo content owners across regions."
+    },
+    "owner": "Sofia Gonzalez",
+    "nextReviewAt": "2027-02-28T18:00:00.000Z",
+    "body": "# MyPepsiCo microsite qualification checklist\n\n## What do you need to know\nOur digital platform strategy is engineered to minimize duplication and prevent employee portal fragmentation. Most internal communications, tools, and resources must utilize standard out-of-the-box (OOB) templates, such as singular Knowledge Articles (KAs) or central Topic Pages.\nA Microsite is a standalone, multi-page interconnected content ecosystem reserved exclusively for highly complex initiatives. To protect engineering capacity, the Digital Employee Experience (DEEx) team only approves microsite requests that clear the mandatory qualification gates and directly align with our core strategic \"Big Rocks\". Projects that fail to meet these criteria are inherently considered low-impact for a custom build and must be deployed using standard OOB portal components.\n\n## The Core Qualification Criteria\nBefore a project can be accepted into the intake queue, the content owner must complete a self-service assessment against three primary pillars:\nStrategic \"Big Rock\" Alignment: The content must directly serve as a prioritized enterprise focus area.\nStructural Complexity: The information volume must exceed what a single structured page or tabbed layout can support.\nLifecycle Maintenance Commitment: The requesting business function must dedicate resources to actively govern the site until its designated end date.\n\n## Quick Wins\nAccelerate your review and minimize intake validation bottlenecks by performing these self-service checks before submitting your formal request:\n\nClassify Your Core Audience Persona First\n- The Quick Win: Explicitly define if your page architecture directly optimizes journeys for frontline personnel or targets enterprise onboarding workflows.\n- Why it matters: Clear audience definition allows the intake algorithm to instantly recognize alignment with strategic pillars, bypassing generic triage queues.\nCalculate Total Character Density\n- The Quick Win: Aggregate your planned text copy. Ensure the core standalone sub-sections easily sit in the 1,500 to 4,000 character sweet spot.\n- Why it matters: If your total text is thin (sub-500 characters), it will be flagged as a search \"ghost result\" and redirected to an existing parent layout.\n\nMap Security and Audience Scope\n- The Quick Win: Identify if your pages require strict visibility blocks (Can Read / Cannot Read) or are globally open to all sectors and regions.\n- Why it matters: Pre-configuring access criteria prevents architectural re-work during the wireframing phase.\n\n## Microsite Qualification Checklist\nContent owners must review and answer each section below. If any \"No\" answers are recorded, the project must utilize standard Knowledge Articles or Topic Pages instead.\n\n## Section 1: Strategic \"Big Rock\" Alignment\nDoes your project support at least one of the following enterprise pillars?\n\nFrontline Persona Flow: Does this experience simplify, streamline, or directly assist a Frontline employee's target operational journey?\nEmployee Onboarding Experience: Does this support new hires through early milestone setups, training paths, and cultural orientation phases?\nBenefits & HR Resource Centers: Does this house highly complex, structurally heavy healthcare, pay, policy, or corporate reward architectures?\nCore Employee Groups: Does this drive long-term engagement for critical affinity groups, resource networks, or major internal corporate communities?\nStrategic Exception Rule: If \"No\" to all four, does the DEEx leadership team explicitly determine that this project represents a new high-impact strategic unlock for PepsiCo?\n\n## Section 2: Technical Complexity & Architecture Rules\nDoes your content volume mathematically necessitate a multi-page site structure?\n\nThe 6,000+ Character Rule: Does your aggregate, non-duplicative body copy exceed 6,000 characters? (If your draft is under 4,000 characters, it should live as a standard Knowledge Article instead).\nNavigation Depth Limits: Does the content tree require a multi-level structure that avoids exceeding a maximum depth of Level 6 (L6) in the navigation menus?\nLayout Limitations Check: Have you verified that your material cannot be cleanly bucketed into an out-of-the-box Topic Page landing layout using embedded UI elements like accordions, tabs, or quick links?\n\n## Section 3: Governance & Lifecycle Health Commitments\nIs your business unit prepared to enforce continuous maintenance standards?\n\nFunctional Ownership: Does your business function take absolute, ongoing operational ownership of all published text fields and media within this workspace?\nLifecycle Audit Agreement: Do you agree to a standard annual review timeline, acknowledging that if the site goes completely inactive or underperforms for 12 continuous months, it will be automatically deleted and redirected?\nAsset and Media Compliance: Are all supporting attachment files properly prepared to stay under the 35 MB server limit, using approved, searchable formats (PDF, Word, Excel, PPT) with unique file names?\n\n## Dos & Don'ts\n## DO\nDO Complete an Existing Inventory Audit: Always search for active portal spaces before filing a request to ensure your division isn't creating duplicate content footprints.\nDO Maintain Standard Widget Geometry: Ensure any custom homepages respect template parameters: left-hand navigation components must stay on the left, and Quick Links or Videos blocks must remain on the right.\nDO Plan for Dynamic Translation Rules: Keep sentences short (under 20 words) and completely clear of regional slang or cultural idioms so the site can scale effortlessly across global markets.\n\n## DON'T\nDON'T Request Microsites for Single-Link Repositories: Never request a standalone multi-page network simply to link to an external document or host an isolated data block.\nDON'T Embed Critical Copy in Graphics: Never bake instructional text or rules exclusively into uploaded banners, process maps, or inline images, as search spiders and AI conversational bots cannot crawl image file pixels.\nDON'T Skip the Formal Review Gates: Never attempt to configure or deploy custom cross-portal frameworks independently without explicit DEEx structural authorization.\n\n## Resources\nMicrosite Intake Process: Learn more on how microsites requests are processed on MyPepsiCo.\nKnowledge vs Content: Here you’ll find out what criteria determines how we classify, content vs knowledge for MyPepsiCo.\nReviewing your options for MyPepsiCo: Find out more information on the true differences between an Knowledge Article, Topic Page, and Microsite.\n\n## Next Steps\nExecute the Checklist Evaluation: Grade your content portfolio against the three mandatory checklist tables above to confirm eligibility.\nSubmit to the Triage Queue: If your project fully meets the qualification guidelines, submit your formal intake file through the Knowledge Base portal in myServices.\nPrepare Your Structural Inventory: Gather all text strings, link sheets, and asset files, and expand any standalone acronyms on first use to ensure your material is completely AI-ready for the initial design consultation.",
+    "taxonomy": {
+      "knowledgeBaseId": "mypepsico-general",
+      "sector": "global",
+      "countries": [
+        "US",
+        "CA",
+        "MX",
+        "BR",
+        "GB",
+        "IN"
+      ],
+      "writtenLanguage": "en-US",
+      "languagesRequired": [
+        "en-US"
+      ],
+      "audiences": [
+        "Content owners"
+      ],
+      "contentType": "Knowledge Article",
+      "topics": [
+        "Content governance",
+        "microsite",
+        "qualification checklist",
+        "content intake",
+        "governance"
+      ],
+      "businessTerms": [
+        "microsite",
+        "qualification checklist",
+        "content intake",
+        "governance"
+      ],
+      "systems": [
+        "myPepsiCo",
+        "ServiceNow",
+        "Ask Pep"
+      ],
+      "processes": [
+        "When does content qualify for a MyPepsiCo microsite",
+        "What governance commitments are required for a microsite"
+      ]
+    },
+    "relationships": [
+      {
+        "targetArticleId": "ka-cog-content-design",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-optimization",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-accessibility",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      },
+      {
+        "targetArticleId": "ka-cog-create-policy",
+        "relationshipType": "relatedTo",
+        "confidence": 0.82,
+        "reason": "Part of the same Content Owner Guide series."
+      }
+    ],
+    "submittedBy": {
+      "name": "Sofia Gonzalez",
+      "email": "sofia.gonzalez@pepsico.com"
+    },
+    "submittedAt": "2026-09-02T14:10:00.000Z",
+    "status": "needs-review",
+    "complianceIssues": [],
+    "reviewedAt": null,
+    "version": 1,
+    "autoApproveCandidate": true,
+    "approvalResults": [
+      {
+        "id": "required-fields",
+        "label": "Required metadata is complete",
+        "severity": "ok"
+      },
+      {
+        "id": "accessible-structure",
+        "label": "Accessible article structure",
+        "severity": "ok"
+      },
+      {
+        "id": "approver",
+        "label": "Assigned approver: Alfonso Ibarra",
+        "severity": "ok"
+      }
+    ],
+    "metrics": {
+      "views30d": 0,
+      "viewsAllTime": 0,
+      "trend": "up",
+      "averageEngagementSeconds": 0,
+      "scrollDepthPercent": 0
+    },
+    "feedback": {
+      "helpful": 0,
+      "notHelpful": 0,
+      "shares": 0,
+      "comments": []
+    },
+    "sections": [
+      {
+        "id": "what-do-you-need-to-know",
+        "type": "text",
+        "title": "What do you need to know",
+        "body": "Our digital platform strategy is engineered to minimize duplication and prevent employee portal fragmentation. Most internal communications, tools, and resources must utilize standard out-of-the-box (OOB) templates, such as singular Knowledge Articles (KAs) or central Topic Pages.\nA Microsite is a standalone, multi-page interconnected content ecosystem reserved exclusively for highly complex initiatives. To protect engineering capacity, the Digital Employee Experience (DEEx) team only approves microsite requests that clear the mandatory qualification gates and directly align with our core strategic \"Big Rocks\". Projects that fail to meet these criteria are inherently considered low-impact for a custom build and must be deployed using standard OOB portal components."
+      },
+      {
+        "id": "the-core-qualification-criteria",
+        "type": "text",
+        "title": "The Core Qualification Criteria",
+        "body": "Before a project can be accepted into the intake queue, the content owner must complete a self-service assessment against three primary pillars:\nStrategic \"Big Rock\" Alignment: The content must directly serve as a prioritized enterprise focus area.\nStructural Complexity: The information volume must exceed what a single structured page or tabbed layout can support.\nLifecycle Maintenance Commitment: The requesting business function must dedicate resources to actively govern the site until its designated end date."
+      },
+      {
+        "id": "quick-wins",
+        "type": "text",
+        "title": "Quick Wins",
+        "body": "Accelerate your review and minimize intake validation bottlenecks by performing these self-service checks before submitting your formal request:\n\nClassify Your Core Audience Persona First\n- The Quick Win: Explicitly define if your page architecture directly optimizes journeys for frontline personnel or targets enterprise onboarding workflows.\n- Why it matters: Clear audience definition allows the intake algorithm to instantly recognize alignment with strategic pillars, bypassing generic triage queues.\nCalculate Total Character Density\n- The Quick Win: Aggregate your planned text copy. Ensure the core standalone sub-sections easily sit in the 1,500 to 4,000 character sweet spot.\n- Why it matters: If your total text is thin (sub-500 characters), it will be flagged as a search \"ghost result\" and redirected to an existing parent layout.\n\nMap Security and Audience Scope\n- The Quick Win: Identify if your pages require strict visibility blocks (Can Read / Cannot Read) or are globally open to all sectors and regions.\n- Why it matters: Pre-configuring access criteria prevents architectural re-work during the wireframing phase."
+      },
+      {
+        "id": "microsite-qualification-checklist",
+        "type": "text",
+        "title": "Microsite Qualification Checklist",
+        "body": "Content owners must review and answer each section below. If any \"No\" answers are recorded, the project must utilize standard Knowledge Articles or Topic Pages instead."
+      },
+      {
+        "id": "section-1-strategic-big-rock-alignment",
+        "type": "text",
+        "title": "Section 1: Strategic \"Big Rock\" Alignment",
+        "body": "Does your project support at least one of the following enterprise pillars?\n\nFrontline Persona Flow: Does this experience simplify, streamline, or directly assist a Frontline employee's target operational journey?\nEmployee Onboarding Experience: Does this support new hires through early milestone setups, training paths, and cultural orientation phases?\nBenefits & HR Resource Centers: Does this house highly complex, structurally heavy healthcare, pay, policy, or corporate reward architectures?\nCore Employee Groups: Does this drive long-term engagement for critical affinity groups, resource networks, or major internal corporate communities?\nStrategic Exception Rule: If \"No\" to all four, does the DEEx leadership team explicitly determine that this project represents a new high-impact strategic unlock for PepsiCo?"
+      },
+      {
+        "id": "section-2-technical-complexity-architecture-rules",
+        "type": "text",
+        "title": "Section 2: Technical Complexity & Architecture Rules",
+        "body": "Does your content volume mathematically necessitate a multi-page site structure?\n\nThe 6,000+ Character Rule: Does your aggregate, non-duplicative body copy exceed 6,000 characters? (If your draft is under 4,000 characters, it should live as a standard Knowledge Article instead).\nNavigation Depth Limits: Does the content tree require a multi-level structure that avoids exceeding a maximum depth of Level 6 (L6) in the navigation menus?\nLayout Limitations Check: Have you verified that your material cannot be cleanly bucketed into an out-of-the-box Topic Page landing layout using embedded UI elements like accordions, tabs, or quick links?"
+      },
+      {
+        "id": "section-3-governance-lifecycle-health-commitments",
+        "type": "text",
+        "title": "Section 3: Governance & Lifecycle Health Commitments",
+        "body": "Is your business unit prepared to enforce continuous maintenance standards?\n\nFunctional Ownership: Does your business function take absolute, ongoing operational ownership of all published text fields and media within this workspace?\nLifecycle Audit Agreement: Do you agree to a standard annual review timeline, acknowledging that if the site goes completely inactive or underperforms for 12 continuous months, it will be automatically deleted and redirected?\nAsset and Media Compliance: Are all supporting attachment files properly prepared to stay under the 35 MB server limit, using approved, searchable formats (PDF, Word, Excel, PPT) with unique file names?"
+      },
+      {
+        "id": "dos-donts-table",
+        "type": "table",
+        "title": "Dos & Don'ts",
+        "columns": [
+          {
+            "id": "do",
+            "header": "Do"
+          },
+          {
+            "id": "dont",
+            "header": "Don't"
+          }
+        ],
+        "rows": [
+          {
+            "id": "dos-donts",
+            "cells": {
+              "do": "- Complete an Existing Inventory Audit: Always search for active portal spaces before filing a request to ensure your division isn't creating duplicate content footprints.\n- Maintain Standard Widget Geometry: Ensure any custom homepages respect template parameters: left-hand navigation components must stay on the left, and Quick Links or Videos blocks must remain on the right.\n- Plan for Dynamic Translation Rules: Keep sentences short (under 20 words) and completely clear of regional slang or cultural idioms so the site can scale effortlessly across global markets.",
+              "dont": "- Request Microsites for Single-Link Repositories: Never request a standalone multi-page network simply to link to an external document or host an isolated data block.\n- Embed Critical Copy in Graphics: Never bake instructional text or rules exclusively into uploaded banners, process maps, or inline images, as search spiders and AI conversational bots cannot crawl image file pixels.\n- Skip the Formal Review Gates: Never attempt to configure or deploy custom cross-portal frameworks independently without explicit DEEx structural authorization."
+            }
+          }
+        ]
+      },
+      {
+        "id": "resources",
+        "type": "text",
+        "title": "Resources",
+        "body": "- Microsite Intake Process: Learn more on how microsites requests are processed on MyPepsiCo.\n- Knowledge vs Content: Here you’ll find out what criteria determines how we classify, content vs knowledge for MyPepsiCo.\n- Reviewing your options for MyPepsiCo: Find out more information on the true differences between an Knowledge Article, Topic Page, and Microsite."
+      },
+      {
+        "id": "next-steps",
+        "type": "text",
+        "title": "Next Steps",
+        "body": "- Execute the Checklist Evaluation: Grade your content portfolio against the three mandatory checklist tables above to confirm eligibility.\n- Submit to the Triage Queue: If your project fully meets the qualification guidelines, submit your formal intake file through the Knowledge Base portal in myServices.\n- Prepare Your Structural Inventory: Gather all text strings, link sheets, and asset files, and expand any standalone acronyms on first use to ensure your material is completely AI-ready for the initial design consultation."
+      }
+    ]
+  },
+  {
     "id": "ka-687d18bc",
     "jobId": "job-9e07a2fe",
     "title": "qewrwe",

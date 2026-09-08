@@ -118,6 +118,18 @@ export default function ArticleDocument({
   const isEditable = !!onEdit;
   const editableTitle = titleProp ?? title;
   const editableLead = lead ?? "";
+  const normalizedLead = editableLead
+    .replace(/^#{1,6}\s+[^\n]+\n+/, "")
+    .trim();
+  const firstStructuredBody =
+    structuredSections?.[0]?.type === "text"
+      ? structuredSections[0].body.trim()
+      : "";
+  const displayLead =
+    firstStructuredBody &&
+    normalizedLead.replace(/\s+/g, " ") === firstStructuredBody.replace(/\s+/g, " ")
+      ? ""
+      : normalizedLead;
   const faqSectionBg = "#3680CE";
 
   const editButton = (key: string) => {
@@ -383,7 +395,7 @@ export default function ArticleDocument({
             )}
           </Stack>
         )}
-        {(lead || editingKey === "lead" || leadRecommendations.length > 0) && (
+        {(displayLead || editingKey === "lead" || leadRecommendations.length > 0) && (
           <Box sx={editableBlockSx}>
             {editingKey === "lead" && onLeadChange ? (
               <Stack spacing={1}>
@@ -420,7 +432,7 @@ export default function ArticleDocument({
               mb: 2.25,
             }}
           >
-            {lead}
+            {displayLead}
           </Typography>
                 {editButton("lead")}
                 {recommendationCallouts(leadRecommendations)}
@@ -859,10 +871,9 @@ export function StructuredArticleSections({ sections }: { sections: ArticleSecti
           return (
             <Box key={section.id}>
               {headingNode}
-              {items.map((item, index) => (
+              {items.map((item) => (
                 <Accordion
                   key={item.id}
-                  defaultExpanded={index === 0}
                   disableGutters
                   elevation={0}
                   sx={{
@@ -890,6 +901,7 @@ export function StructuredArticleSections({ sections }: { sections: ArticleSecti
                         alignItems: "center",
                       },
                       "& .MuiAccordionSummary-content.Mui-expanded": { my: 0.75 },
+                      "& .MuiTypography-root, & svg": { color: "#FFFFFF !important" },
                     }}
                   >
                     <Typography sx={{ fontFamily: theme.palette.fonts.articleBody, fontSize: "1rem", fontWeight: 600, color: "#FFFFFF" }}>
@@ -923,10 +935,9 @@ export function StructuredArticleSections({ sections }: { sections: ArticleSecti
           return (
             <Box key={section.id}>
               {headingNode}
-              {items.map((item, index) => (
+              {items.map((item) => (
                 <Accordion
                   key={item.id}
-                  defaultExpanded={index === 0}
                   disableGutters
                   elevation={0}
                   sx={{
@@ -954,6 +965,7 @@ export function StructuredArticleSections({ sections }: { sections: ArticleSecti
                         alignItems: "center",
                       },
                       "& .MuiAccordionSummary-content.Mui-expanded": { my: 0.75 },
+                      "& .MuiTypography-root, & svg": { color: "#FFFFFF !important" },
                     }}
                   >
                     <Typography sx={{ fontFamily: theme.palette.fonts.articleBody, fontSize: "1rem", fontWeight: 600, color: "#FFFFFF" }}>
@@ -1009,7 +1021,18 @@ export function StructuredArticleSections({ sections }: { sections: ArticleSecti
                         <Box key={row.id} component="tr">
                           {columns.map((column) => (
                             <Box key={column.id} component="td">
-                              {row.cells[column.id] ?? ""}
+                              <Box
+                                sx={{
+                                  "& p": { m: 0 },
+                                  "& ul": { my: 0, pl: 2.5 },
+                                  "& li": { mb: 0.75 },
+                                  "& li:last-child": { mb: 0 },
+                                }}
+                              >
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {row.cells[column.id] ?? ""}
+                                </ReactMarkdown>
+                              </Box>
                             </Box>
                           ))}
                         </Box>

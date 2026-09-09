@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import {
   loadAll,
   loadById,
@@ -373,7 +373,8 @@ articlesRouter.post("/:id/revise-section", async (req, res) => {
 });
 
 // Phase E publish endpoint removed: approval is now an atomic operation
-// inside PATCH /:id/review (see below). The source Article moves to
+// inside POST /:id/review (with PATCH kept for compatibility; see below).
+// The source Article moves to
 // status="published" in the same transaction that creates the
 // PublishedArticle, so a separate publish call has no role.
 
@@ -426,7 +427,7 @@ const REVIEW_ACTIONS = [
 ] as const;
 type ReviewAction = (typeof REVIEW_ACTIONS)[number];
 
-articlesRouter.patch("/:id/review", async (req, res) => {
+const handleArticleReview = async (req: Request<{ id: string }>, res: Response) => {
   const { status, reviewer, rejectionReason } = req.body as {
     status: ReviewAction;
     reviewer?: string;
@@ -532,7 +533,13 @@ articlesRouter.patch("/:id/review", async (req, res) => {
   };
   await upsert("articles", updated);
   res.json(updated);
-});
+};
+
+// Review is a command-style transition, so POST is the canonical method.
+// Keep PATCH during rollout so cached clients and older deployments remain
+// compatible instead of surfacing a method-not-allowed error.
+articlesRouter.post("/:id/review", handleArticleReview);
+articlesRouter.patch("/:id/review", handleArticleReview);
 
 /**
  * Resubmit a rejected article or requested-change revision for review. The current rejection (reason +
@@ -585,7 +592,7 @@ articlesRouter.post("/:id/resubmit", async (req, res) => {
 });
 
 /** Move an autonomous draft into the approver queue after author review. */
-articlesRouter.post("/:id/submit-for-approval", async (req, res) => {
+const handleSubmitForApproval = async (req: Request<{ id: string }>, res: Response) => {
   const article = await loadById<Article>("articles", req.params.id);
   if (!article) return res.status(404).json({ error: "not found" });
   if (article.status !== "needs-author-review") {
@@ -609,7 +616,10 @@ articlesRouter.post("/:id/submit-for-approval", async (req, res) => {
   };
   await upsert("articles", updated);
   res.json(updated);
-});
+};
+
+articlesRouter.post("/:id/submit-for-approval", handleSubmitForApproval);
+articlesRouter.patch("/:id/submit-for-approval", handleSubmitForApproval);
 
 articlesRouter.post("/:id/translate", async (req, res) => {
   const raw = ((req.body as { target?: string })?.target ?? "en").toLowerCase();

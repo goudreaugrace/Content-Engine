@@ -681,6 +681,21 @@ async function request<T>(url: string, opts: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+async function requestWithMethodFallback<T>(
+  url: string,
+  primary: RequestInit,
+  fallback: RequestInit,
+): Promise<T> {
+  try {
+    return await request<T>(url, primary);
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.startsWith("405 ")) {
+      throw error;
+    }
+    return request<T>(url, fallback);
+  }
+}
+
 export const api = {
   health: () => request<{ ok: boolean; mockMode: boolean }>("/api/health"),
 
@@ -701,15 +716,20 @@ export const api = {
       rejectionReason?: string;
       note?: string;
     },
-  ) =>
-    request<Article>(`/api/articles/${id}/review`, {
-      method: "PATCH",
-      body: JSON.stringify(body),
-    }),
+  ) => {
+    const requestBody = JSON.stringify(body);
+    return requestWithMethodFallback<Article>(
+      `/api/articles/${id}/review`,
+      { method: "POST", body: requestBody },
+      { method: "PATCH", body: requestBody },
+    );
+  },
   submitArticleForApproval: (id: string) =>
-    request<Article>(`/api/articles/${id}/submit-for-approval`, {
-      method: "POST",
-    }),
+    requestWithMethodFallback<Article>(
+      `/api/articles/${id}/submit-for-approval`,
+      { method: "POST" },
+      { method: "PATCH" },
+    ),
   updateArticle: (
     id: string,
     body: {

@@ -8,8 +8,8 @@ import {
   CircularProgress,
   Alert,
   Button,
+  ButtonBase,
   Card,
-  CardActionArea,
   Collapse,
   Divider,
   useTheme,
@@ -97,44 +97,38 @@ export default function AdminSectors() {
             const kids = countrysBySector.get(s.id) ?? [];
             return (
               <Card key={s.id} variant="outlined">
-                <CardActionArea
-                  onClick={() => toggle(s.id)}
-                  sx={{ "&:hover": { bgcolor: t.mist } }}
-                >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    spacing={2}
-                    sx={{ px: 2.5, py: 1.75 }}
+                <Stack direction="row" alignItems="stretch">
+                  <ButtonBase
+                    onClick={() => toggle(s.id)}
+                    aria-expanded={open}
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      px: 2.5,
+                      py: 1.75,
+                      justifyContent: "flex-start",
+                      textAlign: "left",
+                      "&:hover": { bgcolor: t.mist },
+                    }}
                   >
-                    <Stack direction="row" alignItems="baseline" spacing={1.5} minWidth={0}>
-                      <Typography
-                        sx={{ fontSize: "1rem", fontWeight: 500, color: t.ink }}
-                        noWrap
-                      >
-                        {s.name}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "0.75rem",
-                          color: t.slate,
-                          letterSpacing: "0.02em",
-                        }}
-                      >
-                        {kids.length} {kids.length === 1 ? "country" : "countrys"}
-                      </Typography>
-                    </Stack>
-                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <Button
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/admin/sectors/${s.id}`);
-                        }}
-                      >
-                        Edit sector
-                      </Button>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ width: "100%" }}>
+                      <Stack direction="row" alignItems="baseline" spacing={1.5} minWidth={0}>
+                        <Typography
+                          sx={{ fontSize: "1rem", fontWeight: 500, color: t.ink }}
+                          noWrap
+                        >
+                          {s.name}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: "0.75rem",
+                            color: t.slate,
+                            letterSpacing: "0.02em",
+                          }}
+                        >
+                          {kids.length} {kids.length === 1 ? "country" : "countrys"}
+                        </Typography>
+                      </Stack>
                       <KeyboardArrowDownIcon
                         sx={{
                           fontSize: 20,
@@ -144,8 +138,17 @@ export default function AdminSectors() {
                         }}
                       />
                     </Stack>
-                  </Stack>
-                </CardActionArea>
+                  </ButtonBase>
+                  <Box sx={{ display: "flex", alignItems: "center", pr: 1.5 }}>
+                    <Button
+                      size="small"
+                      onClick={() => navigate(`/admin/sectors/${s.id}`)}
+                      sx={{ color: t.productAccent.governance.ink }}
+                    >
+                      Edit sector
+                    </Button>
+                  </Box>
+                </Stack>
 
                 <Collapse in={open} timeout={200}>
                   <Divider />

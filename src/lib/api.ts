@@ -8,11 +8,12 @@ import { getDemoUser } from "./demo-users";
  * PublishedArticle, not the source.
  */
 export type ArticleStatus =
+  | "needs-author-review"
   | "needs-review"
   | "needs-info"
   | "rejected"
   | "published";
-export type ContentType = "FAQ" | "Policy" | "Knowledge Article" | "Topic Page";
+export type ContentType = "FAQ" | "Business info" | "How to" | "Policy";
 export type Market = "US" | "MX" | "BR" | "UK" | "IN" | "Global";
 
 export type JobStatus =
@@ -109,6 +110,8 @@ export type JobInput = {
   sections?: ArticleSection[];
   taxonomy?: ArticleTaxonomy;
   relationships?: ArticleRelationship[];
+  /** Source files supplied for autonomous drafting. */
+  references?: ArticleReference[];
   visibility?: ArticleVisibility;
   submittedBy: { name: string; email: string };
   approver?: { name: string; email: string; role?: string };
@@ -120,6 +123,8 @@ export type JobInput = {
   globalJustification?: string;
   /** Phase B: set when the duplicate-detection panel marks an existing article as the one being replaced. */
   replacesArticleId?: string;
+  /** Hands-off generation stops with the author, before the approver queue. */
+  authorReviewRequired?: boolean;
 };
 
 export type ArticleSEO = {
@@ -676,6 +681,21 @@ async function request<T>(url: string, opts: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+async function requestWithMethodFallback<T>(
+  url: string,
+  primary: RequestInit,
+  fallback: RequestInit,
+): Promise<T> {
+  try {
+    return await request<T>(url, primary);
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.startsWith("405 ")) {
+      throw error;
+    }
+    return request<T>(url, fallback);
+  }
+}
+
 export const api = {
   health: () => request<{ ok: boolean; mockMode: boolean }>("/api/health"),
 
@@ -696,11 +716,20 @@ export const api = {
       rejectionReason?: string;
       note?: string;
     },
-  ) =>
-    request<Article>(`/api/articles/${id}/review`, {
-      method: "PATCH",
-      body: JSON.stringify(body),
-    }),
+  ) => {
+    const requestBody = JSON.stringify(body);
+    return requestWithMethodFallback<Article>(
+      `/api/articles/${id}/review`,
+      { method: "POST", body: requestBody },
+      { method: "PATCH", body: requestBody },
+    );
+  },
+  submitArticleForApproval: (id: string) =>
+    requestWithMethodFallback<Article>(
+      `/api/articles/${id}/submit-for-approval`,
+      { method: "POST" },
+      { method: "PATCH" },
+    ),
   updateArticle: (
     id: string,
     body: {

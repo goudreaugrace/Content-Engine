@@ -23,8 +23,8 @@ function requiredSections(type: ContentType): string[] {
   return {
     FAQ: ["Question", "Need help?"],
     Policy: ["Who this applies to", "Policy details", "Exceptions", "Compliance", "Effective date"],
-    "Knowledge Article": ["Before you start", "Steps", "Common situations", "Need help?"],
-    "Topic Page": ["Overview", "Key resources", "Related articles", "Need help?"],
+    "How to": ["Before you start", "Steps", "Common situations", "Need help?"],
+    "Business info": ["Overview", "Who this is for", "Key information", "Related resources", "Need help?"],
   }[type];
 }
 

@@ -47,6 +47,9 @@ import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import MicNoneOutlinedIcon from "@mui/icons-material/MicNoneOutlined";
+import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
+import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import {
   api,
   currentUser,
@@ -63,7 +66,6 @@ import {
 } from "../lib/api";
 import ArticleDocument, { StructuredArticleSections } from "../components/article-document";
 import ArticleReadingFrame from "../components/article-reading-frame";
-import { usePersonaMode } from "../lib/persona";
 
 // ────────────────────────────────────────────────────────────
 // Static reference data
@@ -79,24 +81,38 @@ const contentTypes = [
     example: "e.g. 'How do I enroll in the wellness program?'",
   },
   {
-    value: "Policy",
-    label: "Policy",
-    description: "Official rules + scope + effective date.",
-    example: "e.g. 'Remote work policy — North America 2026'",
+    value: "Business info",
+    label: "Business info",
+    description: "Background, context, or reference information employees need.",
+    example: "e.g. 'Understanding annual bonus eligibility'",
   },
   {
-    value: "Knowledge Article",
-    label: "Knowledge Article",
+    value: "How to",
+    label: "How to",
     description: "Step-by-step instructions to complete a task.",
     example: "e.g. 'How to submit an expense report'",
   },
   {
-    value: "Topic Page",
-    label: "Topic Page",
-    description: "Broad hub or overview, often linking to related articles.",
-    example: "e.g. 'New parent leave benefits hub'",
+    value: "Policy",
+    label: "Policy",
+    description: "Official rules, scope, requirements, and effective dates.",
+    example: "e.g. 'Remote work policy — North America 2026'",
   },
 ] as const;
+
+const GUIDED_DEMO = {
+  title: "How to update your direct deposit information",
+  prompt:
+    "Create a How to article explaining how employees update their direct deposit information in myPepsiCo.",
+  supportingInfo:
+    "Employees update direct deposit from the payroll area in myPepsiCo. They should have their bank routing number and account number ready. Employees must review the information before submitting it. Processing time can vary by payroll cycle. If the option is unavailable or a change is rejected, employees should use Payroll Help in myPepsiCo and include the error message and submission date.",
+  answers: [
+    "This article is for United States employees who manage their pay information in myPepsiCo. Before starting, employees need access to their account, their bank routing number, their account number, and the percentage or amount they want deposited into each account.",
+    "Open myPepsiCo and go to the payroll area. Select Direct deposit, then choose Add account or Edit beside an existing account. Enter the routing and account numbers, choose the account type, and set the deposit allocation. Review every field, then submit the change and save the confirmation number.",
+    "A confirmation appears after the employee submits the change. The update may take up to one payroll cycle to appear, depending on when it was submitted. Employees should review their next pay statement and keep the confirmation number until the change is complete.",
+    "If the bank information is rejected, check the routing number, account number, and account type before submitting again. If Direct deposit is unavailable or the error continues, open Payroll Help in myPepsiCo, choose Direct deposit support, and include the confirmation number, submission date, and error message. Urgent payroll concerns should follow the escalation path provided by Payroll Help.",
+  ],
+} as const;
 
 const WRITTEN_LANGUAGE_OPTIONS = [
   { value: "auto", label: "Auto-detect from article text" },
@@ -125,6 +141,98 @@ const MARKET_LABELS: Record<string, { label: string; code: string }> = {
 // index reference. Three steps: basics, article editor, final review.
 const STEP_LABELS = ["Basics", "Article", "Review"] as const;
 type StepIndex = 0 | 1 | 2;
+
+type GuidedStage =
+  | "start"
+  | "supportingInfo"
+  | "contentType"
+  | "knowledgeBase"
+  | "sector"
+  | "market"
+  | "audience"
+  | "approver"
+  | "setupComplete"
+  | "details"
+  | "preview";
+
+type GuidedMessage = {
+  id: string;
+  role: "assistant" | "user";
+  content: string;
+};
+
+const HANDS_OFF_ACCEPT = [
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".ppt",
+  ".pptx",
+  ".xls",
+  ".xlsx",
+  ".csv",
+  ".txt",
+  ".md",
+].join(",");
+
+function handsOffMimeType(file: File): string {
+  if (file.type) return file.type;
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  return {
+    pdf: "application/pdf",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ppt: "application/vnd.ms-powerpoint",
+    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    xls: "application/vnd.ms-excel",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    csv: "text/csv",
+    md: "text/markdown",
+    txt: "text/plain",
+  }[extension ?? ""] ?? "application/octet-stream";
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+type HandsOffArticleInput = {
+  id: string;
+  files: File[];
+  progress: 0 | 1 | 2 | 3;
+  error?: string;
+};
+
+function createHandsOffArticleInput(): HandsOffArticleInput {
+  return {
+    id: `hands-off-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    files: [],
+    progress: 0,
+  };
+}
+
+const HANDS_OFF_DEMO_COPY = [
+  {
+    title: "How to prepare for a temporary workplace change",
+    summary:
+      "Use this guide to prepare for a temporary workplace change, gather the required information, and route the request to the right support team.",
+  },
+  {
+    title: "How to submit a business travel request",
+    summary:
+      "Use this guide to prepare a business travel request, collect the required details, and send it to the right team for review.",
+  },
+  {
+    title: "How to request workplace equipment",
+    summary:
+      "Use this guide to request workplace equipment, provide the necessary information, and understand what happens after submission.",
+  },
+  {
+    title: "How to prepare for a manager change",
+    summary:
+      "Use this guide to prepare for a manager change, confirm the affected employee information, and route the request for review.",
+  },
+] as const;
 
 const knowledgeBases = [
   {
@@ -301,7 +409,7 @@ const CONTENT_TEMPLATES: Record<ContentType, TemplateField[]> = {
     { key: "policyFaqs", label: "Policy FAQs", placeholder: "Add common employee questions about this policy. You can also add a full FAQ section below.", minRows: 4 },
     { key: "relatedContent", label: "Related guides and resources", placeholder: "Link to separate how-to articles, forms, or related policies instead of repeating them here.", minRows: 3 },
   ],
-  "Knowledge Article": [
+  "How to": [
     { key: "whoApplies", label: "Who this applies to", placeholder: "Who should use these steps? Include country, role, system, or employee group limits.", minRows: 3 },
     { key: "beforeStart", label: "Before you start", placeholder: "What should the employee have ready before following the steps?", minRows: 4 },
     { key: "steps", label: "Steps", placeholder: "Write the task in order. One action per line works well.", minRows: 8 },
@@ -309,14 +417,54 @@ const CONTENT_TEMPLATES: Record<ContentType, TemplateField[]> = {
     { key: "whatNext", label: "What to do next", placeholder: "Tell the employee what confirmation, follow-up, or support path comes after the steps.", minRows: 3 },
     { key: "relatedContent", label: "Related guides and resources", placeholder: "Add related articles, forms, tools, or support paths employees may need next.", minRows: 3 },
   ],
-  "Topic Page": [
-    { key: "overview", label: "Overview", placeholder: "Explain the topic and when employees should use this page.", minRows: 5 },
-    { key: "whenToUse", label: "When to use this page", placeholder: "Describe the situations this hub supports, and who it is meant for.", minRows: 4 },
-    { key: "keyResources", label: "Key resources", placeholder: "List the main links, tools, teams, or documents this page should connect.", minRows: 5 },
-    { key: "relatedTopics", label: "Related articles", placeholder: "Adjacent articles that should link to this page or from this page.", minRows: 4 },
-    { key: "belongsElsewhere", label: "What belongs elsewhere", placeholder: "Clarify what should live in a separate article, policy, FAQ, or source document.", minRows: 3 },
+  "Business info": [
+    { key: "overview", label: "Overview", placeholder: "Explain the business information employees need and why it matters.", minRows: 5 },
+    { key: "whenToUse", label: "Who this is for", placeholder: "Describe the employee groups, roles, or situations this information applies to.", minRows: 4 },
+    { key: "keyResources", label: "Key information", placeholder: "Add the essential facts, definitions, dates, contacts, systems, or resources employees should know.", minRows: 5 },
+    { key: "relatedTopics", label: "Related resources", placeholder: "Link to related policies, FAQs, How to articles, forms, tools, or support teams.", minRows: 4 },
+    { key: "belongsElsewhere", label: "Related procedures and policies", placeholder: "Clarify which detailed procedures or official rules live in separate canonical articles.", minRows: 3 },
   ],
 };
+
+const PEP_READY_SECTION_HEADINGS: Partial<
+  Record<ContentType, Record<string, string>>
+> = {
+  Policy: {
+    description: "What does this policy cover?",
+    whoApplies: "Who does this policy apply to?",
+    policyDetails: "What does the policy require?",
+    exceptions: "What exceptions or support options are available?",
+    localVariations: "When does this take effect and what varies by location?",
+    relatedContent: "Where can I find related information?",
+  },
+  "How to": {
+    whoApplies: "Who should use these steps?",
+    beforeStart: "What do I need before I start?",
+    steps: "What do I need to do?",
+    commonIssues: "What should I do if something goes wrong?",
+    whatNext: "What happens next?",
+    relatedContent: "Where can I get more help?",
+  },
+  "Business info": {
+    overview: "What should I know?",
+    whenToUse: "Who is this information for?",
+    keyResources: "What information do I need?",
+    relatedTopics: "Where can I find more information?",
+    belongsElsewhere: "Where can I find procedures and policies?",
+  },
+};
+
+function formatGuidedSteps(value: string): string {
+  const text = value.trim();
+  if (!text || /^\s*(?:\d+\.|-)\s+/m.test(text)) return text;
+  const actions = text
+    .split(/\n+|(?<=[.!?])\s+/)
+    .map((action) => action.trim())
+    .filter(Boolean);
+  return actions
+    .map((action, index) => `${index + 1}. ${ensureSentence(action)}`)
+    .join("\n");
+}
 
 // ────────────────────────────────────────────────────────────
 // SEO suggestion heuristics
@@ -352,9 +500,9 @@ function suggestSeoTitle(input: SeoSuggestionInput): string {
         ? " — answers & FAQ"
         : input.contentType === "Policy"
           ? " — policy overview"
-          : input.contentType === "Knowledge Article"
+          : input.contentType === "How to"
             ? " — step-by-step guide"
-            : " — topic guide";
+            : " — employee information";
     const candidate = base + suffix;
     if (candidate.length >= 30 && candidate.length <= 60) return candidate;
     if (candidate.length < 30) return `${candidate} for employees`;
@@ -373,9 +521,9 @@ function suggestMetaDescription(input: SeoSuggestionInput): string {
       ? "Answers"
       : input.contentType === "Policy"
         ? "Policy details"
-        : input.contentType === "Knowledge Article"
+        : input.contentType === "How to"
           ? "Step-by-step"
-          : "Overview";
+          : "Business information";
   const audienceTail = audience ? ` Written for ${audience}.` : "";
 
   // Pad if too short.
@@ -443,7 +591,7 @@ function suggestKeyQuestions(input: SeoSuggestionInput): string[] {
   }
   if (input.contentType === "FAQ") return [`What should I know about ${fallbackTopic}?`];
   if (input.contentType === "Policy") return [`Who does ${fallbackTopic} apply to?`];
-  if (input.contentType === "Knowledge Article") return [`How do I complete ${fallbackTopic}?`];
+  if (input.contentType === "How to") return [`How do I complete ${fallbackTopic}?`];
   return [`Where can I find resources for ${fallbackTopic}?`];
 }
 
@@ -472,8 +620,8 @@ function buildLeadFallback(input: {
   if (input.contentType === "Policy") {
     return `Use this policy article to understand what applies to ${audience}${countries}, what the rule requires, and how exceptions or compliance questions should be handled.`;
   }
-  if (input.contentType === "Topic Page") {
-    return `Use this topic page as a starting point for ${title}. It brings together the overview, key resources, and related topics employees are most likely to need.`;
+  if (input.contentType === "Business info") {
+    return `Use this business information article to understand ${title}. It brings together the context, key facts, related resources, and support information employees are most likely to need.`;
   }
   return `Use this article when ${audience}${countries} need to complete ${title}. It explains what to prepare, the steps to follow, common issues, and where to get help.`;
 }
@@ -513,11 +661,11 @@ function buildAiTemplateAnswers(input: {
     };
   }
 
-  if (input.contentType === "Topic Page") {
+  if (input.contentType === "Business info") {
     return {
-      overview: `${lead}${grounding} This page should help employees understand where to start and which related resources matter most.`,
-      keyResources: "- MyPepsiCo search results for this topic\n- The owning team or support queue\n- Any approved policy, form, training, or process document referenced by the article",
-      relatedTopics: "Link to adjacent articles instead of repeating long instructions. Add parent, child, or replacement articles when the same topic appears elsewhere.",
+      overview: `${lead}${grounding} This article should give employees the context and key facts they need before following a related policy or procedure.`,
+      keyResources: "- Essential business facts and definitions\n- The owning team or support queue\n- Any approved policy, form, training, system, or process referenced by the article",
+      relatedTopics: "Link to related policies, FAQs, and How to articles instead of repeating long rules or procedures.",
     };
   }
 
@@ -527,6 +675,57 @@ function buildAiTemplateAnswers(input: {
     commonIssues: "### The system does not show the option you need\n\nConfirm you are using the correct country, role, and employee profile. If the option is still missing, open a support case.\n\n### The request is returned for correction\n\nRead the approver comment, correct only the requested fields, and resubmit the same request instead of creating a duplicate.",
     whatNext: "After the request is submitted, save the confirmation number and watch for approval, correction, or follow-up messages. If the expected confirmation does not arrive, contact the owning support team with the article title and any case number.",
   };
+}
+
+function inferGuidedContentType(prompt: string, fallback: ContentType): ContentType {
+  const text = prompt.toLowerCase();
+  if (/\b(policy|rule|eligibility|effective date|exception|compliance|allowance)\b/.test(text)) {
+    return "Policy";
+  }
+  if (/\b(faq|question|answer|what happens|can i|do i|does|who can|when can)\b/.test(text)) {
+    return "FAQ";
+  }
+  if (/\b(business info|business information|overview|background|reference|program details|resources|links|topic page|hub|collection)\b/.test(text)) {
+    return "Business info";
+  }
+  if (/\b(how to|steps|process|procedure|submit|request|update|change|complete)\b/.test(text)) {
+    return "How to";
+  }
+  return fallback;
+}
+
+function titleFromGuidedPrompt(prompt: string, contentType: ContentType): string {
+  const firstLine = prompt
+    .trim()
+    .split(/\n+/)[0]
+    ?.replace(/\s+/g, " ")
+    .trim();
+  if (!firstLine) return "";
+  const clipped = firstLine.length > 84 ? firstLine.slice(0, 84).replace(/\s+\S*$/, "") : firstLine;
+  if (contentType === "FAQ" && !/[?]$/.test(clipped)) {
+    return /^(how|what|when|where|why|who|can|do|does|is|are)\b/i.test(clipped)
+      ? `${clipped}?`
+      : `What should employees know about ${clipped}?`;
+  }
+  if (contentType === "How to" && !/^how\b/i.test(clipped)) {
+    return `How to ${clipped.charAt(0).toLowerCase()}${clipped.slice(1)}`;
+  }
+  return clipped;
+}
+
+function summaryFromGuidedPrompt(prompt: string, title: string, contentType: ContentType): string {
+  const text = prompt.trim().replace(/\s+/g, " ");
+  if (!text) return "";
+  if (contentType === "FAQ") {
+    return `Use this FAQ to get a clear answer about ${title || text}.`;
+  }
+  if (contentType === "Policy") {
+    return "Use this policy to understand who is covered, what applies, and what to do when exceptions are needed.";
+  }
+  if (contentType === "Business info") {
+    return "Use this article to understand the key business information, context, related resources, and support options for this topic.";
+  }
+  return "Use this article to complete the process and understand what to prepare before getting started.";
 }
 
 function lightlyPolish(value: string): string {
@@ -573,9 +772,9 @@ function marketForPreview(marketId: string | undefined): Market {
  */
 const REQUIRED_SECTIONS: Record<ContentType, string[]> = {
   FAQ: ["Question", "Answer", "Related guides"],
+  "Business info": ["Overview", "Who this is for", "Key information"],
+  "How to": ["Who this applies to", "Before you start", "Steps"],
   Policy: ["Summary", "Who this applies to", "Policy details", "At a glance"],
-  "Knowledge Article": ["Who this applies to", "Before you start", "Steps"],
-  "Topic Page": ["Overview", "When to use this page", "Key resources"],
 };
 
 const MIN_ARTICLE_CHARACTER_COUNT = 500;
@@ -681,12 +880,12 @@ function detectImportedContentType(text: string): ContentType {
   const questionCount = (text.match(/\?/g) ?? []).length;
   const hasPolicySignals = /\b(policy|effective date|exception|exceptions|compliance|who this applies|applies to|eligible|eligibility)\b/i.test(text);
   const hasStepSignals = /^\s*(\d+\.|-)\s+\b(open|select|click|submit|review|enter|save|contact|upload)\b/im.test(text);
-  const hasTopicSignals = /\b(overview|resources|quick links|key resources|related articles|hub)\b/i.test(text);
+  const hasBusinessInfoSignals = /\b(business information|overview|background|reference|program details|resources|quick links|key information|related articles|hub)\b/i.test(text);
   if (hasPolicySignals) return "Policy";
   if (questionCount >= 3 || /\b(q:|question:|answer:|faq)\b/i.test(text)) return "FAQ";
-  if (hasStepSignals || lower.includes("step 1")) return "Knowledge Article";
-  if (hasTopicSignals) return "Topic Page";
-  return "Knowledge Article";
+  if (hasStepSignals || lower.includes("step 1")) return "How to";
+  if (hasBusinessInfoSignals) return "Business info";
+  return "How to";
 }
 
 function sectionByHeading(text: string, headings: string[]): string {
@@ -1220,7 +1419,6 @@ export default function NewRequest() {
   const navigate = useNavigate();
   const theme = useTheme();
   const t = theme.palette.tokens;
-  const [personaMode] = usePersonaMode();
   const me = currentUser();
   const manager =
     demoPeople.find((person) => person.email === me.email)?.manager ??
@@ -1270,7 +1468,7 @@ export default function NewRequest() {
   const [migrationForm, setMigrationForm] = useState({
     sourceTitle: "",
     sourceContent: "",
-    contentType: "Knowledge Article" as ContentType,
+    contentType: "How to" as ContentType,
     marketId: "us",
     sectorId: "pfna",
     countries: ["US"] as string[],
@@ -1322,6 +1520,27 @@ export default function NewRequest() {
   const [showAllCountries, setShowAllCountries] = useState(false);
   // Wizard step index (0-based). Stepper labels live in STEP_LABELS below.
   const [currentStep, setCurrentStep] = useState(0);
+  const [creationStartMode, setCreationStartMode] = useState<"form" | "guided" | "hands-off">("guided");
+  const [handsOffArticles, setHandsOffArticles] = useState<HandsOffArticleInput[]>(() => [
+    createHandsOffArticleInput(),
+  ]);
+  const [handsOffSubmitting, setHandsOffSubmitting] = useState(false);
+  const [guidedPrompt, setGuidedPrompt] = useState("");
+  const [guidedDemoMode, setGuidedDemoMode] = useState(false);
+  const [guidedStarted, setGuidedStarted] = useState(false);
+  const [guidedStage, setGuidedStage] = useState<GuidedStage>("start");
+  const [guidedBrief, setGuidedBrief] = useState("");
+  const [guidedMessages, setGuidedMessages] = useState<GuidedMessage[]>([]);
+  const [guidedSectors, setGuidedSectors] = useState<string[]>([]);
+  const [guidedWritingAnswers, setGuidedWritingAnswers] = useState<string[]>([]);
+  const [guidedThinking, setGuidedThinking] = useState(false);
+  const [guidedSourceAdded, setGuidedSourceAdded] = useState(false);
+  const [guidedListening, setGuidedListening] = useState(false);
+  const [guidedVoiceMessage, setGuidedVoiceMessage] = useState("");
+  const guidedSpeechRecognitionRef = useRef<any>(null);
+  const guidedBottomRef = useRef<HTMLDivElement | null>(null);
+  const [reviewAssistantPrompt, setReviewAssistantPrompt] = useState("");
+  const [reviewAssistantExpanded, setReviewAssistantExpanded] = useState(false);
 
   const [globalConfirmOpen, setGlobalConfirmOpen] = useState(false);
   // The market the user *intends* to switch to once they confirm the Global gate.
@@ -1345,12 +1564,6 @@ export default function NewRequest() {
   const [sectorProfiles, setSectorProfiles] = useState<SectorProfile[]>([]);
 
   useEffect(() => {
-    if (personaMode !== "non-admin") {
-      navigate("/", { replace: true });
-    }
-  }, [navigate, personaMode]);
-
-  useEffect(() => {
     api
       .listAudiences()
       .then(setAudiences)
@@ -1369,6 +1582,19 @@ export default function NewRequest() {
       .catch(() => setSectorProfiles([]));
   }, []);
 
+  useEffect(() => {
+    if (!guidedStarted) return;
+    const frame = window.requestAnimationFrame(() => {
+      guidedBottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [guidedMessages, guidedStage, guidedStarted, guidedThinking]);
+
+  useEffect(
+    () => () => guidedSpeechRecognitionRef.current?.stop?.(),
+    [],
+  );
+
   // Sector-driven derived state.
   const isGlobal = form.sector === "global";
   // Markets that belong to the currently-selected sector. The Markets
@@ -1377,6 +1603,12 @@ export default function NewRequest() {
   const marketsInSector = useMemo(
     () => marketProfiles.filter((m) => m.sectorId === form.sector),
     [marketProfiles, form.sector],
+  );
+  const guidedMarketsInSectors = useMemo(
+    () => marketProfiles.filter((market) =>
+      guidedSectors.includes(market.sectorId ?? ""),
+    ),
+    [guidedSectors, marketProfiles],
   );
   const singleMarket =
     !isGlobal && form.markets.length === 1 ? form.markets[0] : null;
@@ -1757,6 +1989,673 @@ export default function NewRequest() {
           ? f.topicResources
           : f.topicResources.filter((resource) => resource.id !== id),
     }));
+  const guidedMessage = (
+    role: GuidedMessage["role"],
+    content: string,
+  ): GuidedMessage => ({
+    id: `${role}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    role,
+    content,
+  });
+
+  const appendGuidedExchange = (userContent: string, assistantContent: string) => {
+    setGuidedMessages((messages) => [
+      ...messages,
+      guidedMessage("user", userContent),
+      guidedMessage("assistant", assistantContent),
+    ]);
+  };
+
+  const useGuidedDemoPrompt = () => {
+    setGuidedDemoMode(true);
+    setGuidedPrompt(GUIDED_DEMO.prompt);
+    setGuidedVoiceMessage("");
+  };
+
+  const useGuidedDemoSource = () => {
+    setGuidedPrompt(GUIDED_DEMO.supportingInfo);
+    setGuidedVoiceMessage("");
+  };
+
+  const useGuidedDemoAnswer = () => {
+    const answer = GUIDED_DEMO.answers[guidedWritingAnswers.length];
+    if (!answer) return;
+    setGuidedPrompt(answer);
+    setGuidedVoiceMessage("");
+  };
+
+  const toggleGuidedVoiceInput = () => {
+    if (guidedListening) {
+      guidedSpeechRecognitionRef.current?.stop?.();
+      setGuidedListening(false);
+      return;
+    }
+
+    const speechWindow = window as typeof window & {
+      SpeechRecognition?: new () => any;
+      webkitSpeechRecognition?: new () => any;
+    };
+    const SpeechRecognition =
+      speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setGuidedVoiceMessage("Voice input is not available in this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    const startingText = guidedPrompt.trimEnd();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = form.writtenLanguage === "auto" ? "en-US" : form.writtenLanguage;
+    recognition.onresult = (event: any) => {
+      let transcript = "";
+      for (let index = 0; index < event.results.length; index += 1) {
+        transcript += event.results[index]?.[0]?.transcript ?? "";
+      }
+      setGuidedPrompt(
+        [startingText, transcript.trim()].filter(Boolean).join(" "),
+      );
+    };
+    recognition.onerror = (event: any) => {
+      if (event.error !== "aborted") {
+        setGuidedVoiceMessage(
+          event.error === "not-allowed"
+            ? "Allow microphone access to use voice input."
+            : "Voice input could not start. Try again or type your message.",
+        );
+      }
+      setGuidedListening(false);
+      guidedSpeechRecognitionRef.current = null;
+    };
+    recognition.onend = () => {
+      setGuidedListening(false);
+      guidedSpeechRecognitionRef.current = null;
+    };
+
+    try {
+      setGuidedVoiceMessage("");
+      guidedSpeechRecognitionRef.current = recognition;
+      recognition.start();
+      setGuidedListening(true);
+    } catch {
+      setGuidedListening(false);
+      guidedSpeechRecognitionRef.current = null;
+      setGuidedVoiceMessage(
+        "Voice input could not start. Try again or type your message.",
+      );
+    }
+  };
+
+  const guidedWritingQuestions = (contentType: ContentType) => {
+    if (contentType === "FAQ") {
+      return [
+        "What is the direct answer employees need, and who does it apply to? Start with the answer you would give someone in one conversation.",
+        "What should an employee do with that answer? Include any steps, requirements, examples, systems, or screens they need.",
+        "What happens after the employee takes action, and how long should they expect it to take?",
+        "What can go wrong, what exceptions apply, and what exact support path should an employee use if they get stuck?",
+      ];
+    }
+    if (contentType === "Policy") {
+      return [
+        "What is the policy’s main rule, and who does it apply to?",
+        "What must employees or managers do to follow the policy? Include the important steps or responsibilities.",
+        "When does the policy take effect, what happens if it is not followed, and are there local variations?",
+        "What exceptions, approval path, help contact, or related resources should be included?",
+      ];
+    }
+    if (contentType === "Business info") {
+      return [
+        "What business information should employees understand, and who is it relevant to?",
+        "Which facts, definitions, dates, contacts, systems, or resources should the article include?",
+        "What should employees do with this information, and what happens next?",
+        "Which related policies, FAQs, How to articles, or exact help paths should employees use for more support?",
+      ];
+    }
+    return [
+      "Who needs to complete this task, and what should they have ready before starting?",
+      "Walk me through the task step by step, including the system, screen, and decisions an employee may need to make.",
+      "What happens after the task is completed, and how long should the employee expect it to take?",
+      "What commonly goes wrong, and what exact support path should the employee use if they get stuck?",
+    ];
+  };
+
+  const guidedDetailQuestion = (contentType: ContentType) =>
+    guidedWritingQuestions(contentType)[0];
+
+  const continueGuidedSupportingInfo = () => {
+    setGuidedMessages((messages) => [
+      ...messages,
+      guidedMessage(
+        "assistant",
+        guidedSourceAdded || articleImportSource
+          ? "Thanks. I’ll use that information as the basis for the article and ask whenever an important detail is unclear. First, what kind of knowledge article are we creating?"
+          : "That’s okay. I’ll build the article from your answers and ask whenever an important detail is unclear. First, what kind of knowledge article are we creating?",
+      ),
+    ]);
+    setGuidedStage("contentType");
+  };
+
+  const applyGuidedWritingDraft = (answers: string[]) => {
+    const [first = "", second = "", third = "", fourth = ""] = answers;
+    const additionalDetails = answers.slice(4).join("\n\n").trim();
+    const exceptionAndSupport = [fourth, additionalDetails]
+      .filter(Boolean)
+      .join("\n\nAdditional details\n");
+    setForm((f) => {
+      const summary =
+        f.contentType === "FAQ"
+          ? `Use this FAQ to understand ${f.title.toLowerCase()}. It gives employees a direct answer, explains what to do next, and identifies important exceptions or support options.`
+          : f.contentType === "Policy"
+            ? `This policy explains ${f.title.toLowerCase()}. It describes who the policy applies to, the actions employees and managers must take, and how exceptions are handled.`
+            : f.contentType === "Business info"
+              ? `Use this article to understand ${f.title.toLowerCase()}. It brings the most important business context, facts, resources, and related guidance into one place.`
+              : `Use this article to complete ${f.title.toLowerCase()}. It explains what to prepare, the steps to follow, and how to resolve common issues.`;
+      const sourceNote = [
+        "## Guided writing conversation",
+        ...answers.map((answer, index) => `### Answer ${index + 1}\n${answer}`),
+      ].join("\n\n");
+      const readinessHeadings = PEP_READY_SECTION_HEADINGS[f.contentType] ?? {};
+      const audienceScope = f.audience.length
+        ? f.audience.join(", ")
+        : "the selected employee audience";
+      const marketScope = f.markets.length
+        ? f.markets
+            .map(
+              (marketId) =>
+                marketProfiles.find((market) => market.id === marketId)?.name ??
+                MARKET_LABELS[marketId]?.label ??
+                marketId,
+            )
+            .join(", ")
+        : "the selected markets";
+
+      if (f.contentType === "FAQ") {
+        const answer = [
+          first,
+          `What to do next\n${second}`,
+          `What happens next\n${third}`,
+          `Exceptions and support\n${exceptionAndSupport}`,
+        ].filter(Boolean).join("\n\n");
+        return {
+          ...f,
+          summary,
+          sectionHeadings: { ...f.sectionHeadings, ...readinessHeadings },
+          sourceText: [f.sourceText.trim(), sourceNote].filter(Boolean).join("\n\n"),
+          templateAnswers: { ...f.templateAnswers, answer },
+          faqItems: [{
+            id: f.faqItems[0]?.id ?? "faq-1",
+            question: f.faqItems[0]?.question.trim() || f.title,
+            answer,
+          }],
+        };
+      }
+
+      if (f.contentType === "Policy") {
+        return {
+          ...f,
+          summary,
+          sectionHeadings: { ...f.sectionHeadings, ...readinessHeadings },
+          sourceText: [f.sourceText.trim(), sourceNote].filter(Boolean).join("\n\n"),
+          templateAnswers: {
+            ...f.templateAnswers,
+            description: summary,
+            whoApplies: first,
+            policyDetails: second,
+            exceptions: exceptionAndSupport,
+            localVariations: third,
+            relatedContent: "Use the approved support path and related resources identified in this article.",
+          },
+        };
+      }
+
+      if (f.contentType === "Business info") {
+        return {
+          ...f,
+          summary,
+          sectionHeadings: { ...f.sectionHeadings, ...readinessHeadings },
+          sourceText: [f.sourceText.trim(), sourceNote].filter(Boolean).join("\n\n"),
+          templateAnswers: {
+            ...f.templateAnswers,
+            overview: first,
+            whenToUse: `This information is for ${audienceScope} in ${marketScope}.`,
+            keyResources: second,
+            relatedTopics: exceptionAndSupport,
+            belongsElsewhere: third,
+          },
+        };
+      }
+
+      return {
+        ...f,
+        summary,
+        sectionHeadings: { ...f.sectionHeadings, ...readinessHeadings },
+        sourceText: [f.sourceText.trim(), sourceNote].filter(Boolean).join("\n\n"),
+        templateAnswers: {
+          ...f.templateAnswers,
+          whoApplies: `${audienceScope} in ${marketScope}.`,
+          beforeStart: first,
+          steps: formatGuidedSteps(second),
+          commonIssues: exceptionAndSupport,
+          whatNext: third,
+          relatedContent: "Use the approved support path and related resources identified in this article.",
+        },
+      };
+    });
+  };
+
+  const startGuidedDraft = () => {
+    const prompt = guidedPrompt.trim();
+    if (guidedStage === "supportingInfo") {
+      if (!prompt || guidedThinking) return;
+      setGuidedBrief((brief) =>
+        [brief.trim(), `Additional confirmed context: ${prompt}`]
+          .filter(Boolean)
+          .join("\n\n"),
+      );
+      setForm((f) => ({
+        ...f,
+        sourceText: [f.sourceText.trim(), prompt].filter(Boolean).join("\n\n"),
+      }));
+      setGuidedSourceAdded(true);
+      setGuidedMessages((messages) => [
+        ...messages,
+        guidedMessage("user", prompt),
+      ]);
+      setGuidedPrompt("");
+      setGuidedThinking(true);
+      window.setTimeout(() => {
+        setGuidedMessages((messages) => [
+          ...messages,
+          guidedMessage(
+            "assistant",
+            "Thanks. I’ll use that as source material for the article. Add anything else that matters, or continue to the publishing questions.",
+          ),
+        ]);
+        setGuidedThinking(false);
+      }, 700);
+      return;
+    }
+
+    if (guidedStage === "preview") {
+      if (!prompt || guidedThinking) return;
+      const looksLikeQuestion =
+        /\?$/.test(prompt) || /^(what|why|how|when|where|who|can|could|should|would|is|are|do|does|tell me|explain)\b/i.test(prompt);
+      setGuidedMessages((messages) => [...messages, guidedMessage("user", prompt)]);
+      setGuidedPrompt("");
+      setGuidedThinking(true);
+      window.setTimeout(() => {
+        if (looksLikeQuestion) {
+          const answer = `Based on the current draft, ${form.summary.charAt(0).toLowerCase()}${form.summary.slice(1)} The article currently includes the publishing scope, the main employee guidance, the next steps, and support information. I have not changed the draft. Review it below, then confirm that it is correct or tell me what needs to change.`;
+          setGuidedMessages((messages) => [...messages, guidedMessage("assistant", answer)]);
+        } else {
+          const lowerPrompt = prompt.toLowerCase();
+          setForm((f) => {
+            const shorten = (value: string) =>
+              value.split(/(?<=[.!?])\s+/).filter(Boolean).slice(0, 2).join(" ");
+            if (lowerPrompt.includes("title")) {
+              return { ...f, title: titleFromGuidedPrompt(prompt, f.contentType) };
+            }
+            if (lowerPrompt.includes("shorter") || lowerPrompt.includes("shorten")) {
+              const nextTemplateAnswers = { ...f.templateAnswers };
+              Object.keys(nextTemplateAnswers).forEach((key) => {
+                nextTemplateAnswers[key] = shorten(nextTemplateAnswers[key]);
+              });
+              return {
+                ...f,
+                summary: shorten(f.summary),
+                templateAnswers: nextTemplateAnswers,
+                faqItems: f.faqItems.map((item) => ({ ...item, answer: shorten(item.answer) })),
+              };
+            }
+            return {
+              ...f,
+              sourceText: [f.sourceText.trim(), `## Guided revision request\n${prompt}`].filter(Boolean).join("\n\n"),
+              summary: `${f.summary.trim()} ${prompt}`.trim(),
+            };
+          });
+          setGuidedMessages((messages) => [
+            ...messages,
+            guidedMessage(
+              "assistant",
+              "I updated the draft. Review the revised article below. Is this correct, or would you like to add or change anything else?",
+            ),
+          ]);
+        }
+        setGuidedThinking(false);
+      }, 850);
+      return;
+    }
+
+    if (guidedStage === "details") {
+      if (!prompt || guidedThinking) return;
+      const asksForExplanation =
+        /\?$/.test(prompt) &&
+        /^(why|what do you mean|can you|could you|how will|will this|are you|do you need)/i.test(prompt);
+      if (asksForExplanation) {
+        const currentRound = guidedWritingAnswers.length;
+        const explanations = [
+          "I’m using this answer to establish the article’s starting point and scope. It helps me write an opening that is specific enough for employees to know immediately whether the article applies to them.",
+          "I’m using this answer to build the main instructional content. The details you provide here become the concrete steps, responsibilities, or resources in the article rather than generic filler.",
+          "I’m using this answer to set expectations after the main action. It helps the reader understand timing, confirmation, and what a successful outcome looks like.",
+          "I’m using this answer to make the article useful when the normal path does not work. It becomes the exceptions, troubleshooting, and exact support guidance near the end of the article.",
+          "The readiness check found that the combined answers are still too thin for a dependable article. This last detail helps me improve completeness without inventing information.",
+        ];
+        setGuidedMessages((messages) => [...messages, guidedMessage("user", prompt)]);
+        setGuidedPrompt("");
+        setGuidedThinking(true);
+        window.setTimeout(() => {
+          setGuidedMessages((messages) => [
+            ...messages,
+            guidedMessage("assistant", explanations[currentRound] ?? explanations[0]),
+          ]);
+          setGuidedThinking(false);
+        }, 700);
+        return;
+      }
+      const nextAnswers = [...guidedWritingAnswers, prompt];
+      const questions = guidedWritingQuestions(form.contentType);
+      const answerCharacterCount = nextAnswers.join(" ").trim().length;
+      setGuidedWritingAnswers(nextAnswers);
+      setGuidedMessages((messages) => [...messages, guidedMessage("user", prompt)]);
+      setGuidedPrompt("");
+      setGuidedThinking(true);
+      window.setTimeout(() => {
+        if (nextAnswers.length < questions.length) {
+          setGuidedMessages((messages) => [
+            ...messages,
+            guidedMessage("assistant", questions[nextAnswers.length]),
+          ]);
+        } else if (
+          nextAnswers.length === questions.length &&
+          answerCharacterCount < 320
+        ) {
+          setGuidedMessages((messages) => [
+            ...messages,
+            guidedMessage(
+              "assistant",
+              "I have the basic structure, but I need a little more detail to make the article useful on its own. Add any exact systems or screens, timing, limits, exceptions, or support path you know. If something is still unknown, tell me what the content owner needs to confirm.",
+            ),
+          ]);
+        } else {
+          applyGuidedWritingDraft(nextAnswers);
+          setGuidedMessages((messages) => [
+            ...messages,
+            guidedMessage(
+              "assistant",
+              "I drafted the article and applied the Pep readiness standards behind the scenes. I also checked it as a first-time employee for clear actions, scope, timing, exceptions, and support. Review the full draft below. Is this correct, or would you like to add or change anything before moving to Review?",
+            ),
+          ]);
+          setGuidedStage("preview");
+        }
+        setGuidedThinking(false);
+      }, nextAnswers.length >= questions.length ? 1200 : 750);
+      return;
+    }
+
+    if (guidedStage !== "start" || (!prompt && !articleImportSource)) return;
+    const openingPrompt =
+      prompt || `Use the attached article, ${articleImportSource?.fileName ?? articleImportSource?.title}, as the starting point.`;
+    setGuidedBrief(openingPrompt);
+    setForm((f) => {
+      const detectedType = inferGuidedContentType(openingPrompt, f.contentType);
+      const nextTitle =
+        f.title.trim() ||
+        (guidedDemoMode || openingPrompt === GUIDED_DEMO.prompt
+          ? GUIDED_DEMO.title
+          : titleFromGuidedPrompt(openingPrompt, detectedType));
+      const nextSummary =
+        f.summary.trim() || summaryFromGuidedPrompt(openingPrompt, nextTitle, detectedType);
+      const countryLabels = f.markets.map(
+        (marketId) =>
+          marketProfiles.find((p) => p.id === marketId)?.name ??
+          MARKET_LABELS[marketId]?.label ??
+          marketId,
+      );
+      const seededAnswers = buildAiTemplateAnswers({
+        title: nextTitle,
+        contentType: detectedType,
+        lead: nextSummary,
+        audience: f.audience,
+        countryLabels,
+        sourceText: openingPrompt,
+      });
+      const firstFaqHasContent =
+        f.faqItems[0]?.question.trim() || f.faqItems[0]?.answer.trim();
+
+      return {
+        ...f,
+        title: nextTitle,
+        contentType: detectedType,
+        summary: nextSummary,
+        templateAnswers: {
+          ...seededAnswers,
+          ...f.templateAnswers,
+        },
+        faqItems:
+          detectedType === "FAQ" && !firstFaqHasContent
+            ? [
+                {
+                  id: f.faqItems[0]?.id ?? "faq-1",
+                  question: nextTitle,
+                  answer: seededAnswers.answer ?? "",
+                },
+              ]
+            : f.faqItems,
+      };
+    });
+    setGuidedSourceAdded(!!articleImportSource);
+    const supportingInfoQuestion = articleImportSource
+      ? `I found the attached article. Do you have anything else this article should be based on? You can attach another document or paste the important details here.`
+      : "Do you have anything this article should be based on? You can attach a document or paste the important details here.";
+    setGuidedMessages([
+      guidedMessage("user", openingPrompt),
+      guidedMessage("assistant", supportingInfoQuestion),
+    ]);
+    setGuidedPrompt("");
+    setGuidedStarted(true);
+    setGuidedStage("supportingInfo");
+  };
+  const selectGuidedContentType = (value: ContentType) => {
+    const sourcePrompt = guidedBrief || guidedPrompt;
+    setForm((f) => {
+      const nextTitle =
+        articleImportSource && f.title.trim()
+          ? f.title
+          : guidedDemoMode || sourcePrompt === GUIDED_DEMO.prompt
+            ? GUIDED_DEMO.title
+            : titleFromGuidedPrompt(sourcePrompt, value);
+      const nextSummary =
+        articleImportSource && f.summary.trim()
+          ? f.summary
+          : summaryFromGuidedPrompt(sourcePrompt, nextTitle, value);
+      const countryLabels = f.markets.map(
+        (marketId) =>
+          marketProfiles.find((p) => p.id === marketId)?.name ??
+          MARKET_LABELS[marketId]?.label ??
+          marketId,
+      );
+      const seededAnswers = buildAiTemplateAnswers({
+        title: nextTitle,
+        contentType: value,
+        lead: nextSummary,
+        audience: f.audience,
+        countryLabels,
+        sourceText: sourcePrompt,
+      });
+      return {
+        ...f,
+        contentType: value,
+        title: nextTitle,
+        summary: nextSummary,
+        templateAnswers: {
+          ...seededAnswers,
+          ...f.templateAnswers,
+        },
+      };
+    });
+    setGuidedStarted(true);
+  };
+
+  const chooseGuidedContentType = (value: ContentType, label: string) => {
+    selectGuidedContentType(value);
+    appendGuidedExchange(label, "Which knowledge base should this article live in?");
+    setGuidedStage("knowledgeBase");
+  };
+
+  const chooseGuidedKnowledgeBase = (id: string, label: string) => {
+    update("knowledgeBase", id);
+    appendGuidedExchange(
+      label,
+      "Which sectors own or manage this content? Select all that apply, then continue.",
+    );
+    setGuidedStage("sector");
+  };
+
+  const chooseGuidedSector = (id: string) => {
+    setGuidedSectors((sectors) => {
+      if (id === "global") return sectors.includes("global") ? [] : ["global"];
+      const withoutGlobal = sectors.filter((sectorId) => sectorId !== "global");
+      return withoutGlobal.includes(id)
+        ? withoutGlobal.filter((sectorId) => sectorId !== id)
+        : [...withoutGlobal, id];
+    });
+  };
+
+  const continueGuidedSectors = () => {
+    if (guidedSectors.length === 0) return;
+    const labels = guidedSectors.map((sectorId) => {
+      const profile = sectorProfiles.find((sector) => sector.id === sectorId);
+      return profile ? `${profile.id.toUpperCase()} · ${profile.name}` : sectorId.toUpperCase();
+    });
+
+    if (guidedSectors.includes("global")) {
+      setForm((f) => ({
+        ...f,
+        sector: "global",
+        markets: ["global"],
+        globalJustification: "This article applies consistently across the enterprise.",
+      }));
+      appendGuidedExchange(labels.join(", "), "Who should be able to find and read this article?");
+      setGuidedStage("audience");
+      return;
+    }
+
+    setForm((f) => ({
+      ...f,
+      sector: guidedSectors[0],
+      markets: [],
+      globalJustification: "",
+      sourceText: [
+        f.sourceText.trim(),
+        `Selected sectors: ${labels.join(", ")}`,
+      ].filter(Boolean).join("\n\n"),
+    }));
+    appendGuidedExchange(
+      labels.join(", "),
+      "Which countries or markets should this article apply to? Select all that apply, then continue.",
+    );
+    setGuidedStage("market");
+  };
+
+  const chooseGuidedMarket = (id: string) => {
+    setForm((f) => ({
+      ...f,
+      markets: f.markets.includes(id)
+        ? f.markets.filter((marketId) => marketId !== id)
+        : [...f.markets, id],
+    }));
+  };
+
+  const chooseGuidedAudience = (label: string) => {
+    setForm((f) => {
+      const nextAudience = f.audience.includes(label)
+        ? f.audience.filter((audienceLabel) => audienceLabel !== label)
+        : [...f.audience, label];
+      return { ...f, audience: nextAudience, canRead: nextAudience };
+    });
+  };
+
+  const continueGuidedMarkets = () => {
+    if (form.markets.length === 0) return;
+    const labels = form.markets.map(
+      (marketId) =>
+        marketProfiles.find((profile) => profile.id === marketId)?.name ??
+        MARKET_LABELS[marketId]?.label ??
+        marketId,
+    );
+    appendGuidedExchange(labels.join(", "), "Who should be able to find and read this article?");
+    setGuidedStage("audience");
+  };
+
+  const continueGuidedAudiences = () => {
+    if (form.audience.length === 0) return;
+    appendGuidedExchange(
+      form.audience.join(", "),
+      "Who should approve this article before it is published?",
+    );
+    setGuidedStage("approver");
+  };
+
+  const chooseGuidedApprover = (email: string, label: string) => {
+    update("approverEmail", email);
+    appendGuidedExchange(
+      label,
+      "Your article setup is complete. Continue when you’re ready to start writing the article.",
+    );
+    setGuidedStage("setupComplete");
+  };
+
+  const continueGuidedWriting = () => {
+    setGuidedWritingAnswers([]);
+    setGuidedMessages((messages) => [
+      ...messages,
+      guidedMessage("assistant", guidedDetailQuestion(form.contentType)),
+    ]);
+    setGuidedStage("details");
+  };
+  const applyReviewAssistantUpdate = () => {
+    const prompt = reviewAssistantPrompt.trim();
+    if (!prompt) return;
+    const id = `review-update-${Date.now().toString(36)}`;
+    setForm((f) => ({
+      ...f,
+      sourceText: [
+        f.sourceText.trim(),
+        `## Review assistant request\n${prompt}`,
+      ].filter(Boolean).join("\n\n"),
+      customSections: [
+        ...f.customSections,
+        {
+          id,
+          type: "callout",
+          title: "Review update",
+          body: `Draft update requested: ${prompt}`,
+          faqItems: [{ id: `${id}-faq-1`, question: "", answer: "" }],
+          tableColumns: [
+            { id: `${id}-col-1`, header: "Item" },
+            { id: `${id}-col-2`, header: "Details" },
+          ],
+          tableRows: [
+            {
+              id: `${id}-row-1`,
+              label: "",
+              value: "",
+              cells: {
+                [`${id}-col-1`]: "",
+                [`${id}-col-2`]: "",
+              },
+            },
+          ],
+          resourceLinks: [
+            { id: `${id}-resource-1`, label: "", url: "", description: "" },
+          ],
+        },
+      ],
+    }));
+    setReviewAssistantPrompt("");
+    setReviewAssistantExpanded(false);
+  };
   const updateMigration = <K extends keyof typeof migrationForm>(
     k: K,
     v: (typeof migrationForm)[K],
@@ -1998,7 +2897,7 @@ export default function NewRequest() {
       }
     }
 
-    if (form.contentType === "Knowledge Article" && field.key === "steps") {
+    if (form.contentType === "How to" && field.key === "steps") {
       if (!/^\s*(1\.|-)\s+/m.test(trimmed)) {
         recommendations.push("Format this as numbered steps or short bullets so employees can follow it while working.");
       }
@@ -2019,7 +2918,7 @@ export default function NewRequest() {
       }
     }
 
-    if (form.contentType === "Topic Page") {
+    if (form.contentType === "Business info") {
       if (field.key === "overview" && trimmed.length > 900) {
         recommendations.push("Keep the overview short. Move detailed instructions into related articles or resource links.");
       }
@@ -2262,6 +3161,67 @@ export default function NewRequest() {
       reader.readAsDataURL(file);
     });
 
+  const addHandsOffFiles = (articleId: string, files: FileList | File[]) => {
+    const next = Array.from(files);
+    setHandsOffArticles((current) =>
+      current.map((article) => {
+        if (article.id !== articleId) return article;
+        const seen = new Set(
+          article.files.map((file) => `${file.name}:${file.size}:${file.lastModified}`),
+        );
+        return {
+          ...article,
+          error: undefined,
+          files: [
+            ...article.files,
+            ...next.filter((file) => {
+              const key = `${file.name}:${file.size}:${file.lastModified}`;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            }),
+          ],
+        };
+      }),
+    );
+  };
+
+  const removeHandsOffFile = (articleId: string, file: File) => {
+    const key = `${file.name}:${file.size}:${file.lastModified}`;
+    setHandsOffArticles((current) =>
+      current.map((article) =>
+        article.id === articleId
+          ? {
+              ...article,
+              files: article.files.filter(
+                (item) => `${item.name}:${item.size}:${item.lastModified}` !== key,
+              ),
+            }
+          : article,
+      ),
+    );
+  };
+
+  const addHandsOffArticle = () => {
+    setHandsOffArticles((current) => [...current, createHandsOffArticleInput()]);
+  };
+
+  const removeHandsOffArticle = (articleId: string) => {
+    setHandsOffArticles((current) => current.filter((article) => article.id !== articleId));
+  };
+
+  const updateHandsOffProgress = (
+    articleId: string,
+    progress: HandsOffArticleInput["progress"],
+    error?: string,
+  ) => {
+    setHandsOffArticles((current) =>
+      current.map((article) =>
+        article.id === articleId ? { ...article, progress, error } : article,
+      ),
+    );
+  };
+
   const handleMigrationFile = async (file: File | undefined) => {
     if (!file) return;
     setMigrationUploading(true);
@@ -2363,17 +3323,17 @@ export default function NewRequest() {
         nextTemplateAnswers.policyFaqs = formatPolicyFaqItems(policyFaqItems);
         nextTemplateAnswers.relatedContent =
           sectionByHeading(cleaned, ["related guides and resources", "related content", "resources"]);
-      } else if (detectedType === "Topic Page") {
+      } else if (detectedType === "Business info") {
         nextTemplateAnswers.overview =
           sectionByHeading(cleaned, ["overview", "introduction", "summary"]) || importedSummary;
         nextTemplateAnswers.whenToUse =
-          sectionByHeading(cleaned, ["when to use this page", "when to use", "purpose"]);
+          sectionByHeading(cleaned, ["who this is for", "who this applies to", "when to use this page", "when to use", "purpose"]);
         nextTemplateAnswers.keyResources =
-          sectionByHeading(cleaned, ["key resources", "resources", "quick links"]);
+          sectionByHeading(cleaned, ["key information", "business information", "key resources", "resources", "quick links"]);
         nextTemplateAnswers.relatedTopics =
-          sectionByHeading(cleaned, ["related articles", "related topics", "related content"]);
+          sectionByHeading(cleaned, ["related resources", "related articles", "related topics", "related content"]);
         nextTemplateAnswers.belongsElsewhere =
-          sectionByHeading(cleaned, ["what belongs elsewhere", "out of scope"]);
+          sectionByHeading(cleaned, ["related procedures and policies", "what belongs elsewhere", "out of scope"]);
       } else {
         nextTemplateAnswers.whoApplies =
           sectionByHeading(cleaned, ["who this applies to", "audience", "eligibility"]);
@@ -2403,7 +3363,7 @@ export default function NewRequest() {
               : [{ id: "faq-1", question: importedTitle, answer: importedSummary }]
             : f.faqItems,
         topicResources:
-          detectedType === "Topic Page" && resourceMatches.length
+          detectedType === "Business info" && resourceMatches.length
             ? resourceMatches.slice(0, 5).map((match, index) => ({
                 id: `resource-${Date.now().toString(36)}-${index}`,
                 label: `Resource ${index + 1}`,
@@ -2454,6 +3414,17 @@ export default function NewRequest() {
       applyImportedArticleText(demoArticleTextFromUpload(), source, {
         confirmReplace: true,
       });
+      if (guidedStage === "supportingInfo") {
+        setGuidedSourceAdded(true);
+        setGuidedMessages((messages) => [
+          ...messages,
+          guidedMessage("user", `Attached ${uploaded.fileName}`),
+          guidedMessage(
+            "assistant",
+            "I’ll use that document as source material for the article. You can attach or add anything else, or continue to the publishing questions.",
+          ),
+        ]);
+      }
     } catch (e: any) {
       setError(e?.message ?? String(e));
     } finally {
@@ -2562,7 +3533,7 @@ export default function NewRequest() {
         ].join("\n")
       : "";
   const topicResourceMarkdown =
-    form.contentType === "Topic Page" && topicResourceRows.length > 0
+    form.contentType === "Business info" && topicResourceRows.length > 0
       ? [
           "## Resource links",
           "",
@@ -2710,7 +3681,7 @@ export default function NewRequest() {
         }]
       : [];
   const topicResourceSection: ArticleSection[] =
-    form.contentType === "Topic Page" && topicResourceRows.length > 0
+    form.contentType === "Business info" && topicResourceRows.length > 0
       ? [{
           id: "topic-resource-links",
           type: "resourceLinks",
@@ -2797,10 +3768,30 @@ export default function NewRequest() {
   const stepValid = [step0Valid, step1Valid, step2Valid];
   const canAdvance = stepValid[currentStep];
   const canSubmit = step0Valid && step1Valid && articleMeetsMinimumLength;
+  const guidedSetupComplete =
+    (!!guidedPrompt.trim() || !!articleImportSource) &&
+    !!form.contentType &&
+    !!form.knowledgeBase &&
+    !!form.sector &&
+    form.markets.length > 0 &&
+    form.audience.length > 0 &&
+    form.canRead.length > 0 &&
+    !!form.writtenLanguage &&
+    !!form.approverEmail;
+  const guidedReadyForReview =
+    creationStartMode === "guided" && guidedStarted && step0Valid && step1Valid;
   const goNext = () => {
+    if (currentStep === 0 && creationStartMode === "guided" && guidedReadyForReview) {
+      setCurrentStep(2);
+      return;
+    }
     if (currentStep < 2) setCurrentStep((s) => (s + 1) as StepIndex);
   };
   const goBack = () => {
+    if (currentStep === 2 && creationStartMode === "guided") {
+      setCurrentStep(0);
+      return;
+    }
     if (currentStep > 0) setCurrentStep((s) => (s - 1) as StepIndex);
   };
   /**
@@ -2819,6 +3810,15 @@ export default function NewRequest() {
     .replace(/\[[^\]]+]\([^)]+\)/g, " ")
     .replace(/[#>*_`|~-]+/g, " ")
     .replace(/\s+/g, " ")
+    .trim();
+  const articlePlainTextPreview = finalArticleBody
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/!\[[^\]]*]\([^)]+\)/g, "")
+    .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\|.*$/gm, "")
+    .replace(/^[>*_`~-]+/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
   const articleParagraphs = finalArticleBody
     .split(/\n{2,}/)
@@ -3079,7 +4079,7 @@ export default function NewRequest() {
                 !!form.policyMeta.exceptionApprover.trim(),
             },
           ]
-        : form.contentType === "Knowledge Article"
+        : form.contentType === "How to"
           ? [
               {
                 label: "How-to article uses step formatting",
@@ -3088,7 +4088,7 @@ export default function NewRequest() {
             ]
           : [
               {
-                label: "Topic page includes curated resource links",
+                label: "Business info article includes curated resource links",
                 done: topicResourceRows.length > 0,
               },
             ];
@@ -4514,7 +5514,7 @@ export default function NewRequest() {
       );
     }
 
-    if (form.contentType === "Knowledge Article" && field.key === "steps") {
+    if (form.contentType === "How to" && field.key === "steps") {
       const steps = knowledgeStepsForEditor(articleAnswers[field.key] ?? "");
       return (
         <Stack
@@ -5107,6 +6107,156 @@ export default function NewRequest() {
     }
   };
 
+  const createHandsOffDrafts = async () => {
+    if (
+      handsOffSubmitting ||
+      handsOffArticles.length === 0 ||
+      handsOffArticles.some((article) => article.files.length === 0)
+    ) {
+      return;
+    }
+
+    setHandsOffSubmitting(true);
+    setError(null);
+    setHandsOffArticles((current) =>
+      current.map((article) => ({ ...article, progress: 0, error: undefined })),
+    );
+
+    const createArticle = async (article: HandsOffArticleInput, index: number) => {
+      try {
+        const uploaded = await Promise.all(
+          article.files.map(async (file) =>
+            api.uploadSourceFile({
+              title: file.name.replace(/\.[^.]+$/, ""),
+              fileName: file.name,
+              mimeType: handsOffMimeType(file),
+              dataUrl: await readFileAsDataUrl(file),
+            }),
+          ),
+        );
+        updateHandsOffProgress(article.id, 1);
+
+        const sourceList = uploaded
+          .map(
+            (file) =>
+              `- ${file.fileName}${
+                file.extractedText ? `\n  Extract: ${file.extractedText.slice(0, 1200)}` : ""
+              }`,
+          )
+          .join("\n");
+        const demoCopy = HANDS_OFF_DEMO_COPY[index % HANDS_OFF_DEMO_COPY.length];
+        const repeatNumber = Math.floor(index / HANDS_OFF_DEMO_COPY.length);
+        const title = repeatNumber > 0 ? `${demoCopy.title} (${repeatNumber + 1})` : demoCopy.title;
+        const summary = demoCopy.summary;
+        const sectionId = `hands-off-${index + 1}`;
+        const sections: ArticleSection[] = [
+          {
+            id: `${sectionId}-overview`,
+            type: "text",
+            title: "Before you begin",
+            body: "Review the source files and confirm the people, dates, locations, approvals, and business details that apply. Gather any supporting documentation referenced in the source material. Do not include sensitive personal information that is not required to complete the request.",
+            required: true,
+          },
+          {
+            id: `${sectionId}-steps`,
+            type: "text",
+            title: "Complete the request",
+            body: "1. Review the source materials and confirm that the request is complete.\n2. Contact the appropriate business support team for the employee's sector and country.\n3. Provide the required dates, business reason, approvals, and supporting files.\n4. Keep the confirmation or case number for your records.\n5. Wait for approval before communicating that the request is final.",
+            required: true,
+          },
+          {
+            id: `${sectionId}-next`,
+            type: "text",
+            title: "What happens next",
+            body: "The support team reviews the request and may contact the requester if information is missing. Timing depends on the request type and the countries involved. Follow the instructions in the final confirmation before taking action.",
+            required: true,
+          },
+          {
+            id: `${sectionId}-help`,
+            type: "text",
+            title: "Get help",
+            body: "If the request is urgent, involves more than one country, or does not match the standard process, contact the appropriate support team before submitting it. Use the source files attached to this draft to verify details and replace any placeholder guidance before sending the article for approval.",
+            required: true,
+          },
+        ];
+        const finalArticleBody = [
+          `# ${title}`,
+          summary,
+          ...sections.map((section) =>
+            section.type === "text" ? `## ${section.title}\n\n${section.body}` : "",
+          ),
+        ]
+          .filter(Boolean)
+          .join("\n\n");
+
+        const created = await api.createJob({
+          title,
+          contentType: "How to",
+          knowledgeBase: "mypepsico",
+          summary,
+          audience: "All employees",
+          markets: ["us"],
+          sectors: ["pfna"],
+          countries: ["US"],
+          sourceText: `## Uploaded source files\n${sourceList}\n\nThe agent combined these files and applied the current content, accessibility, and readiness standards.`,
+          finalArticleBody,
+          sections,
+          references: uploaded.map((file) => ({
+            id: file.id,
+            title: file.fileName,
+            kind: "doc" as const,
+            filePath: file.filePath,
+            excerpt: file.extractedText?.slice(0, 260),
+            source: "submission" as const,
+            addedAt: new Date().toISOString(),
+            addedBy: me.name,
+          })),
+          visibility: {
+            audiences: ["All employees"],
+            markets: ["us"],
+            countries: ["US"],
+            canRead: ["All employees"],
+            security: "all-employees",
+            notes: "Publishing details were inferred and must be confirmed during author review.",
+          },
+          submittedBy: me,
+          approver: selectedApprover,
+          seo: {
+            title,
+            metaDescription:
+              "Learn what information to prepare, how to complete this request, and what employees and managers should expect after submission.",
+            keywords: ["employee request", "support process", "manager approval"],
+            summary,
+            keyQuestions: [
+              "What information do I need before I start?",
+              "What happens after I submit the request?",
+            ],
+            entities: ["myPepsiCo", "support team"],
+          },
+          authorReviewRequired: true,
+        });
+        updateHandsOffProgress(article.id, 2);
+        return created.id;
+      } catch (e: any) {
+        updateHandsOffProgress(article.id, 0, e?.message ?? String(e));
+        return null;
+      }
+    };
+
+    const jobIds = await Promise.all(handsOffArticles.map(createArticle));
+    const startedIds = jobIds.filter((id): id is string => Boolean(id));
+    if (startedIds.length === handsOffArticles.length) {
+      navigate(`/?tab=my-articles&writing=${startedIds.length}`);
+      return;
+    }
+
+    const failedCount = handsOffArticles.length - startedIds.length;
+    setError(
+      `${failedCount} ${failedCount === 1 ? "article" : "articles"} could not be started. Review the message beside each article and try again.`,
+    );
+    setHandsOffSubmitting(false);
+  };
+
   // ───────────── Submit ─────────────
   const submit = async () => {
     if (!articleMeetsMinimumLength) {
@@ -5192,21 +6342,28 @@ export default function NewRequest() {
     }
   };
   // ───────────── Render ─────────────
-  if (personaMode !== "non-admin") {
-    return (
-      <Alert severity="info">
-        Article creation is available to Content Owners. Team Admins and Super Admins manage review, governance, and published content.
-      </Alert>
-    );
-  }
-
   return (
-    <Box sx={{ maxWidth: currentStep === 2 ? 1600 : 1280, mx: "auto" }}>
-      <Box
-        sx={{
-          mb: currentStep === 1 ? 8 : 4,
-        }}
-      >
+    <Box
+      sx={{
+        maxWidth:
+          currentStep === 0 && creationStartMode !== "form"
+            ? "none"
+            : currentStep === 2
+              ? 1600
+              : 1280,
+        mx: "auto",
+        pb:
+          currentStep === 2 && creationStartMode === "guided"
+            ? { xs: 12, sm: 12 }
+            : 0,
+      }}
+    >
+      {!(currentStep === 0 && creationStartMode !== "form") && (
+        <Box
+          sx={{
+            mb: currentStep === 1 ? 8 : 4,
+          }}
+        >
         <Stack
           direction={{ xs: "column", md: "row" }}
           spacing={1.5}
@@ -5267,36 +6424,78 @@ export default function NewRequest() {
             )}
           </Box>
           {currentStep === 0 && (
-            <Button
-              variant="outlined"
-              component="label"
-              size="small"
-              startIcon={
-                articleImportBusy ? (
-                  <CircularProgress size={14} />
-                ) : (
-                  <AttachFileIcon sx={{ fontSize: 15 }} />
-                )
-              }
-              disabled={articleImportBusy}
-              sx={{
-                textTransform: "none",
-                fontWeight: 750,
-                borderRadius: "8px",
-                px: 1.35,
-              }}
-            >
-              Upload existing article
-              <input
-                type="file"
-                hidden
-                accept=".txt,.md,.html,.htm,.doc,.docx,.pdf"
-                onChange={(e) => handleArticleImportFile(e.target.files?.[0])}
-              />
-            </Button>
+            <Stack direction="row" spacing={1} alignItems="center">
+              {creationStartMode === "form" && (
+                <Button
+                  variant="outlined"
+                  component="label"
+                  size="small"
+                  startIcon={
+                    articleImportBusy ? (
+                      <CircularProgress size={14} />
+                    ) : (
+                      <AttachFileIcon sx={{ fontSize: 15 }} />
+                    )
+                  }
+                  disabled={articleImportBusy}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 750,
+                    borderRadius: "8px",
+                    px: 1.35,
+                  }}
+                >
+                  Upload existing article
+                  <input
+                    type="file"
+                    hidden
+                    accept=".txt,.md,.html,.htm,.doc,.docx,.pdf"
+                    onChange={(e) => handleArticleImportFile(e.target.files?.[0])}
+                  />
+                </Button>
+              )}
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<UploadFileOutlinedIcon sx={{ fontSize: 17 }} />}
+                onClick={() => setCreationStartMode("hands-off")}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  color: t.productAccent.governance.ink,
+                  borderRadius: "8px",
+                  px: 1.25,
+                  "&:hover": { bgcolor: t.productAccent.governance.soft },
+                }}
+              >
+                Create from files
+              </Button>
+              <Button
+                variant="text"
+                size="small"
+                onClick={() =>
+                  setCreationStartMode((mode) =>
+                    mode === "guided" ? "form" : "guided",
+                  )
+                }
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 800,
+                  color: t.productAccent.guidance.ink,
+                  borderRadius: "8px",
+                  px: 1.25,
+                  "&:hover": {
+                    bgcolor: t.productAccent.guidance.soft,
+                  },
+                }}
+              >
+                {creationStartMode === "guided" ? "Switch to form" : "Back to chat"}
+              </Button>
+            </Stack>
           )}
         </Stack>
-      </Box>
+        </Box>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -5348,6 +6547,1942 @@ export default function NewRequest() {
       {/* ─── Step 1: Basics ─── */}
       {currentStep === 0 && (
       <Stack spacing={3.5}>
+        {creationStartMode === "guided" ? (
+          <>
+          <Box
+            sx={{
+              height: "calc(100vh - 72px)",
+              minHeight: 620,
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            <Box
+              sx={{
+                minHeight: 64,
+                px: { xs: 2, md: 3 },
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                flexShrink: 0,
+                bgcolor: "#FFFFFF",
+              }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  size="small"
+                  startIcon={<UploadFileOutlinedIcon sx={{ fontSize: 17 }} />}
+                  onClick={() => setCreationStartMode("hands-off")}
+                  sx={{
+                    minHeight: 40,
+                    px: 1.75,
+                    borderRadius: 999,
+                    textTransform: "none",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    color: t.productAccent.governance.ink,
+                    "&:hover": { bgcolor: t.productAccent.governance.soft },
+                  }}
+                >
+                  Create from files
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => setCreationStartMode("form")}
+                  sx={{
+                    minHeight: 40,
+                    px: 2,
+                    borderRadius: 999,
+                    textTransform: "none",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    color: t.productAccent.guidance.ink,
+                    bgcolor: t.productAccent.guidance.soft,
+                    boxShadow: "none",
+                    "&:hover": { bgcolor: t.productAccent.guidance.soft, boxShadow: "none" },
+                  }}
+                >
+                  Switch to form
+                </Button>
+              </Stack>
+            </Box>
+
+            <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+              {!guidedStarted ? (
+                <>
+                <Box
+                  sx={{
+                    minHeight: "100%",
+                    display: "grid",
+                    placeItems: "center",
+                    px: 2,
+                    pb: 8,
+                  }}
+                >
+                  <Box sx={{ width: "min(760px, 100%)", textAlign: "center" }}>
+                    <Typography
+                      sx={{
+                        fontSize: { xs: "1.75rem", md: "2.125rem" },
+                        fontWeight: 500,
+                        color: t.pepsiNavy,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      What article should we write today?
+                    </Typography>
+                    <Box
+                      sx={{
+                        mt: 3,
+                        px: 1.25,
+                        py: 0.8,
+                        borderRadius: 999,
+                        border: `1px solid ${t.borderStrong}`,
+                        bgcolor: "#FFFFFF",
+                        boxShadow: "0 10px 28px rgba(0, 32, 91, 0.12)",
+                        transition: "border-color 120ms ease, box-shadow 120ms ease",
+                        "&:focus-within": {
+                          borderColor: t.pepsiBlue,
+                          boxShadow: "0 0 0 3px rgba(0, 101, 168, 0.12), 0 10px 28px rgba(0, 32, 91, 0.12)",
+                        },
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <IconButton
+                          component="label"
+                          size="small"
+                          disabled={articleImportBusy}
+                          title="Attach supporting evidence or an existing article"
+                          sx={{ width: 36, height: 36, color: t.pepsiBlueStrong }}
+                        >
+                          {articleImportBusy ? <CircularProgress size={15} /> : <AttachFileIcon sx={{ fontSize: 19 }} />}
+                          <input
+                            type="file"
+                            hidden
+                            accept=".txt,.md,.html,.htm,.doc,.docx,.pdf"
+                            onChange={(event) => handleArticleImportFile(event.target.files?.[0])}
+                          />
+                        </IconButton>
+                        <TextField
+                          fullWidth
+                          multiline
+                          maxRows={4}
+                          variant="standard"
+                          placeholder="Describe the article you need"
+                          value={guidedPrompt}
+                          onChange={(event) => setGuidedPrompt(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" && !event.shiftKey) {
+                              event.preventDefault();
+                              startGuidedDraft();
+                            }
+                          }}
+                          InputProps={{ disableUnderline: true }}
+                          sx={{
+                            "& .MuiInputBase-input": {
+                              fontSize: "1rem",
+                              lineHeight: 1.45,
+                              color: t.ink,
+                              py: 0.5,
+                            },
+                          }}
+                        />
+                        <IconButton
+                          aria-label={guidedListening ? "Stop voice input" : "Start voice input"}
+                          aria-pressed={guidedListening}
+                          title={guidedListening ? "Stop voice input" : "Use voice input"}
+                          onClick={toggleGuidedVoiceInput}
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            color: guidedListening ? t.pepsiBlueStrong : t.ink,
+                            bgcolor: guidedListening ? t.pepsiBlueSubtle : "transparent",
+                            "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                          }}
+                        >
+                          <MicNoneOutlinedIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                        <IconButton
+                          aria-label="Send message"
+                          onClick={startGuidedDraft}
+                          disabled={!guidedPrompt.trim() && !articleImportSource}
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            bgcolor: t.pepsiBlue,
+                            color: "#FFFFFF",
+                            "&:hover": { bgcolor: t.pepsiBlueStrong },
+                            "&.Mui-disabled": { bgcolor: t.surfaceContainerLow, color: t.granite },
+                          }}
+                        >
+                          <ArrowForwardIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Stack>
+                    </Box>
+                    {guidedVoiceMessage && (
+                      <Typography sx={{ mt: 1, fontSize: "0.75rem", color: t.slate }}>
+                        {guidedVoiceMessage}
+                      </Typography>
+                    )}
+                    {articleImportSource && (
+                      <Chip
+                        size="small"
+                        icon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
+                        label={`Attached: ${articleImportSource.fileName ?? articleImportSource.title}`}
+                        variant="outlined"
+                        sx={{ mt: 1.5, maxWidth: "100%", borderColor: t.articleDivider }}
+                      />
+                    )}
+                    <Button
+                      variant="text"
+                      size="small"
+                      onClick={useGuidedDemoPrompt}
+                      sx={{
+                        mt: 1.25,
+                        px: 1.5,
+                        borderRadius: 999,
+                        textTransform: "none",
+                        fontWeight: 650,
+                        color: t.productAccent.guidance.ink,
+                        bgcolor: guidedDemoMode ? t.productAccent.guidance.soft : "transparent",
+                        "&:hover": { bgcolor: t.productAccent.guidance.soft },
+                      }}
+                    >
+                      Try a demo example
+                    </Button>
+                  </Box>
+                </Box>
+                {false && (
+                <Stack
+                  spacing={4}
+                  sx={{
+                    width: "min(900px, 100%)",
+                    mx: "auto",
+                    px: { xs: 2, md: 3 },
+                    pt: { xs: 2, md: 3 },
+                    pb: 6,
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: { xs: "1.75rem", md: "2rem" }, fontWeight: 500, color: t.ink }}>
+                      Set up your article
+                    </Typography>
+                    <Typography sx={{ mt: 0.75, color: t.slate, fontSize: "0.9375rem", lineHeight: 1.6 }}>
+                      Answer the setup questions now. Content Agent will use them as context, then guide you through writing the article.
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography sx={{ mb: 1, fontSize: "1rem", fontWeight: 700, color: t.ink }}>
+                      What should the article help employees understand or do?
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      placeholder="Describe the topic, problem, policy, or task in a few sentences."
+                      value={guidedPrompt}
+                      onChange={(event) => setGuidedPrompt(event.target.value)}
+                    />
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.25 }}>
+                      <Button
+                        component="label"
+                        variant="outlined"
+                        size="small"
+                        startIcon={articleImportBusy ? <CircularProgress size={14} /> : <AttachFileIcon sx={{ fontSize: 17 }} />}
+                        disabled={articleImportBusy}
+                        sx={{ borderRadius: 999, textTransform: "none", fontWeight: 600 }}
+                      >
+                        Attach existing article
+                        <input
+                          type="file"
+                          hidden
+                          accept=".txt,.md,.html,.htm,.doc,.docx,.pdf"
+                          onChange={(event) => handleArticleImportFile(event.target.files?.[0])}
+                        />
+                      </Button>
+                      {articleImportSource && (
+                        <Chip
+                          size="small"
+                          icon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
+                          label={articleImportSource?.fileName ?? articleImportSource?.title ?? "Article"}
+                          variant="outlined"
+                          sx={{ maxWidth: 360, borderColor: t.articleDivider }}
+                        />
+                      )}
+                    </Stack>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+                      gap: 3,
+                    }}
+                  >
+                    <TextField
+                      select
+                      fullWidth
+                      label="Article type"
+                      value={form.contentType}
+                      onChange={(event) => update("contentType", event.target.value as ContentType)}
+                    >
+                      {contentTypes.map((item) => (
+                        <MenuItem key={item.value} value={item.value}>
+                          <ListItemText primary={item.label} secondary={item.description} />
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                      select
+                      fullWidth
+                      label="Knowledge base"
+                      value={form.knowledgeBase}
+                      onChange={(event) => update("knowledgeBase", event.target.value)}
+                    >
+                      {knowledgeBases.map((item) => (
+                        <MenuItem key={item.id} value={item.id}>
+                          <ListItemText primary={item.name} secondary={item.description} />
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                      select
+                      fullWidth
+                      label="Sector"
+                      value={form.sector}
+                      onChange={(event) => handleSectorChange(event.target.value)}
+                    >
+                      {(sectorProfiles.length
+                        ? sectorProfiles
+                        : [
+                            { id: "pfna", name: "PepsiCo Foods North America" },
+                            { id: "pbna", name: "PepsiCo Beverages North America" },
+                            { id: "global", name: "Global" },
+                          ]
+                      ).map((item) => (
+                        <MenuItem key={item.id} value={item.id}>
+                          <ListItemText primary={item.id.toUpperCase()} secondary={item.name} />
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                      select
+                      fullWidth
+                      label="Country or market"
+                      value={form.markets}
+                      disabled={!isGlobal && marketsInSector.length === 0}
+                      onChange={(event) => {
+                        const nextValue = typeof event.target.value === "string"
+                          ? event.target.value.split(",")
+                          : event.target.value;
+                        setForm((current) => ({ ...current, markets: nextValue as string[] }));
+                      }}
+                      SelectProps={{
+                        multiple: true,
+                        renderValue: (selected) =>
+                          (selected as string[])
+                            .map((marketId) => marketProfiles.find((profile) => profile.id === marketId)?.name ?? MARKET_LABELS[marketId]?.label ?? marketId)
+                            .join(", "),
+                      }}
+                    >
+                      {(isGlobal
+                        ? [{ id: "global", name: "Global" }]
+                        : marketsInSector.map((item) => ({ id: item.id, name: item.name }))
+                      ).map((item) => (
+                        <MenuItem key={item.id} value={item.id}>
+                          <Checkbox size="small" checked={form.markets.includes(item.id)} />
+                          <ListItemText primary={item.name} />
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                      select
+                      fullWidth
+                      label="Employee audience"
+                      value={form.audience}
+                      onChange={(event) => {
+                        const nextValue = typeof event.target.value === "string"
+                          ? event.target.value.split(",")
+                          : event.target.value;
+                        setForm((current) => ({
+                          ...current,
+                          audience: nextValue as string[],
+                          canRead: nextValue as string[],
+                        }));
+                      }}
+                      SelectProps={{
+                        multiple: true,
+                        renderValue: (selected) => (selected as string[]).join(", "),
+                      }}
+                    >
+                      {(audiences.length ? audiences.map((item) => item.label) : ["All employees", "People managers", "HR employees"]).map((label) => (
+                        <MenuItem key={label} value={label}>
+                          <Checkbox size="small" checked={form.audience.includes(label)} />
+                          <ListItemText primary={label} />
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                      select
+                      fullWidth
+                      label="Access groups"
+                      value={form.canRead}
+                      onChange={(event) => {
+                        const nextValue = typeof event.target.value === "string"
+                          ? event.target.value.split(",")
+                          : event.target.value;
+                        setForm((current) => ({ ...current, canRead: nextValue as string[] }));
+                      }}
+                      SelectProps={{
+                        multiple: true,
+                        renderValue: (selected) => (selected as string[]).join(", "),
+                      }}
+                    >
+                      {(audiences.length ? audiences.map((item) => item.label) : ["All employees", "People managers", "HR employees"]).map((label) => (
+                        <MenuItem key={label} value={label}>
+                          <Checkbox size="small" checked={form.canRead.includes(label)} />
+                          <ListItemText primary={label} />
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                      select
+                      fullWidth
+                      label="Source language"
+                      value={form.writtenLanguage}
+                      onChange={(event) => update("writtenLanguage", event.target.value)}
+                    >
+                      {WRITTEN_LANGUAGE_OPTIONS.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                      select
+                      fullWidth
+                      label="Approver"
+                      value={form.approverEmail}
+                      onChange={(event) => update("approverEmail", event.target.value)}
+                    >
+                      {approverOptions.map((person) => (
+                        <MenuItem key={person.email} value={person.email}>
+                          <ListItemText primary={person.name} secondary={person.role} />
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+
+                  <Box sx={{ display: "flex", justifyContent: "flex-end", pt: 1 }}>
+                    <Button
+                      variant="contained"
+                      onClick={startGuidedDraft}
+                      disabled={!guidedSetupComplete}
+                      endIcon={<ArrowForwardIcon sx={{ fontSize: 17 }} />}
+                      sx={{ minHeight: 44, px: 2.5, borderRadius: 999, textTransform: "none", fontWeight: 700, boxShadow: "none" }}
+                    >
+                      Continue to writing
+                    </Button>
+                  </Box>
+                </Stack>
+                )}
+                </>
+              ) : (
+                <Stack
+                  spacing={3.5}
+                  sx={{
+                    width: "min(820px, 100%)",
+                    mx: "auto",
+                    px: { xs: 2, md: 3 },
+                    pt: { xs: 3, md: 4 },
+                    pb: 4,
+                  }}
+                >
+                  {guidedMessages.map((message) => (
+                    <Box
+                      key={message.id}
+                      sx={{
+                        display: "flex",
+                        justifyContent: message.role === "user" ? "flex-end" : "flex-start",
+                      }}
+                    >
+                      {message.role === "user" ? (
+                        <Box
+                          sx={{
+                            maxWidth: "min(640px, 86%)",
+                            px: 2,
+                            py: 1.25,
+                            borderRadius: "22px",
+                            bgcolor: "#F1F1F1",
+                            color: t.ink,
+                          }}
+                        >
+                          <Typography sx={{ fontSize: "0.9375rem", lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
+                            {message.content}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Typography
+                          sx={{
+                            maxWidth: 720,
+                            fontSize: "0.9375rem",
+                            lineHeight: 1.65,
+                            color: t.ink,
+                            whiteSpace: "pre-wrap",
+                          }}
+                        >
+                          {message.content}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+
+                  {guidedStage === "supportingInfo" && (
+                    <Stack spacing={1.25} alignItems="flex-start">
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {guidedDemoMode && !guidedSourceAdded && (
+                          <Button
+                            variant="outlined"
+                            onClick={useGuidedDemoSource}
+                            disabled={guidedThinking}
+                            sx={{
+                              minHeight: 40,
+                              px: 2,
+                              borderRadius: 999,
+                              textTransform: "none",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Use demo source
+                          </Button>
+                        )}
+                        <Button
+                          variant="contained"
+                          onClick={continueGuidedSupportingInfo}
+                          disabled={guidedThinking}
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: 17 }} />}
+                          sx={{
+                            minHeight: 40,
+                            px: 2.25,
+                            borderRadius: 999,
+                            textTransform: "none",
+                            fontWeight: 700,
+                            color: t.pepsiBlueStrong,
+                            bgcolor: t.pepsiBlueSubtle,
+                            boxShadow: "none",
+                            "&:hover": { bgcolor: "#D8ECFF", boxShadow: "none" },
+                          }}
+                        >
+                          {guidedSourceAdded || articleImportSource
+                            ? "Continue"
+                            : "I don’t have anything to add"}
+                        </Button>
+                      </Stack>
+                      <Typography sx={{ fontSize: "0.75rem", color: t.slate }}>
+                        Add more information in the message box, attach a file, or continue.
+                      </Typography>
+                    </Stack>
+                  )}
+
+                  {guidedStage === "contentType" && (
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      {contentTypes.map((item) => (
+                        <Button
+                          key={item.value}
+                          variant="outlined"
+                          onClick={() => chooseGuidedContentType(item.value as ContentType, item.label)}
+                          sx={{ borderRadius: 999, textTransform: "none", fontWeight: 600 }}
+                        >
+                          {item.label}
+                        </Button>
+                      ))}
+                    </Stack>
+                  )}
+
+                  {guidedStage === "knowledgeBase" && (
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      {knowledgeBases.map((item) => (
+                        <Button
+                          key={item.id}
+                          variant="outlined"
+                          onClick={() => chooseGuidedKnowledgeBase(item.id, item.name)}
+                          sx={{ borderRadius: 999, textTransform: "none", fontWeight: 600 }}
+                        >
+                          {item.name}
+                        </Button>
+                      ))}
+                    </Stack>
+                  )}
+
+                  {guidedStage === "sector" && (
+                    <Stack spacing={1.25}>
+                    <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: t.slate }}>
+                      Select all that apply · {guidedSectors.length} selected
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      {(sectorProfiles.length
+                        ? sectorProfiles
+                        : [
+                            { id: "pfna", name: "PepsiCo Foods North America" },
+                            { id: "pbna", name: "PepsiCo Beverages North America" },
+                            { id: "global", name: "Global" },
+                          ]
+                      ).map((item) => (
+                        <Button
+                          key={item.id}
+                          variant={guidedSectors.includes(item.id) ? "contained" : "outlined"}
+                          startIcon={guidedSectors.includes(item.id) ? <CheckCircleOutlineIcon sx={{ fontSize: 16 }} /> : undefined}
+                          onClick={() => chooseGuidedSector(item.id)}
+                          sx={{ borderRadius: 999, textTransform: "none", fontWeight: 600, boxShadow: "none" }}
+                        >
+                          {item.id.toUpperCase()}
+                        </Button>
+                      ))}
+                    </Stack>
+                    <Button
+                      variant="contained"
+                      onClick={continueGuidedSectors}
+                      disabled={guidedSectors.length === 0}
+                      sx={{
+                        alignSelf: "flex-start",
+                        borderRadius: 999,
+                        px: 2.25,
+                        textTransform: "none",
+                        fontWeight: 700,
+                        color: t.pepsiBlueStrong,
+                        bgcolor: t.pepsiBlueSubtle,
+                        boxShadow: "none",
+                        "&:hover": { bgcolor: "#D8ECFF", boxShadow: "none" },
+                        "&.Mui-disabled": { color: t.granite, bgcolor: t.surfaceContainerLow },
+                      }}
+                    >
+                      Continue
+                    </Button>
+                    </Stack>
+                  )}
+
+                  {guidedStage === "market" && (
+                    <Stack spacing={1.25}>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: t.slate }}>
+                        Select all that apply · {form.markets.length} selected
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      {(guidedMarketsInSectors.length
+                        ? guidedMarketsInSectors.map((item) => ({ id: item.id, name: item.name }))
+                        : Object.entries(MARKET_LABELS)
+                            .filter(([id]) => id !== "global")
+                            .map(([id, item]) => ({ id, name: item.label }))
+                      ).map((item) => (
+                        <Button
+                          key={item.id}
+                          variant={form.markets.includes(item.id) ? "contained" : "outlined"}
+                          startIcon={form.markets.includes(item.id) ? <CheckCircleOutlineIcon sx={{ fontSize: 16 }} /> : undefined}
+                          onClick={() => chooseGuidedMarket(item.id)}
+                          sx={{ borderRadius: 999, textTransform: "none", fontWeight: 600, boxShadow: "none" }}
+                        >
+                          {item.name}
+                        </Button>
+                      ))}
+                      </Stack>
+                      <Button
+                        variant="contained"
+                        onClick={continueGuidedMarkets}
+                        disabled={form.markets.length === 0}
+                        sx={{
+                          alignSelf: "flex-start",
+                          borderRadius: 999,
+                          px: 2.25,
+                          textTransform: "none",
+                          fontWeight: 700,
+                          color: t.pepsiBlueStrong,
+                          bgcolor: t.pepsiBlueSubtle,
+                          boxShadow: "none",
+                          "&:hover": { bgcolor: "#D8ECFF", boxShadow: "none" },
+                          "&.Mui-disabled": { color: t.granite, bgcolor: t.surfaceContainerLow },
+                        }}
+                      >
+                        Continue
+                      </Button>
+                    </Stack>
+                  )}
+
+                  {guidedStage === "audience" && (
+                    <Stack spacing={1.25}>
+                    <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: t.slate }}>
+                      Select all that apply · {form.audience.length} selected
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      {(audiences.length ? audiences.slice(0, 6).map((item) => item.label) : ["All employees", "People managers", "HR employees"]).map((label) => (
+                        <Button
+                          key={label}
+                          variant={form.audience.includes(label) ? "contained" : "outlined"}
+                          startIcon={form.audience.includes(label) ? <CheckCircleOutlineIcon sx={{ fontSize: 16 }} /> : undefined}
+                          onClick={() => chooseGuidedAudience(label)}
+                          sx={{ borderRadius: 999, textTransform: "none", fontWeight: 600, boxShadow: "none" }}
+                        >
+                          {label}
+                        </Button>
+                      ))}
+                    </Stack>
+                    <Button
+                      variant="contained"
+                      onClick={continueGuidedAudiences}
+                      disabled={form.audience.length === 0}
+                      sx={{
+                        alignSelf: "flex-start",
+                        borderRadius: 999,
+                        px: 2.25,
+                        textTransform: "none",
+                        fontWeight: 700,
+                        color: t.pepsiBlueStrong,
+                        bgcolor: t.pepsiBlueSubtle,
+                        boxShadow: "none",
+                        "&:hover": { bgcolor: "#D8ECFF", boxShadow: "none" },
+                        "&.Mui-disabled": { color: t.granite, bgcolor: t.surfaceContainerLow },
+                      }}
+                    >
+                      Continue
+                    </Button>
+                    </Stack>
+                  )}
+
+                  {guidedStage === "approver" && (
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      {approverOptions.map((person) => (
+                        <Button
+                          key={person.email}
+                          variant="outlined"
+                          onClick={() => chooseGuidedApprover(person.email, person.name)}
+                          sx={{ borderRadius: 999, textTransform: "none", fontWeight: 600 }}
+                        >
+                          {person.name}
+                        </Button>
+                      ))}
+                    </Stack>
+                  )}
+
+                  {guidedStage === "setupComplete" && (
+                    <Button
+                      variant="contained"
+                      onClick={continueGuidedWriting}
+                      endIcon={<ArrowForwardIcon sx={{ fontSize: 17 }} />}
+                      sx={{
+                        alignSelf: "flex-start",
+                        minHeight: 42,
+                        px: 2.5,
+                        borderRadius: 999,
+                        textTransform: "none",
+                        fontWeight: 700,
+                        color: t.pepsiBlueStrong,
+                        bgcolor: t.pepsiBlueSubtle,
+                        boxShadow: "none",
+                        "&:hover": { bgcolor: "#D8ECFF", boxShadow: "none" },
+                      }}
+                    >
+                      Continue to writing
+                    </Button>
+                  )}
+
+                  {guidedStage === "details" &&
+                    guidedDemoMode &&
+                    form.contentType === "How to" &&
+                    GUIDED_DEMO.answers[guidedWritingAnswers.length] && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={useGuidedDemoAnswer}
+                        disabled={guidedThinking}
+                        sx={{
+                          alignSelf: "flex-start",
+                          minHeight: 36,
+                          px: 1.75,
+                          borderRadius: 999,
+                          textTransform: "none",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Use demo answer
+                      </Button>
+                    )}
+
+                  {guidedStage === "preview" && (
+                    <Box>
+                      <Divider sx={{ mb: 2.5, borderColor: t.articleDivider }} />
+                      <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: t.ink, mb: 1.5 }}>
+                        {form.title}
+                      </Typography>
+                      <Typography
+                        component="div"
+                        sx={{
+                          color: t.ink,
+                          fontFamily: theme.palette.fonts.articleBody,
+                          fontSize: "0.9375rem",
+                          lineHeight: 1.7,
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {articlePlainTextPreview}
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        onClick={() => setCurrentStep(2)}
+                        endIcon={<ArrowForwardIcon sx={{ fontSize: 17 }} />}
+                        sx={{ mt: 3, borderRadius: 999, px: 2.5, textTransform: "none", fontWeight: 700, boxShadow: "none" }}
+                      >
+                        Yes, continue to Review
+                      </Button>
+                    </Box>
+                  )}
+                  {guidedThinking && (
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ color: t.slate }}>
+                      <CircularProgress size={15} thickness={4} sx={{ color: t.pepsiBlueStrong }} />
+                      <Typography sx={{ fontSize: "0.875rem", color: t.slate }}>
+                        {guidedStage === "details" &&
+                        guidedWritingAnswers.length >= guidedWritingQuestions(form.contentType).length
+                          ? "Checking the draft as a first-time reader…"
+                          : "Thinking…"}
+                      </Typography>
+                    </Stack>
+                  )}
+                  <Box ref={guidedBottomRef} />
+                </Stack>
+              )}
+            </Box>
+
+            {guidedStarted && (
+              <Box sx={{ flexShrink: 0, bgcolor: "#FFFFFF", px: 2, pt: 1.5, pb: 1 }}>
+                <Box
+                  sx={{
+                    width: "min(760px, 100%)",
+                    mx: "auto",
+                    px: 1.25,
+                    py: 0.8,
+                    borderRadius: 999,
+                    border: `1px solid ${t.borderStrong}`,
+                    bgcolor: "#FFFFFF",
+                    boxShadow: "0 10px 28px rgba(0, 32, 91, 0.12)",
+                    transition: "border-color 120ms ease, box-shadow 120ms ease",
+                    "&:focus-within": {
+                      borderColor: t.pepsiBlue,
+                      boxShadow: "0 0 0 3px rgba(0, 101, 168, 0.12), 0 10px 28px rgba(0, 32, 91, 0.12)",
+                    },
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <IconButton
+                      component="label"
+                      size="small"
+                      disabled={articleImportBusy}
+                      title="Attach supporting evidence or an existing article"
+                      sx={{ width: 36, height: 36, color: t.pepsiBlueStrong }}
+                    >
+                      {articleImportBusy ? <CircularProgress size={15} /> : <AttachFileIcon sx={{ fontSize: 19 }} />}
+                      <input
+                        type="file"
+                        hidden
+                        accept=".txt,.md,.html,.htm,.doc,.docx,.pdf"
+                        onChange={(e) => handleArticleImportFile(e.target.files?.[0])}
+                      />
+                    </IconButton>
+                    <TextField
+                      fullWidth
+                      multiline
+                      maxRows={4}
+                      variant="standard"
+                      placeholder={
+                        guidedThinking
+                          ? "Content Agent is thinking"
+                          : guidedStage === "supportingInfo"
+                          ? "Paste or describe supporting information"
+                          : guidedStage === "details"
+                          ? "Type your answer"
+                          : guidedStage === "preview"
+                            ? "Ask for a change to the draft"
+                            : guidedStage === "setupComplete"
+                              ? "Continue when you’re ready to write"
+                            : "Choose an option above"
+                      }
+                      value={guidedPrompt}
+                      disabled={
+                        guidedThinking ||
+                        (guidedStage !== "supportingInfo" &&
+                          guidedStage !== "details" &&
+                          guidedStage !== "preview")
+                      }
+                      onChange={(e) => setGuidedPrompt(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === "Enter" &&
+                          !e.shiftKey &&
+                          (guidedStage === "supportingInfo" ||
+                            guidedStage === "details" ||
+                            guidedStage === "preview")
+                        ) {
+                          e.preventDefault();
+                          startGuidedDraft();
+                        }
+                      }}
+                      InputProps={{ disableUnderline: true }}
+                      sx={{
+                        "& .MuiInputBase-input": { fontSize: "0.9375rem", lineHeight: 1.45, color: t.ink, py: 0.5 },
+                        "& .MuiInputBase-input.Mui-disabled": { WebkitTextFillColor: t.granite, opacity: 0.7 },
+                      }}
+                    />
+                    <IconButton
+                      aria-label={guidedListening ? "Stop voice input" : "Start voice input"}
+                      aria-pressed={guidedListening}
+                      title={guidedListening ? "Stop voice input" : "Use voice input"}
+                      onClick={toggleGuidedVoiceInput}
+                      disabled={
+                        guidedThinking ||
+                        (guidedStage !== "supportingInfo" &&
+                          guidedStage !== "details" &&
+                          guidedStage !== "preview")
+                      }
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        color: guidedListening ? t.pepsiBlueStrong : t.ink,
+                        bgcolor: guidedListening ? t.pepsiBlueSubtle : "transparent",
+                        "&:hover": { bgcolor: t.pepsiBlueSubtle },
+                      }}
+                    >
+                      <MicNoneOutlinedIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                    <IconButton
+                      aria-label="Send message"
+                      onClick={startGuidedDraft}
+                      disabled={
+                        guidedThinking ||
+                        (guidedStage !== "supportingInfo" &&
+                          guidedStage !== "details" &&
+                          guidedStage !== "preview") ||
+                        !guidedPrompt.trim()
+                      }
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        bgcolor: t.pepsiBlue,
+                        color: "#FFFFFF",
+                        "&:hover": { bgcolor: t.pepsiBlueStrong },
+                        "&.Mui-disabled": { bgcolor: t.surfaceContainerLow, color: t.granite },
+                      }}
+                    >
+                      <ArrowForwardIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Stack>
+                </Box>
+                {guidedVoiceMessage && (
+                  <Typography sx={{ mt: 0.75, textAlign: "center", fontSize: "0.6875rem", color: t.slate }}>
+                    {guidedVoiceMessage}
+                  </Typography>
+                )}
+                <Typography sx={{ mt: 0.75, textAlign: "center", fontSize: "0.6875rem", color: t.granite }}>
+                  Content Agent can make mistakes. Review important details before publishing.
+                </Typography>
+              </Box>
+            )}
+          </Box>
+
+          {false && (
+          <Box
+            sx={{
+              minHeight: "calc(100vh - 96px)",
+              borderRadius: "8px",
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setCreationStartMode("form")}
+              startIcon={<AutoAwesomeIcon sx={{ fontSize: 16 }} />}
+              sx={{
+                position: "absolute",
+                top: { xs: 8, md: 16 },
+                right: { xs: 8, md: 16 },
+                zIndex: 1,
+                minHeight: 40,
+                px: 2,
+                borderRadius: 999,
+                textTransform: "none",
+                fontSize: "0.9375rem",
+                fontWeight: 600,
+                color: t.pepsiBlueStrong,
+                bgcolor: t.pepsiBlueSubtle,
+                boxShadow: "none",
+                "&:hover": {
+                  bgcolor: "#D8ECFF",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              Switch to form
+            </Button>
+            <Stack
+              spacing={2}
+              sx={{
+                flex: 1,
+                p: { xs: 2, md: 3 },
+                justifyContent: guidedStarted ? "flex-start" : "center",
+              }}
+            >
+              {!guidedStarted ? (
+                <Box
+                  sx={{
+                    width: "min(760px, 100%)",
+                    mx: "auto",
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: { xs: "1.75rem", md: "2.125rem" },
+                      fontWeight: 400,
+                      color: t.ink,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    What article should we create?
+                  </Typography>
+                  <Box
+                    sx={{
+                      mt: 3,
+                      px: 1.5,
+                      py: 1,
+                      borderRadius: 999,
+                      border: `1px solid ${t.articleDivider}`,
+                      bgcolor: "#FFFFFF",
+                      boxShadow: "0 12px 32px rgba(15, 23, 42, 0.12)",
+                    }}
+                  >
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                        <IconButton
+                          component="label"
+                          size="small"
+                          disabled={articleImportBusy}
+                          title="Attach supporting evidence or an existing article"
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            color: t.ink,
+                            "&:hover": { bgcolor: t.surfaceContainerLow },
+                          }}
+                        >
+                          {articleImportBusy ? (
+                            <CircularProgress size={15} />
+                          ) : (
+                            <AttachFileIcon sx={{ fontSize: 17 }} />
+                          )}
+                          <input
+                            type="file"
+                            hidden
+                            accept=".txt,.md,.html,.htm,.doc,.docx,.pdf"
+                            onChange={(e) => handleArticleImportFile(e.target.files?.[0])}
+                          />
+                        </IconButton>
+                        <TextField
+                          fullWidth
+                          multiline
+                          maxRows={4}
+                          variant="standard"
+                          placeholder="Ask Content Agent"
+                          value={guidedPrompt}
+                          onChange={(e) => setGuidedPrompt(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              startGuidedDraft();
+                            }
+                          }}
+                          InputProps={{ disableUnderline: true }}
+                          sx={{
+                            "& .MuiInputBase-root": {
+                              alignItems: "center",
+                            },
+                            "& .MuiInputBase-input": {
+                              fontSize: "1rem",
+                              lineHeight: 1.45,
+                              color: t.ink,
+                              py: 0.5,
+                            },
+                            "& .MuiInputBase-input::placeholder": {
+                              color: t.granite,
+                              opacity: 0.72,
+                            },
+                          }}
+                        />
+                      <IconButton
+                        onClick={startGuidedDraft}
+                        disabled={!guidedPrompt.trim() && !articleImportSource}
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          bgcolor: t.ink,
+                          color: "#FFFFFF",
+                          "&:hover": { bgcolor: t.pepsiNavy },
+                          "&.Mui-disabled": {
+                            bgcolor: t.surfaceContainerLow,
+                            color: t.granite,
+                          },
+                        }}
+                      >
+                        <ArrowForwardIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Stack>
+                  </Box>
+                  {articleImportSource && (
+                    <Chip
+                      size="small"
+                      icon={<CheckCircleOutlineIcon sx={{ fontSize: 14 }} />}
+                      label={`${articleImportSource?.characterCount ? "Parsed" : "Attached"}: ${articleImportSource?.fileName ?? articleImportSource?.title ?? "Article"}`}
+                      variant="outlined"
+                      sx={{
+                        mt: 1.5,
+                        maxWidth: "100%",
+                        borderRadius: "8px",
+                        color: t.pepsiBlueStrong,
+                        borderColor: t.articleDivider,
+                        bgcolor: t.pepsiBlueSubtle,
+                        "& .MuiChip-label": {
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        },
+                      }}
+                    />
+                  )}
+                </Box>
+              ) : (
+                <Stack direction="row" spacing={1.25} alignItems="flex-start">
+                  <Box
+                    sx={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: "50%",
+                      bgcolor: t.pepsiBlueStrong,
+                      color: "#FFFFFF",
+                      display: "grid",
+                      placeItems: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <AutoAwesomeIcon sx={{ fontSize: 16 }} />
+                  </Box>
+                  <Box
+                    sx={{
+                      width: "min(760px, 100%)",
+                      p: 2,
+                    borderRadius: "8px",
+                    bgcolor: "#FFFFFF",
+                    border: `1px solid ${t.articleDivider}`,
+                  }}
+                >
+                  <Typography sx={{ fontSize: "0.9375rem", fontWeight: 800, color: t.ink }}>
+                    I’ll help turn this into a ready-to-review article.
+                  </Typography>
+                  <Typography sx={{ mt: 0.65, fontSize: "0.8125rem", color: t.slate, lineHeight: 1.55 }}>
+                    First I’ll confirm the article type and publishing setup, then I’ll show you the full plain-text draft before Review.
+                  </Typography>
+                  </Box>
+                </Stack>
+              )}
+
+              {guidedPrompt.trim() && guidedStarted && (
+                <Stack direction="row" justifyContent="flex-end">
+                  <Box
+                    sx={{
+                      maxWidth: "min(680px, 82%)",
+                      p: 1.5,
+                      borderRadius: "8px",
+                      bgcolor: t.pepsiBlueStrong,
+                      color: "#FFFFFF",
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "0.875rem", lineHeight: 1.55 }}>
+                      {guidedPrompt.trim()}
+                    </Typography>
+                  </Box>
+                </Stack>
+              )}
+
+              {guidedStarted && (
+                <>
+                  <Stack direction="row" spacing={1.25} alignItems="flex-start">
+                    <Box
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: "50%",
+                        bgcolor: t.pepsiBlueStrong,
+                        color: "#FFFFFF",
+                        display: "grid",
+                        placeItems: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <AutoAwesomeIcon sx={{ fontSize: 16 }} />
+                    </Box>
+                    <Box
+                      sx={{
+                        width: "min(900px, 100%)",
+                        p: 2,
+                        borderRadius: "8px",
+                        bgcolor: "#FFFFFF",
+                        border: `1px solid ${t.articleDivider}`,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: "0.9375rem", fontWeight: 800, color: t.ink }}>
+                        I started the draft. Let’s confirm the setup.
+                      </Typography>
+                      <Typography sx={{ mt: 0.65, fontSize: "0.8125rem", color: t.slate, lineHeight: 1.55 }}>
+                        These answers become the article title, destination, audience, permissions, and starting sections.
+                      </Typography>
+
+                      <Box sx={{ mt: 2 }}>
+                        <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: t.pepsiBlueStrong, mb: 1 }}>
+                          Article type
+                        </Typography>
+                        <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                          {contentTypes.map((c) => {
+                            const selected = form.contentType === c.value;
+                            return (
+                              <Button
+                                key={c.value}
+                                size="small"
+                                variant={selected ? "contained" : "outlined"}
+                                onClick={() => selectGuidedContentType(c.value as ContentType)}
+                                sx={{
+                                  minHeight: 32,
+                                  borderRadius: "8px",
+                                  textTransform: "none",
+                                  fontSize: "0.75rem",
+                                  fontWeight: 800,
+                                  boxShadow: "none",
+                                }}
+                              >
+                                {c.label}
+                              </Button>
+                            );
+                          })}
+                        </Stack>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+                          gap: 1.25,
+                          mt: 2,
+                        }}
+                      >
+                        <TextField
+                          fullWidth
+                          label="Article title"
+                          value={form.title}
+                          onChange={(e) => update("title", e.target.value)}
+                        />
+                        <TextField
+                          select
+                          fullWidth
+                          label="Knowledge base"
+                          value={form.knowledgeBase}
+                          onChange={(e) => update("knowledgeBase", e.target.value)}
+                        >
+                          {knowledgeBases.map((kb) => (
+                            <MenuItem key={kb.id} value={kb.id}>
+                              {kb.name}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                        <TextField
+                          select
+                          fullWidth
+                          label="Sector"
+                          value={form.sector}
+                          onChange={(e) => handleSectorChange(e.target.value)}
+                        >
+                          {sectorProfiles.map((s) => (
+                            <MenuItem key={s.id} value={s.id}>
+                              {s.id.toUpperCase()} · {s.name}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                        {!isGlobal && (
+                          <TextField
+                            select
+                            fullWidth
+                            label="Country"
+                            value={form.markets}
+                            onChange={() => {}}
+                            disabled={marketsInSector.length === 0}
+                            SelectProps={{
+                              multiple: true,
+                              renderValue: (selected) =>
+                                (selected as string[])
+                                  .map(
+                                    (marketId) =>
+                                      marketProfiles.find((p) => p.id === marketId)?.name ??
+                                      MARKET_LABELS[marketId]?.label ??
+                                      marketId,
+                                  )
+                                  .join(", "),
+                            }}
+                          >
+                            {marketsInSector.map((m) => (
+                              <MenuItem
+                                key={m.id}
+                                value={m.id}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleMarketToggle(m.id);
+                                }}
+                              >
+                                <Checkbox size="small" checked={form.markets.includes(m.id)} sx={{ mr: 1, p: 0.5 }} />
+                                {m.name}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        )}
+                        <TextField
+                          select
+                          fullWidth
+                          label="Employee audience"
+                          value={form.audience}
+                          onChange={(e) => {
+                            const nextAudience =
+                              typeof e.target.value === "string"
+                                ? e.target.value.split(",")
+                                : (e.target.value as unknown as string[]);
+                            setForm((f) => ({
+                              ...f,
+                              audience: nextAudience,
+                              canRead: f.canRead.length ? f.canRead : nextAudience,
+                            }));
+                          }}
+                          SelectProps={{
+                            multiple: true,
+                            renderValue: (selected) => (selected as string[]).join(", "),
+                          }}
+                        >
+                          {audiences.map((opt) => (
+                            <MenuItem key={opt.id} value={opt.label}>
+                              <Checkbox size="small" checked={form.audience.includes(opt.label)} sx={{ mr: 1, p: 0.5 }} />
+                              {opt.label}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                        <TextField
+                          select
+                          fullWidth
+                          label="Approver"
+                          value={form.approverEmail}
+                          onChange={(e) => update("approverEmail", e.target.value)}
+                        >
+                          {approverOptions.map((person) => (
+                            <MenuItem key={person.email} value={person.email}>
+                              {person.name}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Box>
+                    </Box>
+                  </Stack>
+
+                  <Stack direction="row" spacing={1.25} alignItems="flex-start">
+                    <Box
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: "50%",
+                        bgcolor: t.pepsiBlueStrong,
+                        color: "#FFFFFF",
+                        display: "grid",
+                        placeItems: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <AutoAwesomeIcon sx={{ fontSize: 16 }} />
+                    </Box>
+                    <Box
+                      sx={{
+                        width: "min(900px, 100%)",
+                        p: 2,
+                        borderRadius: "8px",
+                        bgcolor: "#FFFFFF",
+                        border: `1px solid ${t.articleDivider}`,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: "0.9375rem", fontWeight: 800, color: t.ink }}>
+                        {form.contentType === "FAQ"
+                          ? "Now shape the first question and answer."
+                          : form.contentType === "Policy"
+                            ? "Now capture the core policy language."
+                            : form.contentType === "Business info"
+                              ? "Now capture the business context employees need."
+                              : "Now outline the employee task."}
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        label="Summary"
+                        value={form.summary}
+                        onChange={(e) => update("summary", e.target.value)}
+                        sx={{ mt: 1.5 }}
+                      />
+
+                      {form.contentType === "FAQ" && (
+                        <Stack spacing={1.25} sx={{ mt: 1.25 }}>
+                          <TextField
+                            fullWidth
+                            label="Employee question"
+                            value={form.faqItems[0]?.question ?? ""}
+                            onChange={(e) =>
+                              updateFaqItem(form.faqItems[0]?.id ?? "faq-1", {
+                                question: e.target.value,
+                              })
+                            }
+                          />
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={3}
+                            label="Direct answer"
+                            value={form.faqItems[0]?.answer ?? ""}
+                            onChange={(e) =>
+                              updateFaqItem(form.faqItems[0]?.id ?? "faq-1", {
+                                answer: e.target.value,
+                              })
+                            }
+                          />
+                        </Stack>
+                      )}
+
+                      {form.contentType === "Policy" && (
+                        <Stack spacing={1.25} sx={{ mt: 1.25 }}>
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={2}
+                            label="Who this applies to"
+                            value={form.templateAnswers.whoApplies ?? ""}
+                            onChange={(e) => updateTemplateAnswer("whoApplies", e.target.value)}
+                          />
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={3}
+                            label="Policy details"
+                            value={form.templateAnswers.policyDetails ?? ""}
+                            onChange={(e) => updateTemplateAnswer("policyDetails", e.target.value)}
+                          />
+                        </Stack>
+                      )}
+
+                      {form.contentType === "How to" && (
+                        <Stack spacing={1.25} sx={{ mt: 1.25 }}>
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={2}
+                            label="Before employees start"
+                            value={form.templateAnswers.beforeStart ?? ""}
+                            onChange={(e) => updateTemplateAnswer("beforeStart", e.target.value)}
+                          />
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={4}
+                            label="Starting steps"
+                            value={form.templateAnswers.steps ?? ""}
+                            onChange={(e) => updateTemplateAnswer("steps", e.target.value)}
+                          />
+                        </Stack>
+                      )}
+
+                      {form.contentType === "Business info" && (
+                        <Stack spacing={1.25} sx={{ mt: 1.25 }}>
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={2}
+                            label="Overview"
+                            value={form.templateAnswers.overview ?? ""}
+                            onChange={(e) => updateTemplateAnswer("overview", e.target.value)}
+                          />
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={3}
+                            label="Key information"
+                            value={form.templateAnswers.keyResources ?? ""}
+                            onChange={(e) => updateTemplateAnswer("keyResources", e.target.value)}
+                          />
+                        </Stack>
+                      )}
+
+                      <Alert severity={guidedReadyForReview ? "success" : "info"} sx={{ mt: 1.5 }}>
+                        {guidedReadyForReview
+                          ? "I have enough to show the full article preview. Review it below, then continue to Review."
+                          : "Answer the required setup and article questions here. Once the article has enough information, I will move it to Review."}
+                      </Alert>
+                    </Box>
+                  </Stack>
+
+                  {guidedReadyForReview && (
+                    <Stack direction="row" spacing={1.25} alignItems="flex-start">
+                      <Box
+                        sx={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: "50%",
+                          bgcolor: t.pepsiBlueStrong,
+                          color: "#FFFFFF",
+                          display: "grid",
+                          placeItems: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <AutoAwesomeIcon sx={{ fontSize: 16 }} />
+                      </Box>
+                      <Box
+                        sx={{
+                          width: "min(900px, 100%)",
+                          p: 2,
+                          borderRadius: "8px",
+                          bgcolor: "#FFFFFF",
+                          border: `1px solid ${t.articleDivider}`,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: "0.9375rem", fontWeight: 800, color: t.ink }}>
+                          This looks ready to review.
+                        </Typography>
+                        <Typography sx={{ mt: 0.65, fontSize: "0.8125rem", color: t.slate, lineHeight: 1.55 }}>
+                          Here is the full article in plain text before we move it into the review workspace.
+                        </Typography>
+                        <Box
+                          component="pre"
+                          sx={{
+                            mt: 1.5,
+                            p: 1.5,
+                            maxHeight: 320,
+                            overflow: "auto",
+                            whiteSpace: "pre-wrap",
+                            borderRadius: "8px",
+                            border: `1px solid ${t.articleDivider}`,
+                            bgcolor: t.surfaceContainerLow,
+                            color: t.ink,
+                            fontFamily: theme.palette.fonts.articleBody,
+                            fontSize: "0.8125rem",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {articlePlainTextPreview}
+                        </Box>
+                        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="flex-end" sx={{ mt: 1.5 }}>
+                          <Button
+                            variant="contained"
+                            onClick={() => setCurrentStep(2)}
+                            endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
+                            sx={{
+                              borderRadius: "8px",
+                              textTransform: "none",
+                              fontWeight: 800,
+                              boxShadow: "none",
+                            }}
+                          >
+                            Yes, continue to Review
+                          </Button>
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  )}
+                </>
+              )}
+            </Stack>
+
+            {guidedStarted && (
+              <Box
+                sx={{
+                  p: 1.5,
+                  bgcolor: "#FFFFFF",
+                }}
+              >
+                <Box
+                  sx={{
+                    width: "min(760px, 100%)",
+                    mx: "auto",
+                    px: 1.25,
+                    py: 0.85,
+                    borderRadius: 999,
+                    border: `1px solid ${t.articleDivider}`,
+                    boxShadow: "0 10px 28px rgba(15, 23, 42, 0.1)",
+                    bgcolor: "#FFFFFF",
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                      <IconButton
+                        component="label"
+                        size="small"
+                        disabled={articleImportBusy}
+                        title="Attach supporting evidence or an existing article"
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          color: t.ink,
+                          "&:hover": { bgcolor: t.surfaceContainerLow },
+                        }}
+                      >
+                        {articleImportBusy ? (
+                          <CircularProgress size={15} />
+                        ) : (
+                          <AttachFileIcon sx={{ fontSize: 17 }} />
+                        )}
+                        <input
+                          type="file"
+                          hidden
+                          accept=".txt,.md,.html,.htm,.doc,.docx,.pdf"
+                          onChange={(e) => handleArticleImportFile(e.target.files?.[0])}
+                        />
+                      </IconButton>
+                      <TextField
+                        fullWidth
+                        multiline
+                        maxRows={4}
+                        variant="standard"
+                        placeholder="Message Content Agent..."
+                        value={guidedPrompt}
+                        onChange={(e) => setGuidedPrompt(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            startGuidedDraft();
+                          }
+                        }}
+                        InputProps={{ disableUnderline: true }}
+                        sx={{
+                          "& .MuiInputBase-input": {
+                            fontSize: "0.9375rem",
+                            lineHeight: 1.45,
+                            color: t.ink,
+                            py: 0.5,
+                          },
+                          "& .MuiInputBase-input::placeholder": {
+                            color: t.granite,
+                            opacity: 0.72,
+                          },
+                        }}
+                      />
+                    <IconButton
+                      onClick={startGuidedDraft}
+                      disabled={!guidedPrompt.trim() && !articleImportSource}
+                      sx={{
+                        width: 34,
+                        height: 34,
+                        bgcolor: t.ink,
+                        color: "#FFFFFF",
+                        "&:hover": { bgcolor: t.pepsiNavy },
+                        "&.Mui-disabled": {
+                          bgcolor: t.surfaceContainerLow,
+                          color: t.granite,
+                        },
+                      }}
+                    >
+                      <ArrowForwardIcon sx={{ fontSize: 17 }} />
+                    </IconButton>
+                  </Stack>
+                </Box>
+              </Box>
+            )}
+          </Box>
+          )}
+          </>
+        ) : creationStartMode === "hands-off" ? (
+          <Box
+            sx={{
+              height: "calc(100vh - 72px)",
+              minHeight: 620,
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                minHeight: 64,
+                px: { xs: 2, md: 3 },
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                flexShrink: 0,
+              }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  size="small"
+                  onClick={() => setCreationStartMode("guided")}
+                  sx={{ minHeight: 40, px: 1.75, borderRadius: 999, textTransform: "none", fontWeight: 600 }}
+                >
+                  Back to chat
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => setCreationStartMode("form")}
+                  sx={{
+                    minHeight: 40,
+                    px: 2,
+                    borderRadius: 999,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    color: t.productAccent.guidance.ink,
+                    bgcolor: t.productAccent.guidance.soft,
+                    "&:hover": { bgcolor: t.productAccent.guidance.soft },
+                  }}
+                >
+                  Switch to form
+                </Button>
+              </Stack>
+            </Box>
+
+            <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", px: 2, pb: 6 }}>
+              <Box sx={{ width: "min(760px, 100%)", mx: "auto", pt: { xs: 5, md: 9 } }}>
+                <Typography
+                  component="h1"
+                  sx={{ fontSize: { xs: "1.75rem", md: "2.125rem" }, fontWeight: 500, color: t.pepsiNavy, lineHeight: 1.2 }}
+                >
+                  Let the agent write it for you
+                </Typography>
+                <Typography sx={{ mt: 1.25, maxWidth: 650, fontSize: "0.9375rem", color: t.slate, lineHeight: 1.6 }}>
+                  Add the source material you already have. The agent will combine it into a standards-ready draft and place it in My Articles for you to review.
+                </Typography>
+
+                <Stack spacing={2} sx={{ mt: 4 }}>
+                  {handsOffArticles.map((article, articleIndex) => (
+                    <Box
+                      key={article.id}
+                      sx={{
+                        border: `1px solid ${article.error ? t.errorInk : t.border}`,
+                        borderRadius: 2,
+                        p: { xs: 1.5, sm: 2 },
+                        bgcolor: "#FFFFFF",
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>
+                            Article {articleIndex + 1}
+                          </Typography>
+                          <Typography sx={{ fontSize: "0.75rem", color: t.granite }}>
+                            {article.files.length === 0
+                              ? "Add the source files for this article"
+                              : `${article.files.length} source ${article.files.length === 1 ? "file" : "files"}`}
+                          </Typography>
+                        </Box>
+                        {handsOffArticles.length > 1 && !handsOffSubmitting && (
+                          <IconButton
+                            size="small"
+                            aria-label={`Remove article ${articleIndex + 1}`}
+                            onClick={() => removeHandsOffArticle(article.id)}
+                            sx={{ color: t.slate }}
+                          >
+                            <DeleteOutlineIcon sx={{ fontSize: 19 }} />
+                          </IconButton>
+                        )}
+                      </Stack>
+
+                      <Box
+                        component="label"
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          if (!handsOffSubmitting) addHandsOffFiles(article.id, event.dataTransfer.files);
+                        }}
+                        sx={{
+                          mt: 1.5,
+                          minHeight: 126,
+                          border: `1.5px dashed ${t.borderStrong}`,
+                          borderRadius: 1.5,
+                          bgcolor: t.surfaceContainerLow,
+                          display: "grid",
+                          placeItems: "center",
+                          px: 2,
+                          py: 2.5,
+                          cursor: handsOffSubmitting ? "default" : "pointer",
+                          transition: "border-color 120ms ease, background-color 120ms ease",
+                          "&:hover": handsOffSubmitting
+                            ? {}
+                            : { borderColor: t.productAccent.governance.main, bgcolor: t.productAccent.governance.soft },
+                        }}
+                      >
+                        <Stack alignItems="center" spacing={0.75} textAlign="center">
+                          <Box
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: "50%",
+                              display: "grid",
+                              placeItems: "center",
+                              bgcolor: t.productAccent.governance.soft,
+                              color: t.productAccent.governance.ink,
+                            }}
+                          >
+                            <UploadFileOutlinedIcon sx={{ fontSize: 20 }} />
+                          </Box>
+                          <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: t.ink }}>
+                            Choose files or drag them here
+                          </Typography>
+                          <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
+                            PowerPoint, Excel, Word, PDF, CSV, Markdown, and text files
+                          </Typography>
+                        </Stack>
+                        <input
+                          type="file"
+                          hidden
+                          multiple
+                          accept={HANDS_OFF_ACCEPT}
+                          disabled={handsOffSubmitting}
+                          onChange={(event) => {
+                            if (event.target.files) addHandsOffFiles(article.id, event.target.files);
+                            event.target.value = "";
+                          }}
+                        />
+                      </Box>
+
+                      {article.files.length > 0 && (
+                        <Stack spacing={0} sx={{ mt: 1 }}>
+                          {article.files.map((file) => (
+                            <Stack
+                              key={`${file.name}:${file.size}:${file.lastModified}`}
+                              direction="row"
+                              alignItems="center"
+                              spacing={1.25}
+                              sx={{ minHeight: 48, px: 0.5, py: 0.75, borderBottom: `1px solid ${t.articleDivider}` }}
+                            >
+                              <InsertDriveFileOutlinedIcon sx={{ fontSize: 19, color: t.pepsiBlue }} />
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Typography noWrap sx={{ fontSize: "0.8125rem", fontWeight: 600, color: t.ink }}>
+                                  {file.name}
+                                </Typography>
+                                <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
+                                  {formatFileSize(file.size)}
+                                </Typography>
+                              </Box>
+                              <IconButton
+                                size="small"
+                                aria-label={`Remove ${file.name}`}
+                                disabled={handsOffSubmitting}
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  removeHandsOffFile(article.id, file);
+                                }}
+                              >
+                                <CloseIcon sx={{ fontSize: 18 }} />
+                              </IconButton>
+                            </Stack>
+                          ))}
+                        </Stack>
+                      )}
+
+                      {(handsOffSubmitting || article.error) && (
+                        <Stack spacing={0.625} sx={{ mt: 1.5 }}>
+                          {["Reading source files", "Writing the article", "Applying content and accessibility standards"].map(
+                            (label, progressIndex) => {
+                              const complete = article.progress > progressIndex;
+                              const active = !article.error && article.progress === progressIndex;
+                              return (
+                                <Stack key={label} direction="row" spacing={1} alignItems="center">
+                                  {complete ? (
+                                    <CheckCircleOutlineIcon sx={{ fontSize: 17, color: t.successInk }} />
+                                  ) : active ? (
+                                    <CircularProgress size={15} sx={{ color: t.pepsiBlue }} />
+                                  ) : (
+                                    <Box
+                                      sx={{
+                                        width: 15,
+                                        height: 15,
+                                        borderRadius: "50%",
+                                        border: `1px solid ${t.borderStrong}`,
+                                      }}
+                                    />
+                                  )}
+                                  <Typography sx={{ fontSize: "0.75rem", color: active || complete ? t.ink : t.granite }}>
+                                    {label}
+                                  </Typography>
+                                </Stack>
+                              );
+                            },
+                          )}
+                          {article.error && (
+                            <Typography sx={{ pt: 0.5, fontSize: "0.75rem", color: t.errorInk }}>
+                              {article.error}
+                            </Typography>
+                          )}
+                        </Stack>
+                      )}
+                    </Box>
+                  ))}
+
+                  <Button
+                    startIcon={<AddIcon sx={{ fontSize: 18 }} />}
+                    onClick={addHandsOffArticle}
+                    disabled={handsOffSubmitting}
+                    sx={{
+                      alignSelf: "flex-start",
+                      px: 0.75,
+                      textTransform: "none",
+                      fontWeight: 700,
+                      color: t.productAccent.governance.ink,
+                      "&:hover": { bgcolor: t.productAccent.governance.soft },
+                    }}
+                  >
+                    Add another article
+                  </Button>
+                </Stack>
+
+                <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={1} sx={{ mt: 2.5 }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    startIcon={handsOffSubmitting ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon sx={{ fontSize: 18 }} />}
+                    disabled={
+                      handsOffSubmitting ||
+                      handsOffArticles.length === 0 ||
+                      handsOffArticles.some((article) => article.files.length === 0)
+                    }
+                    onClick={createHandsOffDrafts}
+                    sx={{ minHeight: 44, px: 2.5, borderRadius: 999, textTransform: "none", fontWeight: 700 }}
+                  >
+                    {handsOffSubmitting
+                      ? `Starting ${handsOffArticles.length} ${handsOffArticles.length === 1 ? "article" : "articles"}...`
+                      : handsOffArticles.length === 1
+                        ? "Write article for me"
+                        : `Write ${handsOffArticles.length} articles for me`}
+                  </Button>
+                </Stack>
+                <Typography sx={{ mt: 1.25, textAlign: "right", fontSize: "0.6875rem", color: t.granite }}>
+                  Track each article in My Articles while the agent writes. Finished drafts will move to Needs author review.
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        ) : (
+          <>
+
         {/* ─────────── Title (with live SEO hint) ─────────── */}
         <Box>
           <Stack
@@ -5414,7 +8549,7 @@ export default function NewRequest() {
         {/* Phase P2.1 — content-type card picker. Each card shows name +
             description + a PepsiCo-flavored example so the writer can
             recognize the right type without a tooltip dance. */}
-        <Field label="Content type" required>
+        <Field label="Article type" required>
           <Box
             sx={{
               display: "grid",
@@ -5917,6 +9052,9 @@ export default function NewRequest() {
           </Field>
         </Stack>
 
+          </>
+        )}
+
       </Stack>
       )}
 
@@ -6090,7 +9228,7 @@ export default function NewRequest() {
             </Box>
           )}
 
-          {form.contentType === "Topic Page" && (
+          {form.contentType === "Business info" && (
             <Box sx={{ mb: 3.25 }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
                 <Typography
@@ -6206,7 +9344,7 @@ export default function NewRequest() {
               const tableColumns = customSection ? getTableColumns(customSection) : [];
               const sectionValue = articleAnswers[field.key] ?? "";
               const knowledgeStepValues =
-                form.contentType === "Knowledge Article" && field.key === "steps"
+                form.contentType === "How to" && field.key === "steps"
                   ? knowledgeStepsForEditor(sectionValue)
                   : [];
               const isLastFaqItem =
@@ -6647,7 +9785,7 @@ export default function NewRequest() {
                         </Stack>
                       ) : form.contentType === "Policy" && field.key === "policyFaqs" ? (
                         renderPolicyFaqTemplateEditor()
-                      ) : form.contentType === "Knowledge Article" && field.key === "steps" ? (
+                      ) : form.contentType === "How to" && field.key === "steps" ? (
                         <Stack
                           spacing={0.5}
                           sx={{
@@ -7512,60 +10650,145 @@ export default function NewRequest() {
               </AccordionDetails>
             </Accordion>
           </Stack>
+
+          {creationStartMode === "guided" && (
+            <Box
+              onFocus={() => setReviewAssistantExpanded(true)}
+              onBlur={() => {
+                if (!reviewAssistantPrompt.trim()) {
+                  window.setTimeout(() => setReviewAssistantExpanded(false), 0);
+                }
+              }}
+              sx={{
+                position: "fixed",
+                zIndex: (theme) => theme.zIndex.appBar + 1,
+                left: { xs: 16, md: "calc(50% + 36px)" },
+                right: { xs: 16, md: "auto" },
+                bottom: { xs: 10, sm: 16 },
+                transform: { md: "translateX(-50%)" },
+                width: {
+                  md: "min(760px, calc(100vw - 120px))",
+                },
+                px: 1,
+                py: 0.625,
+                borderRadius: 999,
+                border: `1px solid ${reviewAssistantExpanded ? t.pepsiBlue : t.articleDivider}`,
+                bgcolor: "#FFFFFF",
+                boxShadow: reviewAssistantExpanded
+                  ? "0 8px 24px rgba(15, 23, 42, 0.12)"
+                  : "0 5px 18px rgba(15, 23, 42, 0.08)",
+                transition: "border-color 160ms ease, box-shadow 160ms ease",
+              }}
+            >
+              <Stack direction="row" spacing={0.75} alignItems="center">
+                <TextField
+                  fullWidth
+                  multiline
+                  maxRows={3}
+                  variant="standard"
+                  placeholder="Ask for a larger article update"
+                  value={reviewAssistantPrompt}
+                  onChange={(e) => setReviewAssistantPrompt(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      applyReviewAssistantUpdate();
+                    }
+                  }}
+                  InputProps={{ disableUnderline: true }}
+                  sx={{
+                    ml: 0.75,
+                    "& .MuiInputBase-input": {
+                      py: 0.5,
+                      fontSize: "0.875rem",
+                      lineHeight: 1.45,
+                      color: t.ink,
+                    },
+                  }}
+                />
+                {reviewAssistantExpanded && (
+                  <IconButton
+                    aria-label="Apply article update"
+                    title="Apply update"
+                    disabled={!reviewAssistantPrompt.trim()}
+                    onClick={applyReviewAssistantUpdate}
+                    sx={{
+                      width: 34,
+                      height: 34,
+                      flexShrink: 0,
+                      bgcolor: t.pepsiBlueStrong,
+                      color: "#FFFFFF",
+                      "&:hover": { bgcolor: t.pepsiNavy },
+                      "&.Mui-disabled": {
+                        bgcolor: t.surfaceContainerLow,
+                        color: t.granite,
+                      },
+                    }}
+                  >
+                    <ArrowForwardIcon sx={{ fontSize: 17 }} />
+                  </IconButton>
+                )}
+              </Stack>
+            </Box>
+          )}
         </Stack>
       )}
 
-      <Divider sx={{ my: 4 }} />
+      {!(currentStep === 0 && creationStartMode !== "form") && (
+        <>
+          <Divider sx={{ my: 4 }} />
 
-      {/* Per-step wizard nav. Back is hidden on step 0; Submit replaces Next
-          on the final step. Next/Submit are gated by the current step's
-          validation so the user gets a clear "do this first" signal. */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        spacing={1.5}
-      >
-        <Button onClick={() => navigate("/")} disabled={submitting}>
-          Cancel
-        </Button>
-        <Stack direction="row" spacing={1} alignItems="center">
-          {currentStep > 0 && (
-            <Button
-              onClick={goBack}
-              disabled={submitting}
-              startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
-            >
-              Back
+          {/* Per-step wizard nav. Back is hidden on step 0; Submit replaces Next
+              on the final step. Next/Submit are gated by the current step's
+              validation so the user gets a clear "do this first" signal. */}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            spacing={1.5}
+          >
+            <Button onClick={() => navigate("/")} disabled={submitting}>
+              Cancel
             </Button>
-          )}
-          {currentStep < 2 ? (
-            <Button
-              variant="contained"
-              onClick={goNext}
-              disabled={!canAdvance || submitting}
-              endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
-            >
-              Next
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              onClick={submit}
-              disabled={!canSubmit || submitting}
-              startIcon={
-                submitting ? (
-                  <CircularProgress size={16} color="inherit" />
-                ) : (
-                  <AutoAwesomeIcon sx={{ fontSize: 16 }} />
-                )
-              }
-            >
-              {submitting ? "Submitting for approval…" : "Submit for approval"}
-            </Button>
-          )}
-        </Stack>
-      </Stack>
+            <Stack direction="row" spacing={1} alignItems="center">
+              {currentStep > 0 && (
+                <Button
+                  onClick={goBack}
+                  disabled={submitting}
+                  startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
+                >
+                  Back
+                </Button>
+              )}
+              {currentStep < 2 ? (
+                <Button
+                  variant="contained"
+                  onClick={goNext}
+                  disabled={!canAdvance || submitting}
+                  endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={submit}
+                  disabled={!canSubmit || submitting}
+                  startIcon={
+                    submitting ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : (
+                      <AutoAwesomeIcon sx={{ fontSize: 16 }} />
+                    )
+                  }
+                >
+                  {submitting ? "Submitting for approval…" : "Submit for approval"}
+                </Button>
+              )}
+            </Stack>
+          </Stack>
+        </>
+      )}
 
       {/* ─────────── Global market confirmation dialog ─────────── */}
       <Dialog

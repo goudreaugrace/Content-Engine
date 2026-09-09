@@ -1,6 +1,6 @@
 # Content Creation Agent — POC
 
-Multi-agent orchestration for drafting MyPepsiCo Knowledge Articles and Topic Pages.
+Multi-agent orchestration for drafting MyPepsiCo knowledge articles across FAQ, Business info, How to, and Policy types.
 
 ## Stack
 

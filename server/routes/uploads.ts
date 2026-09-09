@@ -39,6 +39,12 @@ const ALLOWED_MIME = new Set([
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain",
+  "text/markdown",
+  "text/csv",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ]);
 
 function kindFromMime(mime: string): "pdf" | "doc" {
@@ -65,7 +71,7 @@ function cleanDocxXml(xml: string) {
 
 async function extractUploadedText(filePath: string, mimeType: string) {
   try {
-    if (mimeType === "text/plain") {
+    if (mimeType === "text/plain" || mimeType === "text/markdown" || mimeType === "text/csv") {
       return (await fs.readFile(filePath, "utf8")).trim();
     }
     if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {

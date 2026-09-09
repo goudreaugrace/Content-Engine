@@ -75,7 +75,12 @@ const normalizeKnowledgeBase = (value?: string) => {
   return value ?? "";
 };
 
-const CONTENT_TYPE_OPTIONS = ["FAQ", "Policy", "Knowledge Article", "Topic Page"].map((value) => ({ value, label: value }));
+const CONTENT_TYPE_OPTIONS: Array<{ value: Article["contentType"]; label: string }> = [
+  { value: "FAQ", label: "FAQ" },
+  { value: "Business info", label: "Business info" },
+  { value: "How to", label: "How to" },
+  { value: "Policy", label: "Policy" },
+];
 
 const LANGUAGE_OPTIONS = [
   { value: "auto", label: "Auto-detect from article text" },

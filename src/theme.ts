@@ -1,9 +1,8 @@
 import { createTheme, alpha } from "@mui/material/styles";
 
 // ============================================================================
-// Tokens — clean, Google-style: white surfaces, neutral greys, blue primary.
-// Token keys are kept stable so components don't need to change; only values
-// move. (paper/surface = white, ink/slate/granite = Google text greys, etc.)
+// Tokens — quiet enterprise surfaces with PepsiCo brand color and typography.
+// Token keys stay stable so feature components inherit the visual refresh.
 // ============================================================================
 
 const tokens = {
@@ -12,16 +11,16 @@ const tokens = {
   // Material 3 surface tint hierarchy. Subtle blue-grey washes layered on
   // top of pure white. The page background is `paper`; cards sit on
   // `surfaceContainer` for visual separation without a stroke.
-  surfaceContainerLow: "#F8FAFC",     // 1-2% blue-grey tint — backdrop under header bars
-  surfaceContainer: "#F1F4F8",        // 3-4% — quiet container surfaces
-  surfaceContainerHigh: "#E9EEF5",    // 5-6% — emphasized containers, drawer
-  mist: "#F1F3F4",      // hover / secondary surface (Google grey)
-  border: "#DDE5EC",    // default border + divider, slightly cooler for myPepsiCo pages
-  borderStrong: "#B9C6D2",
-  granite: "#6B7785",   // tertiary text, disabled
-  slate: "#5E6B76",     // secondary text, labels
-  ink: "#1F2933",       // primary text, headings
-  inkSoft: "#334155",   // hover on ink text
+  surfaceContainerLow: "#F7FAFC",
+  surfaceContainer: "#EEF4F8",
+  surfaceContainerHigh: "#E4EDF4",
+  mist: "#F1F5F8",
+  border: "#D7E2EA",
+  borderStrong: "#AEBFCD",
+  granite: "#6C7B88",
+  slate: "#4F6170",
+  ink: "#172A3A",
+  inkSoft: "#243E52",
 
   // Attention accent — used only for "needs attention" signals (pending review,
   // unsaved changes, in-flight job, active trace step). Primary actions use blue.
@@ -38,11 +37,19 @@ const tokens = {
 
   // PepsiCo brand. Doubles as the primary/interactive color across the system
   // (buttons, links, active nav) and the article-document branding.
-  pepsiBlue: "#155798",
+  pepsiBlue: "#0065A8",
   pepsiBlueStrong: "#003B5C",
-  pepsiBlueSubtle: "#EAF4FB",
-  pepsiBlueDeep: "#02355A",
-  pepsiNavy: "#02355A",
+  pepsiBlueSubtle: "#E4F2FC",
+  pepsiBlueDeep: "#00205B",
+  pepsiNavy: "#00205B",
+  brandSky: "#B9DAF5",
+  // Product accents translate PepsiCo's broader corporate palette into
+  // operational roles. Components should choose a role, not a raw hue.
+  productAccent: {
+    creation: { main: "#0065A8", ink: "#003B5C", soft: "#EAF5FC" },
+    governance: { main: "#6F9238", ink: "#3E651F", soft: "#EDF5DC" },
+    guidance: { main: "#E2A633", ink: "#7A5200", soft: "#FFF3D8" },
+  },
   articleFrameBg: "#FFFFFF",
   articleDocumentBg: "#FAFAFA",
   articleRailBg: "#FAFAFA",
@@ -50,12 +57,12 @@ const tokens = {
   pepsiRed: "#E32934",
 };
 
-// Inter across the entire system. Keys kept (sans/serif/mono) so existing
-// component references resolve; all point to Inter now.
+// Poppins gives the product the same geometric, approachable character as the
+// PepsiCo brand site. Inter remains the utility face for dense metadata.
 const fontInter = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
 const fontPoppins = '"Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
 const fontBarlowSemiCondensed = '"Barlow Semi Condensed", "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
-const fontSans = fontInter;
+const fontSans = fontPoppins;
 const fontSerif = fontBarlowSemiCondensed;
 const fontMono = fontInter;
 
@@ -148,7 +155,7 @@ export const theme = createTheme({
   shape: { borderRadius: 8 },
 
   typography: {
-    fontFamily: fontInter,
+    fontFamily: fontPoppins,
     // The MUI variant names below map to Material 3 type roles:
     //   h1/h2/h3 → Display (Large/Medium/Small)
     //   h4/h5/h6 → Headline (Large/Medium/Small)
@@ -160,31 +167,31 @@ export const theme = createTheme({
     //
     // M3 spec uses positive letter-spacing at small sizes (better readability)
     // and negative at display sizes (tighter, more refined).
-    h1: { fontWeight: 400, fontSize: "clamp(2.25rem, 5vw, 3.5625rem)", lineHeight: 1.12, letterSpacing: "-0.016em" },
-    h2: { fontWeight: 400, fontSize: "clamp(1.875rem, 4vw, 2.8125rem)", lineHeight: 1.15, letterSpacing: "-0.005em" },
-    h3: { fontWeight: 400, fontSize: "clamp(1.5rem, 3.5vw, 2.25rem)", lineHeight: 1.22, letterSpacing: 0 },
+    h1: { fontWeight: 600, fontSize: "3rem", lineHeight: 1.12, letterSpacing: 0 },
+    h2: { fontWeight: 600, fontSize: "2.5rem", lineHeight: 1.15, letterSpacing: 0 },
+    h3: { fontWeight: 600, fontSize: "2rem", lineHeight: 1.22, letterSpacing: 0 },
     // Page-level H1 (most pages use variant="h4"). Google uses lighter weights
     // at display sizes — restrained, not bold.
     h4: {
-      fontWeight: 400,
-      fontSize: "clamp(1.5rem, 3vw, 2rem)",
+      fontWeight: 500,
+      fontSize: "2rem",
       lineHeight: 1.25,
       letterSpacing: 0,
       color: tokens.pepsiNavy,
     },
-    h5: { fontWeight: 400, fontSize: "1.5rem", lineHeight: 1.33, letterSpacing: 0 },
-    h6: { fontWeight: 500, fontSize: "1.125rem", lineHeight: 1.4, letterSpacing: "0.005em" },
-    subtitle1: { fontWeight: 500, fontSize: "1rem", lineHeight: 1.5, letterSpacing: "0.009em" },
-    subtitle2: { fontWeight: 500, fontSize: "0.875rem", lineHeight: 1.45, letterSpacing: "0.007em" },
-    body1: { fontSize: "0.9375rem", lineHeight: 1.55, letterSpacing: "0.015em" },
-    body2: { fontSize: "0.875rem", lineHeight: 1.5, letterSpacing: "0.015em" },
+    h5: { fontWeight: 500, fontSize: "1.5rem", lineHeight: 1.33, letterSpacing: 0 },
+    h6: { fontWeight: 600, fontSize: "1.125rem", lineHeight: 1.4, letterSpacing: 0 },
+    subtitle1: { fontWeight: 500, fontSize: "1rem", lineHeight: 1.5, letterSpacing: 0 },
+    subtitle2: { fontWeight: 500, fontSize: "0.875rem", lineHeight: 1.45, letterSpacing: 0 },
+    body1: { fontSize: "0.9375rem", lineHeight: 1.55, letterSpacing: 0 },
+    body2: { fontSize: "0.875rem", lineHeight: 1.5, letterSpacing: 0 },
     // M3 Label Large — used by button labels. M3 spec is 14px / weight 500.
-    button: { fontWeight: 500, fontSize: "0.875rem", letterSpacing: "0.007em", textTransform: "none" },
-    caption: { fontSize: "0.75rem", lineHeight: 1.45, letterSpacing: "0.025em", color: tokens.slate },
+    button: { fontWeight: 600, fontSize: "0.875rem", letterSpacing: 0, textTransform: "none" },
+    caption: { fontSize: "0.75rem", lineHeight: 1.45, letterSpacing: 0, color: tokens.slate },
     overline: {
       fontSize: "0.6875rem",
       fontWeight: 600,
-      letterSpacing: "0.08em",
+      letterSpacing: "0.06em",
       lineHeight: 1.4,
       color: tokens.slate,
     },
@@ -220,7 +227,7 @@ export const theme = createTheme({
           borderColor: tokens.border,
           boxShadow: "none",
           backgroundColor: tokens.surface,
-          borderRadius: 12,
+          borderRadius: 8,
         },
       },
     },
@@ -298,7 +305,7 @@ export const theme = createTheme({
         {
           props: { variant: "tonal" as any },
           style: {
-            backgroundColor: tokens.pepsiBlueSubtle,
+            backgroundColor: tokens.brandSky,
             color: tokens.pepsiBlueStrong,
             boxShadow: "none",
             "&:hover": {

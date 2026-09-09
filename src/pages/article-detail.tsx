@@ -39,6 +39,7 @@ import ArticleDocument from "../components/article-document";
 import EditableArticle from "../components/editable-article";
 import ArticleReadingFrame from "../components/article-reading-frame";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import OpenInNewOutlinedIcon from "@mui/icons-material/OpenInNewOutlined";
 // ArticleEditor was the old whole-article markdown/AI chat editor. Option A
 // consolidated all editing under the page-level Edit toggle + per-section
 // affordances, so the standalone editor is no longer reachable. File kept on
@@ -83,13 +84,23 @@ function translationBody(value: NonNullable<Article["translations"]>[string] | u
 // model is added, MyPepsiCo is the explicit prototype default rather than a
 // hidden assumption in the review flow.
 function knowledgeBaseLabel(article: Article): string {
-  return article.knowledgeBase ?? "myPepsiCo KB";
+  const labels: Record<string, string> = {
+    "pep-km": "Pep KM KB",
+    mypepsico: "myPepsiCo KB",
+    pfp: "PFP KB",
+  };
+  return article.knowledgeBase ? labels[article.knowledgeBase] ?? article.knowledgeBase : "myPepsiCo KB";
 }
 
 const statusMeta: Record<
   Article["status"],
   { label: string; color: "warning" | "success" | "error" | "info"; icon: React.ReactNode }
 > = {
+  "needs-author-review": {
+    label: "Needs author review",
+    color: "info",
+    icon: <EditOutlinedIcon sx={{ fontSize: 13 }} />,
+  },
   "needs-review": {
     label: "In Review",
     color: "warning",
@@ -112,40 +123,30 @@ const statusMeta: Record<
   },
 };
 
-const SUBMISSION_STAGES = [
-  "Create / Edit Article",
-  "Submit for Review",
-  "Under Review",
-  "Published",
-];
+const SUBMISSION_STAGES = ["Draft review", "Approval", "Published"] as const;
 
-function SubmissionProgress({ currentStage }: { currentStage: number }) {
+function SubmissionProgress({ status }: { status: Article["status"] }) {
   const theme = useTheme();
   const t = theme.palette.tokens;
-  const safeStage = Math.min(Math.max(currentStage, 0), SUBMISSION_STAGES.length - 1);
-  const progressPercent = safeStage === 0
-    ? 0
-    : (safeStage / (SUBMISSION_STAGES.length - 1)) * 100;
+  const safeStage = status === "published" ? 2 : status === "needs-review" ? 1 : 0;
 
   return (
     <Box
       aria-label="Article progress"
       sx={{
         width: "100%",
-        maxWidth: 760,
-        mx: "auto",
-        px: { xs: 0, md: 1 },
+        maxWidth: 620,
       }}
     >
       <Box
         sx={{
           position: "relative",
-          display: "grid",
-          gridTemplateColumns: `repeat(${SUBMISSION_STAGES.length}, minmax(0, 1fr))`,
-          alignItems: "start",
-          gap: 0,
-          pt: 0.25,
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 0.75,
           "&::before": {
+            display: "none",
             content: '""',
             position: "absolute",
             top: 14,
@@ -156,11 +157,12 @@ function SubmissionProgress({ currentStage }: { currentStage: number }) {
             bgcolor: t.articleDivider,
           },
           "&::after": {
+            display: "none",
             content: '""',
             position: "absolute",
             top: 14,
             left: `calc(${100 / (SUBMISSION_STAGES.length * 2)}%)`,
-            width: `calc((100% - ${100 / SUBMISSION_STAGES.length}%) * ${progressPercent / 100})`,
+            width: 0,
             height: 3,
             borderRadius: 999,
             bgcolor: t.pepsiBlueStrong,
@@ -175,44 +177,45 @@ function SubmissionProgress({ currentStage }: { currentStage: number }) {
           return (
             <Stack
               key={stage}
-              spacing={0.55}
+              direction="row"
+              spacing={0.75}
               alignItems="center"
               sx={{
                 position: "relative",
                 zIndex: 1,
                 minWidth: 0,
+                minHeight: 34,
+                px: isCurrent ? 1.25 : 0.75,
+                borderRadius: 999,
+                bgcolor: isCurrent ? t.pepsiBlueSubtle : t.surfaceContainerLow,
               }}
             >
               <Box
                 sx={{
-                  width: 28,
-                  height: 28,
+                  width: 20,
+                  height: 20,
                   borderRadius: "50%",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   bgcolor: isCurrent || isComplete ? t.pepsiBlueStrong : "#FFFFFF",
-                  border: `2px solid ${
+                  border: `1px solid ${
                     isCurrent || isComplete ? t.pepsiBlueStrong : t.articleDivider
                   }`,
                   color: isCurrent || isComplete ? "#FFFFFF" : t.granite,
-                  boxShadow: isCurrent
-                    ? `0 0 0 4px ${alpha(t.pepsiBlueStrong, 0.12)}`
-                    : "none",
-                  transition: "background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease",
+                  boxShadow: "none",
                 }}
               >
                 {isComplete ? (
-                  <CheckOutlinedIcon sx={{ fontSize: 16, strokeWidth: 2.2 }} />
+                  <CheckOutlinedIcon sx={{ fontSize: 14 }} />
                 ) : (
                   <Typography
                     component="span"
                     sx={{
                       color: "inherit",
-                      fontSize: "0.75rem",
+                      fontSize: "0.6875rem",
                       lineHeight: 1,
-                      fontWeight: 800,
-                      fontFamily: theme.palette.fonts.articleBody,
+                      fontWeight: 700,
                     }}
                   >
                     {index + 1}
@@ -227,12 +230,10 @@ function SubmissionProgress({ currentStage }: { currentStage: number }) {
                     : isComplete
                       ? t.pepsiBlue
                       : t.granite,
-                  fontSize: "0.72rem",
-                  lineHeight: 1.25,
-                  fontWeight: isCurrent ? 800 : 600,
-                  textAlign: "center",
-                  maxWidth: 122,
-                  whiteSpace: { xs: "normal", md: "nowrap" },
+                  fontSize: "0.75rem",
+                  lineHeight: 1.2,
+                  fontWeight: isCurrent ? 700 : 500,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {stage}
@@ -358,25 +359,8 @@ export default function ArticleDetail() {
   const reviewContext = (article.approvalResults ?? [])
     .filter((result) => result.severity !== "ok")
     .slice(0, 2);
-  const ownerProgress = {
-    "needs-review": {
-      stage: 2,
-      message: "Your article is with the review team. Editing is paused until they request changes or move it forward.",
-    },
-    "needs-info": {
-      stage: 0,
-      message: "Changes have been requested. Review the feedback, update the article, and submit it again when it is ready.",
-    },
-    rejected: {
-      stage: 0,
-      message: "This submission was not approved. Review the feedback before deciding whether to revise and resubmit it.",
-    },
-    published: {
-      stage: 4,
-      message: `Your article is live in ${knowledgeBaseLabel(article)} and available to its intended audience.`,
-    },
-  }[article.status];
   const reviewMessage = getPOCReviewMessage(article.id);
+  const uploadedSourceFiles = (article.references ?? []).filter((reference) => reference.filePath);
 
   const submitReject = async () => {
     setBusy(true);
@@ -398,6 +382,17 @@ export default function ArticleDetail() {
     setBusy(true);
     try {
       setArticle(await api.resubmitArticle(article.id));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const submitForApproval = async () => {
+    setBusy(true);
+    try {
+      setArticle(await api.submitArticleForApproval(article.id));
+      setEditMode(false);
+    } catch (e: any) {
+      setError(e?.message ?? String(e));
     } finally {
       setBusy(false);
     }
@@ -599,16 +594,25 @@ export default function ArticleDetail() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1520, mx: "auto" }}>
+    <Box
+      sx={{
+        maxWidth: 1520,
+        width: "100%",
+        minWidth: 0,
+        mx: "auto",
+        pb: article.status !== "published" && !isOwnerReviewLocked ? { xs: 18, md: 20 } : 4,
+        scrollPaddingBottom: article.status !== "published" && !isOwnerReviewLocked ? 176 : 24,
+      }}
+    >
       <Button
         startIcon={<ArrowBackIcon sx={{ fontSize: 16 }} />}
-        onClick={() => navigate(fromTeamArticles ? "/?tab=my-articles" : "/")}
+        onClick={() => navigate(fromTeamArticles || isContentOwner ? "/?tab=my-articles" : "/")}
         sx={{ mb: 3, ml: -1 }}
       >
         {fromTeamArticles ? "Team Articles" : isContentOwner ? "My Articles" : "All Articles"}
       </Button>
 
-      <Box sx={{ mb: 4.5 }}>
+      <Box sx={{ mb: 3 }}>
         <Stack
           direction={{ xs: "column", md: "row" }}
           alignItems={{ xs: "flex-start", md: "flex-start" }}
@@ -640,11 +644,12 @@ export default function ArticleDetail() {
               />
               <Typography
                 component="span"
-                sx={{
-                  fontFamily: theme.palette.fonts.mono,
-                  fontSize: "0.6875rem",
-                  color: t.granite,
-                }}
+              sx={{
+                fontFamily: theme.palette.fonts.mono,
+                fontSize: "0.6875rem",
+                color: t.granite,
+                display: { xs: "none", sm: "inline" },
+              }}
               >
                 {article.id} · v{article.version ?? 1} · {localeFor(article.market)}
               </Typography>
@@ -658,6 +663,7 @@ export default function ArticleDetail() {
                 fontWeight: 700,
                 lineHeight: 1.08,
                 letterSpacing: 0,
+                overflowWrap: "anywhere",
               }}
             >
               {article.title}
@@ -670,9 +676,13 @@ export default function ArticleDetail() {
           spacing={4}
           rowGap={2}
           flexWrap="wrap"
+          useFlexGap
           sx={{ mt: 2.75 }}
         >
-          <Meta label="Owner" value={article.owner ?? article.submittedBy.name} />
+          <Meta
+            label="Owner"
+            value={article.status === "needs-author-review" ? article.submittedBy.name : article.owner ?? article.submittedBy.name}
+          />
           <Meta label="Knowledge base" value={knowledgeBaseLabel(article)} />
           {article.sector && <Meta label="Sector" value={sectorFullLabel(article.sector)} />}
           {article.countries && article.countries.length > 0 && (
@@ -700,11 +710,80 @@ export default function ArticleDetail() {
         </Stack>
 
         {isContentOwner && article.status !== "needs-info" && (
-          <Box sx={{ mt: 3 }}>
-            <SubmissionProgress currentStage={ownerProgress.stage} />
+          <Box sx={{ mt: 2.5 }}>
+            <SubmissionProgress status={article.status} />
           </Box>
         )}
       </Box>
+
+      {isContentOwner && article.status === "needs-author-review" && (
+        <Box
+          sx={{
+            mb: 2.5,
+            px: { xs: 2, md: 2.5 },
+            py: 1.5,
+            borderRadius: 2,
+            bgcolor: t.pepsiBlueSubtle,
+            border: `1px solid ${alpha(t.pepsiBlue, 0.22)}`,
+          }}
+        >
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ sm: "center" }} justifyContent="space-between" sx={{ minWidth: 0 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: "0.875rem", fontWeight: 750, color: t.ink }}>
+                Review before approval
+              </Typography>
+              <Typography sx={{ mt: 0.35, fontSize: "0.8125rem", color: t.slate, lineHeight: 1.5 }}>
+                Check the article, source files, and publishing details, then submit it to the approver.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              size="small"
+              disabled={busy || editMode}
+              onClick={submitForApproval}
+              endIcon={!busy && !editMode ? <SendOutlinedIcon sx={{ fontSize: 16 }} /> : undefined}
+              sx={{ flexShrink: 0, width: { xs: "100%", sm: "auto" }, textTransform: "none" }}
+            >
+              {busy ? "Submitting..." : editMode ? "Finish editing first" : "Submit for approval"}
+            </Button>
+          </Stack>
+        </Box>
+      )}
+
+      {uploadedSourceFiles.length > 0 && (
+        <Accordion
+          disableGutters
+          elevation={0}
+          sx={{ mb: 2.5, border: `1px solid ${t.articleDivider}`, borderRadius: 2, "&:before": { display: "none" } }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: t.slate }} />} sx={{ px: 2.5 }}>
+            <Box>
+              <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>Source files</Typography>
+              <Typography sx={{ mt: 0.2, fontSize: "0.75rem", color: t.granite }}>
+                {uploadedSourceFiles.length} uploaded {uploadedSourceFiles.length === 1 ? "file" : "files"} · Open to compare with the draft
+              </Typography>
+            </Box>
+          </AccordionSummary>
+          <AccordionDetails sx={{ px: 2.5, pt: 0, pb: 2 }}>
+            <Stack spacing={0.5}>
+              {uploadedSourceFiles.map((reference) => {
+                const parts = reference.filePath!.replace(/^source-uploads\//, "").split("/");
+                const href = `/api/uploads/${parts.map(encodeURIComponent).join("/")}`;
+                return (
+                  <Stack key={reference.id} direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ minHeight: 42, py: 0.5, borderBottom: `1px solid ${t.articleDivider}` }}>
+                    <Typography sx={{ fontSize: "0.8125rem", color: t.ink, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {reference.title}
+                    </Typography>
+                    <Button component="a" href={href} target="_blank" rel="noreferrer" size="small" endIcon={<OpenInNewOutlinedIcon sx={{ fontSize: 15 }} />} sx={{ flexShrink: 0, textTransform: "none" }}>
+                      Open
+                    </Button>
+                  </Stack>
+                );
+              })}
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
+      )}
 
       {isOwnerReviewLocked && reviewContext.length > 0 && (
         <Box
@@ -828,6 +907,26 @@ export default function ArticleDetail() {
               </Button>
             )}
         </Stack>
+      )}
+
+      {isContentOwner && article.status === "needs-author-review" && (
+        <PublishingDetailsPanel
+          article={article}
+          editMode={editMode}
+          editableOnExpand
+          onUpdated={(updated) => {
+            const before = article;
+            setArticle(updated);
+            recordSave(before);
+          }}
+        />
+      )}
+
+      {article.status !== "published" && !isOwnerReviewLocked && (
+        <Box
+          aria-hidden="true"
+          sx={{ height: editMode ? { xs: 136, md: 128 } : { xs: 80, md: 72 } }}
+        />
       )}
 
       {/* SEO block — editable. Edit toggles the panel into a form with all
@@ -1364,12 +1463,19 @@ function EditDock({
   };
   const idleSx = {
     ...baseSx,
+    left: "auto",
+    right: { xs: 24, md: 48, lg: 64 },
+    width: "auto",
+    maxWidth: "none",
+    mx: 0,
     borderRadius: 999,
+    minHeight: 44,
     px: 2,
-    py: 1,
-    display: "flex",
-    alignItems: "center",
-    gap: 1.5,
+    py: 0.75,
+    textTransform: "none",
+    fontSize: "0.8125rem",
+    fontWeight: 700,
+    "&:hover": { bgcolor: t.pepsiBlueStrong },
   };
   const activeSx = {
     ...baseSx,
@@ -1382,67 +1488,35 @@ function EditDock({
   if (!editMode) {
     const hasSuggestions = suggestionCount > 0;
     return (
-      <Box sx={idleSx}>
-        {hasSuggestions ? (
-          <>
-            {/* Ember count badge — the only place ember appears in the
-                idle dock. It carries the "this needs your attention" load
-                so the rest of the bar stays calm. */}
+      <Button
+        variant="contained"
+        onClick={onEnterEdit}
+        startIcon={
+          hasSuggestions ? (
             <Box
               sx={{
-                minWidth: 22,
-                height: 22,
-                px: 0.75,
+                minWidth: 20,
+                height: 20,
+                px: 0.5,
                 borderRadius: 999,
                 bgcolor: t.ember,
                 color: t.paper,
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
+                fontSize: "0.6875rem",
+                fontWeight: 700,
+                display: "grid",
+                placeItems: "center",
               }}
             >
               {suggestionCount}
             </Box>
-            <Typography
-              sx={{ fontSize: "0.8125rem", fontWeight: 500, color: t.paper, flex: 1 }}
-            >
-              {suggestionCount === 1
-                ? "1 suggestion ready"
-                : `${suggestionCount} suggestions ready`}
-            </Typography>
-          </>
-        ) : (
-          <>
-            {/* Quiet edit icon so the dock still reads as "editor entry
-                point" without leaning on color when there's nothing to
-                flag. */}
-            <EditOutlinedIcon
-              sx={{ fontSize: 16, color: "rgba(255,255,255,0.75)", flexShrink: 0 }}
-            />
-            <Typography
-              sx={{ fontSize: "0.8125rem", fontWeight: 500, color: t.paper, flex: 1 }}
-            >
-              Make changes to this article
-            </Typography>
-          </>
-        )}
-        <Button
-          size="small"
-          variant="contained"
-          onClick={onEnterEdit}
-          sx={{
-            bgcolor: t.paper,
-            color: t.ink,
-            fontSize: "0.75rem",
-            "&:hover": { bgcolor: t.mist },
-          }}
-        >
-          {hasSuggestions ? "Review & edit" : "Edit article"}
-        </Button>
-      </Box>
+          ) : (
+            <EditOutlinedIcon sx={{ fontSize: 16 }} />
+          )
+        }
+        sx={idleSx}
+      >
+        {hasSuggestions ? "Review & edit" : "Edit article"}
+      </Button>
     );
   }
 
@@ -1457,7 +1531,7 @@ function EditDock({
       <Stack
         direction="row"
         alignItems="center"
-        spacing={1.5}
+        spacing={{ xs: 0.75, sm: 1.5 }}
         sx={{ mb: 1 }}
       >
         <Box
@@ -1479,6 +1553,7 @@ function EditDock({
             fontSize: "0.75rem",
             color: "rgba(255,255,255,0.7)",
             flex: 1,
+            display: { xs: "none", sm: "block" },
           }}
         >
           {savedLabel}
@@ -1635,7 +1710,7 @@ function Meta({ label, value }: { label: string; value: React.ReactNode }) {
       <Typography variant="overline" sx={{ display: "block", lineHeight: 1, mb: 0.5 }}>
         {label}
       </Typography>
-      <Typography sx={{ fontSize: "0.9375rem" }}>{value}</Typography>
+      <Typography component="div" sx={{ fontSize: "0.9375rem" }}>{value}</Typography>
     </Box>
   );
 }
@@ -1742,29 +1817,22 @@ function PublishingDetailsPanel({ article, editMode, editableOnExpand = false, o
   const theme = useTheme();
   const t = theme.palette.tokens;
   const [title, setTitle] = useState(article.title);
-  const [knowledgeBase, setKnowledgeBase] = useState(knowledgeBaseLabel(article));
+  const [knowledgeBase, setKnowledgeBase] = useState(article.knowledgeBase ?? "mypepsico");
   const [countries, setCountries] = useState(article.countries.join(", "));
   const [saving, setSaving] = useState(false);
-  const [expanded, setExpanded] = useState(editMode);
-  const [sectionEditing, setSectionEditing] = useState(editMode);
+  const [expanded, setExpanded] = useState(false);
+  const [sectionEditing, setSectionEditing] = useState(false);
   const isEditing = editMode || sectionEditing;
 
   useEffect(() => {
-    if (editMode) {
-      setExpanded(true);
-      setSectionEditing(true);
-    }
-  }, [editMode]);
-
-  useEffect(() => {
     setTitle(article.title);
-    setKnowledgeBase(knowledgeBaseLabel(article));
+    setKnowledgeBase(article.knowledgeBase ?? "mypepsico");
     setCountries(article.countries.join(", "));
   }, [article]);
 
   const save = async () => {
     const nextCountries = countries.split(",").map((country) => country.trim().toUpperCase()).filter(Boolean);
-    const changed = title.trim() !== article.title || knowledgeBase !== knowledgeBaseLabel(article) || nextCountries.join(",") !== article.countries.join(",");
+    const changed = title.trim() !== article.title || knowledgeBase !== (article.knowledgeBase ?? "mypepsico") || nextCountries.join(",") !== article.countries.join(",");
     if (!changed) return;
     setSaving(true);
     try {
@@ -1775,22 +1843,31 @@ function PublishingDetailsPanel({ article, editMode, editableOnExpand = false, o
   };
 
   return (
-    <Accordion expanded={expanded} onChange={(_, nextExpanded) => { setExpanded(nextExpanded); if (nextExpanded && editableOnExpand) setSectionEditing(true); }} disableGutters elevation={0} sx={{ mb: 4, bgcolor: t.surfaceContainerLow, borderRadius: 2, "&:before": { display: "none" }, "&.Mui-expanded": { mb: 4 } }}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: t.slate }} />} sx={{ px: 2.5, minHeight: 56, "& .MuiAccordionSummary-content": { my: 1.5, alignItems: "center", justifyContent: "space-between" } }}>
-        <Box>
-          <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>Publishing Details</Typography>
+    <Accordion
+      expanded={expanded}
+      onChange={(_, nextExpanded) => {
+        setExpanded(nextExpanded);
+        if (!editMode && editableOnExpand) setSectionEditing(nextExpanded);
+      }}
+      disableGutters
+      elevation={0}
+      sx={{ mb: 2.5, bgcolor: t.surfaceContainerLow, borderRadius: 2, "&:before": { display: "none" }, "&.Mui-expanded": { mb: 2.5 } }}
+    >
+      <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: t.slate }} />} sx={{ px: 2.5, minHeight: 56, "& .MuiAccordionSummary-content": { my: 1.5, minWidth: 0, alignItems: "center", justifyContent: "space-between", gap: 1 } }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: "0.9375rem", fontWeight: 700, color: t.ink }}>Publishing details</Typography>
           <Typography sx={{ mt: 0.25, fontSize: "0.75rem", color: t.granite }}>Knowledge base, locations, and article title</Typography>
         </Box>
-        {!isEditing && <Typography sx={{ fontSize: "0.6875rem", color: t.granite, fontFamily: theme.palette.fonts.mono }}>{knowledgeBaseLabel(article)}</Typography>}
+        {!isEditing && <Typography sx={{ display: { xs: "none", sm: "block" }, fontSize: "0.6875rem", color: t.granite, fontFamily: theme.palette.fonts.mono, whiteSpace: "nowrap" }}>{knowledgeBaseLabel(article)}</Typography>}
       </AccordionSummary>
       <AccordionDetails sx={{ px: 2.5, pt: 0, pb: 2.5 }}>
         {isEditing ? (
           <Stack spacing={2}>
             <TextField label="Article title" value={title} onChange={(event) => setTitle(event.target.value)} size="small" fullWidth />
             <TextField select label="Knowledge base" value={knowledgeBase} onChange={(event) => setKnowledgeBase(event.target.value)} size="small" fullWidth helperText="Choose from the knowledge bases you are approved to publish into.">
-              <MenuItem value="Pep KM KB">Pep KM KB</MenuItem>
-              <MenuItem value="myPepsiCo KB">myPepsiCo KB</MenuItem>
-              <MenuItem value="PFP KB">PFP KB</MenuItem>
+              <MenuItem value="pep-km">Pep KM KB</MenuItem>
+              <MenuItem value="mypepsico">myPepsiCo KB</MenuItem>
+              <MenuItem value="pfp">PFP KB</MenuItem>
             </TextField>
             <TextField label="Countries / regions" value={countries} onChange={(event) => setCountries(event.target.value)} size="small" fullWidth helperText="Use comma-separated country codes, for example: US, CA, MX." />
             <Box>
@@ -1856,8 +1933,8 @@ function EditableSeoPanel({
   );
   const [entityInput, setEntityInput] = useState("");
   const [saving, setSaving] = useState(false);
-  const [expanded, setExpanded] = useState(editMode);
-  const [sectionEditing, setSectionEditing] = useState(editMode);
+  const [expanded, setExpanded] = useState(false);
+  const [sectionEditing, setSectionEditing] = useState(false);
   const isEditing = editMode || sectionEditing;
   const [error, setError] = useState<string | null>(null);
 
@@ -1876,8 +1953,6 @@ function EditableSeoPanel({
       setDraftEntities(seo.entities ?? []);
       setEntityInput("");
       setError(null);
-      setExpanded(true);
-      setSectionEditing(true);
     }
     // We intentionally drive this off editMode only — the SEO prop changing
     // mid-edit is handled by the sync effect below.
@@ -2039,18 +2114,18 @@ function EditableSeoPanel({
       expanded={expanded}
       onChange={(_, nextExpanded) => {
         setExpanded(nextExpanded);
-        if (nextExpanded && editableOnExpand) setSectionEditing(true);
+        if (!editMode && editableOnExpand) setSectionEditing(nextExpanded);
       }}
       disableGutters
       elevation={0}
       sx={{
-        mb: 4,
+        mb: 2.5,
         bgcolor: t.surfaceContainerLow,
         borderRadius: 2,
         // MUI's default Accordion has a top border before the first item
         // and `before` pseudo line — kill both since we own the surface.
         "&:before": { display: "none" },
-        "&.Mui-expanded": { mb: 4 },
+        "&.Mui-expanded": { mb: 2.5 },
       }}
     >
       <AccordionSummary
@@ -2092,6 +2167,7 @@ function EditableSeoPanel({
               them to expand. */}
           <Box
             sx={{
+              display: { xs: "none", sm: "block" },
               fontSize: "0.6875rem",
               color: t.granite,
               fontFamily: theme.palette.fonts.mono,

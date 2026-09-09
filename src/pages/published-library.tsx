@@ -44,6 +44,7 @@ import {
   api,
   type Article,
   type ArticleStatus,
+  type Job,
   type PublishedArticle,
 } from "../lib/api";
 import { localeFor } from "../lib/market";
@@ -78,7 +79,7 @@ type AdminHealthFilter = "watchlist" | "critical" | "extremely-old" | "low-traff
 type AdminAlertAction = "review" | "update" | "archive" | "consolidate";
 
 type NonAdminWorkflowStatus = ArticleStatus | "stale";
-type NonAdminStatusFilter = "all" | NonAdminWorkflowStatus;
+type NonAdminStatusFilter = "all" | "agent-writing" | NonAdminWorkflowStatus;
 type TeamArticleSortKey = "status" | "owner" | "sector" | "updated";
 type TeamArticleSortDirection = "up" | "down";
 type TeamArticleSort = { key: TeamArticleSortKey; direction: TeamArticleSortDirection } | null;
@@ -102,6 +103,16 @@ const TEAM_ARTICLES_PER_PAGE = 15;
 const TEAM_ADMIN_POC_IDS = ["casey-morgan", "alexis-nguyen"] as const;
 const TEAM_ADMIN_POC_KEY = "content-engine-team-admin-poc-user-v1";
 
+function isAgentWriting(job: Job): boolean {
+  return job.input.authorReviewRequired === true && job.status !== "complete" && job.status !== "failed";
+}
+
+function agentWritingLabel(job: Job): string {
+  if (job.status === "intake" || job.status === "routing") return "Reading sources";
+  if (job.status === "compliance_review" || job.status === "revising") return "Applying standards";
+  return "Writing article";
+}
+
 function nonAdminOwnerLabel(owner: string): string {
   return NON_ADMIN_OWNER_LABELS[owner] ?? owner;
 }
@@ -119,6 +130,7 @@ function teamOwnerIdentity(owner: { name: string; email: string }) {
 
 function nonAdminStatusLabel(status: NonAdminWorkflowStatus): string {
   return {
+    "needs-author-review": "Needs author review",
     "needs-review": "In review",
     stale: "Stale",
     "needs-info": "Changes requested",
@@ -140,7 +152,8 @@ function nonAdminWorkflowStatus(
 }
 
 function teamArticleStatusRank(article: Article, status: NonAdminWorkflowStatus): number {
-  if (status === "needs-review") return 0;
+  if (status === "needs-author-review") return 0;
+  if (status === "needs-review") return 1;
   return {
     "needs-info": 2,
     stale: 3,
@@ -150,6 +163,7 @@ function teamArticleStatusRank(article: Article, status: NonAdminWorkflowStatus)
 }
 
 const NON_ADMIN_STATUS_ORDER: NonAdminWorkflowStatus[] = [
+  "needs-author-review",
   "needs-review",
   "stale",
   "published",
@@ -435,13 +449,22 @@ export default function PublishedLibrary() {
               : "This team-approval workspace is ready to be refined around the articles and people an admin supports."}
           </Typography>
         </Box>
-        {/* Persistent admin action row — article creation belongs to Content Owners. */}
+        {/* Keep creation available from every role-specific article workspace. */}
         <Stack
           direction="row"
           spacing={1}
           alignItems="center"
           sx={{ flexShrink: 0 }}
         >
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+            onClick={() => navigate("/new")}
+            sx={{ whiteSpace: "nowrap" }}
+          >
+            New article
+          </Button>
           <Button
             variant="outlined"
             size="small"
@@ -536,13 +559,17 @@ function NonAdminArticlesPage({
   onLoaded?: (count: number) => void;
 } = {}) {
   const navigate = useNavigate();
+  const [pageParams, setPageParams] = useSearchParams();
   const theme = useTheme();
   const t = theme.palette.tokens;
   const isTeamView = embedded || Boolean(teamAdminId);
   const effectiveTeamAdminId = teamAdminId ?? CURRENT_TEAM_ADMIN_ID;
   const [personaMode] = usePersonaMode();
+  const createdArticleId = !embedded ? pageParams.get("created") : null;
+  const requestedWritingCount = !embedded ? Number(pageParams.get("writing") ?? 0) : 0;
   const [articles, setArticles] = useState<Article[]>([]);
   const [publishedArticles, setPublishedArticles] = useState<PublishedArticle[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -567,12 +594,14 @@ function NonAdminArticlesPage({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [draftData, publishedData] = await Promise.all([
+      const [draftData, publishedData, jobData] = await Promise.all([
         api.listArticles(),
         api.listPublishedArticles(),
+        api.listJobs(),
       ]);
       setArticles(draftData);
       setPublishedArticles(publishedData);
+      setJobs(jobData);
       setError(null);
     } catch (e: any) {
       setError(e?.message ?? String(e));
@@ -584,6 +613,14 @@ function NonAdminArticlesPage({
   useEffect(() => {
     load();
   }, [load]);
+
+  const hasActiveWritingJobs = jobs.some(isAgentWriting);
+
+  useEffect(() => {
+    if (!hasActiveWritingJobs) return;
+    const id = window.setInterval(load, 1500);
+    return () => window.clearInterval(id);
+  }, [hasActiveWritingJobs, load]);
 
   useEffect(
     () =>
@@ -625,11 +662,12 @@ function NonAdminArticlesPage({
 
   const scoped = useMemo(() => {
     const priority: Record<NonAdminWorkflowStatus, number> = {
-      "needs-review": 0,
-      stale: 1,
-      published: 2,
-      "needs-info": 3,
-      rejected: 4,
+      "needs-author-review": 0,
+      "needs-review": 1,
+      stale: 2,
+      published: 3,
+      "needs-info": 4,
+      rejected: 5,
     };
     return articles
       .filter((a) =>
@@ -642,6 +680,8 @@ function NonAdminArticlesPage({
         const reportB = teamOwnerKeys.has(b.submittedBy?.name ?? "") ? -1 : 0;
         const statusA = nonAdminWorkflowStatus(a, publishedById, publishedBySourceId);
         const statusB = nonAdminWorkflowStatus(b, publishedById, publishedBySourceId);
+        if (statusA === "needs-author-review" && statusB !== "needs-author-review") return -1;
+        if (statusB === "needs-author-review" && statusA !== "needs-author-review") return 1;
         if (statusA === "needs-review" && statusB !== "needs-review") return -1;
         if (statusB === "needs-review" && statusA !== "needs-review") return 1;
         if (statusA === "stale" && statusB !== "stale") return -1;
@@ -652,6 +692,19 @@ function NonAdminArticlesPage({
       });
   }, [articles, isTeamView, publishedById, publishedBySourceId, teamOwnerKeys, viewingOwner]);
 
+  const scopedWritingJobs = useMemo(
+    () =>
+      jobs
+        .filter(isAgentWriting)
+        .filter((job) =>
+          isTeamView
+            ? teamOwnerKeys.has(job.input.submittedBy?.name ?? "")
+            : job.input.submittedBy?.name === viewingOwner,
+        )
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+    [isTeamView, jobs, teamOwnerKeys, viewingOwner],
+  );
+
   useEffect(() => {
     onLoaded?.(scoped.length);
   }, [onLoaded, scoped.length]);
@@ -659,6 +712,10 @@ function NonAdminArticlesPage({
   const counts = useMemo(
     () => ({
       total: scoped.length,
+      writing: scopedWritingJobs.length,
+      authorReview: scoped.filter(
+        (a) => nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "needs-author-review",
+      ).length,
       approvals: scoped.filter(
         (a) =>
           nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "needs-review" &&
@@ -673,7 +730,7 @@ function NonAdminArticlesPage({
         (a) => nonAdminWorkflowStatus(a, publishedById, publishedBySourceId) === "published",
       ).length,
     }),
-    [scoped, isTeamView, publishedById, publishedBySourceId, teamOwnerKeys, viewingOwner],
+    [scoped, scopedWritingJobs.length, isTeamView, publishedById, publishedBySourceId, teamOwnerKeys, viewingOwner],
   );
 
   const availableStatuses = useMemo(() => {
@@ -704,6 +761,18 @@ function NonAdminArticlesPage({
       return true;
     });
   }, [scoped, search, statusFilter, ownerFilter, publishedById, publishedBySourceId]);
+
+  const filteredWritingJobs = useMemo(() => {
+    if (statusFilter !== "all" && statusFilter !== "agent-writing") return [];
+    const term = search.toLowerCase().trim();
+    return scopedWritingJobs.filter((job) => {
+      const owner = job.input.submittedBy?.name ?? "Unknown";
+      if (ownerFilter !== "all" && owner !== ownerFilter) return false;
+      if (!term) return true;
+      const hay = `${job.input.title} ${job.input.contentType} ${owner} ${nonAdminOwnerLabel(owner)} agent writing ${job.input.sectors?.join(" ") ?? ""}`.toLowerCase();
+      return hay.includes(term);
+    });
+  }, [ownerFilter, scopedWritingJobs, search, statusFilter]);
 
   const sorted = useMemo(() => {
     if (!tableSort) return filtered;
@@ -855,6 +924,42 @@ function NonAdminArticlesPage({
         </Stack>
       )}
 
+      {createdArticleId && (
+        <Alert
+          severity="success"
+          onClose={() => {
+            const next = new URLSearchParams(pageParams);
+            next.delete("created");
+            setPageParams(next, { replace: true });
+          }}
+          action={
+            <Button color="inherit" size="small" onClick={() => navigate(`/articles/${createdArticleId}`)}>
+              Review draft
+            </Button>
+          }
+          sx={{ mt: 3 }}
+        >
+          Your article draft is ready and needs your review before it can be submitted for approval.
+        </Alert>
+      )}
+
+      {requestedWritingCount > 0 && scopedWritingJobs.length > 0 && (
+        <Alert
+          severity="info"
+          icon={<CircularProgress size={18} sx={{ color: t.pepsiBlueStrong }} />}
+          onClose={() => {
+            const next = new URLSearchParams(pageParams);
+            next.delete("writing");
+            setPageParams(next, { replace: true });
+          }}
+          sx={{ mt: 3 }}
+        >
+          {scopedWritingJobs.length === 1
+            ? "The agent is writing your article. You can leave this page and return at any time."
+            : `The agent is writing ${scopedWritingJobs.length} articles. Each draft will appear here when it is ready for your review.`}
+        </Alert>
+      )}
+
       {error && (
         <Alert severity="error" sx={{ mt: 3 }}>
           {error}
@@ -865,6 +970,24 @@ function NonAdminArticlesPage({
         <KpiRow>
         <KpiItem label={isTeamView ? "Team articles" : "My articles"} value={counts.total} />
         <KpiItem
+          label="Agent writing"
+          value={
+            counts.writing > 0 ? (
+              <Stack direction="row" spacing={0.75} alignItems="center">
+                <CircularProgress size={13} thickness={5} sx={{ color: t.productAccent.guidance.ink }} />
+                <span>{counts.writing}</span>
+              </Stack>
+            ) : (
+              0
+            )
+          }
+        />
+        <KpiItem
+          label="Needs your review"
+          value={counts.authorReview}
+          accent={counts.authorReview > 0 ? t.productAccent.creation.main : undefined}
+        />
+        <KpiItem
           label={isTeamView ? "Team approvals" : "Awaiting approval"}
           value={counts.approvals}
           accent={counts.approvals > 0 ? t.ember : undefined}
@@ -874,7 +997,7 @@ function NonAdminArticlesPage({
           value={counts.stale}
           accent={counts.stale > 0 ? t.errorInk : undefined}
         />
-        <KpiItem label="Published" value={counts.published} />
+        <KpiItem label="Published" value={counts.published} accent={counts.published > 0 ? t.productAccent.governance.main : undefined} />
       </KpiRow>
       </Box>
 
@@ -889,7 +1012,10 @@ function NonAdminArticlesPage({
           value={statusFilter}
           onChange={(v) => setStatusFilter(v as NonAdminStatusFilter)}
           options={[
-            { value: "all", label: `All statuses (${scoped.length})` },
+            { value: "all", label: `All statuses (${scoped.length + scopedWritingJobs.length})` },
+            ...(scopedWritingJobs.length > 0
+              ? [{ value: "agent-writing", label: `Agent writing (${scopedWritingJobs.length})` }]
+              : []),
             ...availableStatuses.map((status) => ({
               value: status,
               label: `${nonAdminStatusLabel(status)} (${
@@ -1000,16 +1126,16 @@ function NonAdminArticlesPage({
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading && articles.length === 0 ? (
+            {loading && articles.length === 0 && scopedWritingJobs.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                   <CircularProgress size={20} sx={{ color: t.slate }} />
                 </TableCell>
               </TableRow>
-            ) : filtered.length === 0 ? (
+            ) : filtered.length === 0 && filteredWritingJobs.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
-                  {!isTeamView && scoped.length === 0 ? (
+                  {!isTeamView && scoped.length === 0 && scopedWritingJobs.length === 0 ? (
                     <Stack spacing={1.5} alignItems="center">
                       <Typography sx={{ fontWeight: 600 }}>No articles yet</Typography>
                       <Typography color="text.secondary" variant="body2" sx={{ maxWidth: 440 }}>
@@ -1027,26 +1153,31 @@ function NonAdminArticlesPage({
                 </TableCell>
               </TableRow>
             ) : (
-              pagedArticles.map((article) => {
-                const status = nonAdminWorkflowStatus(article, publishedById, publishedBySourceId);
-                const published =
-                  (article.publishedArticleId ? publishedById.get(article.publishedArticleId) : undefined) ??
-                  publishedBySourceId.get(article.id);
-                return (
-                  <NonAdminArticleRow
-                    key={article.id}
-                    article={article}
-                    status={status}
-                    canTransfer={isTeamView}
-                    onTransfer={() => openTransfer(article)}
-                    onOpen={() =>
-                      published
-                        ? navigate(`/my-articles/${published.id}?from=team-articles`)
-                        : navigate(`/articles/${article.id}?from=team-articles`)
-                    }
-                  />
-                );
-              })
+              <>
+                {filteredWritingJobs.map((job) => (
+                  <AgentWritingRow key={job.id} job={job} />
+                ))}
+                {pagedArticles.map((article) => {
+                  const status = nonAdminWorkflowStatus(article, publishedById, publishedBySourceId);
+                  const published =
+                    (article.publishedArticleId ? publishedById.get(article.publishedArticleId) : undefined) ??
+                    publishedBySourceId.get(article.id);
+                  return (
+                    <NonAdminArticleRow
+                      key={article.id}
+                      article={article}
+                      status={status}
+                      canTransfer={isTeamView}
+                      onTransfer={() => openTransfer(article)}
+                      onOpen={() =>
+                        published
+                          ? navigate(`/my-articles/${published.id}${isTeamView ? "?from=team-articles" : ""}`)
+                          : navigate(`/articles/${article.id}${isTeamView ? "?from=team-articles" : ""}`)
+                      }
+                    />
+                  );
+                })}
+              </>
             )}
           </TableBody>
         </Table>
@@ -1109,6 +1240,68 @@ function NonAdminArticlesPage({
         </DialogActions>
       </Dialog>
     </Box>
+  );
+}
+
+function AgentWritingRow({ job }: { job: Job }) {
+  const theme = useTheme();
+  const t = theme.palette.tokens;
+  const owner = job.input.submittedBy?.name ?? "Unknown";
+  const sourceCount = job.input.references?.length ?? 0;
+
+  return (
+    <TableRow
+      aria-live="polite"
+      sx={{ bgcolor: t.pepsiBlueSubtle, "& td": { borderColor: t.articleDivider } }}
+    >
+      <TableCell sx={{ maxWidth: ARTICLE_CELL_MAX_WIDTH }}>
+        <Typography sx={{ fontSize: "0.9375rem", fontWeight: 600, color: t.ink }}>
+          {job.input.title}
+        </Typography>
+        <Typography
+          sx={{
+            mt: 0.25,
+            fontFamily: theme.palette.fonts.mono,
+            fontSize: "0.6875rem",
+            color: t.granite,
+          }}
+        >
+          {sourceCount} source {sourceCount === 1 ? "file" : "files"} · Draft will appear here automatically
+        </Typography>
+      </TableCell>
+      <TableCell>
+        <Stack
+          direction="row"
+          spacing={0.75}
+          alignItems="center"
+          sx={{ width: "fit-content", minHeight: 24, px: 1, borderRadius: 999, bgcolor: "#FFFFFF" }}
+        >
+          <CircularProgress size={12} thickness={5} sx={{ color: t.pepsiBlueStrong }} />
+          <Typography sx={{ fontSize: "0.6875rem", fontWeight: 700, color: t.pepsiBlueStrong }}>
+            {agentWritingLabel(job)}
+          </Typography>
+        </Stack>
+      </TableCell>
+      <TableCell>
+        <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>
+          {nonAdminOwnerLabel(owner)}
+        </Typography>
+      </TableCell>
+      <TableCell>
+        <Box
+          component="span"
+          sx={{ fontFamily: theme.palette.fonts.mono, fontSize: "0.6875rem", color: t.slate }}
+        >
+          {sectorShortLabel(job.input.sectors?.[0])}
+        </Box>
+      </TableCell>
+      <TableCell>
+        <Typography sx={{ fontSize: "0.875rem", color: t.ink }}>Working now</Typography>
+        <Typography sx={{ fontSize: "0.6875rem", color: t.granite }}>
+          Started {formatDate(job.createdAt)}
+        </Typography>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -1249,6 +1442,11 @@ function ArticleStatusChip({
   const theme = useTheme();
   const t = theme.palette.tokens;
   const config: Record<NonAdminWorkflowStatus, { label: string; color: string; bg: string }> = {
+    "needs-author-review": {
+      label: "Needs author review",
+      color: t.pepsiBlueStrong,
+      bg: t.pepsiBlueSubtle,
+    },
     "needs-review": {
       label: urgent ? "Approval needed" : "In review",
       color: urgent ? t.emberStrong : t.ember,
@@ -1281,6 +1479,7 @@ function ArticleStatusChip({
 
 function statusLabel(status: ArticleStatus): string {
   return {
+    "needs-author-review": "Needs author review",
     "needs-review": "In review",
     "needs-info": "Changes Requested",
     rejected: "Rejected",

@@ -100,10 +100,10 @@ Return a complete article in Markdown using this internal knowledge article anat
 1. H1 title
 2. One short lead paragraph immediately after the H1 that stands alone and explains what the article covers, who it helps, and when to use it.
 3. Content-type sections:
-   - Knowledge Article: ## Before you start, ## Steps, ## Common situations, ## Need help?
-   - Policy: ## Who this applies to, ## Policy details, ## Exceptions, ## Compliance, ## Effective date
    - FAQ: one H2 per question, then ## Need help?
-   - Topic Page: ## Overview, ## Key resources, ## Related articles, ## Need help?
+   - Business info: ## Overview, ## Who this is for, ## Key information, ## Related resources, ## Need help?
+   - How to: ## Before you start, ## Steps, ## Common situations, ## Need help?
+   - Policy: ## Who this applies to, ## Policy details, ## Exceptions, ## Compliance, ## Effective date
 4. Use source material as the factual basis. Do not invent policy details, owners, dates, or exceptions.
 5. Do not put owner, last updated, next review, effective date, or approved-by footer lines in the Markdown body; those live in structured metadata.
 
@@ -114,15 +114,15 @@ Do not include code fences or any preamble. Begin directly with the H1.`;
 // Mock-mode content generation
 // ----------------------------------------------------------------------------
 
-type ContentType = "FAQ" | "Policy" | "Knowledge Article" | "Topic Page";
+type ContentType = "FAQ" | "Business info" | "How to" | "Policy";
 
 function inferContentType(title: string, summary: string): ContentType {
   const t = `${title} ${summary}`.toLowerCase();
   if (/^(faq|preguntas frecuentes|preguntas )/i.test(title.trim())) return "FAQ";
   if (/(policy|política)/i.test(t)) return "Policy";
-  if (/^(how to|cómo|guía)/i.test(title.trim())) return "Knowledge Article";
-  if (/(hub|overview|landing|portal page)/i.test(t)) return "Topic Page";
-  return "Knowledge Article";
+  if (/^(how to|cómo|guía)/i.test(title.trim())) return "How to";
+  if (/(hub|overview|landing|portal page)/i.test(t)) return "Business info";
+  return "How to";
 }
 
 function localizedSections(isSpanish: boolean) {
@@ -208,8 +208,8 @@ function buildMockBody(args: {
 
   const source = sourceText?.trim();
 
-  // ── Knowledge Article ──────────────────────────────────────────────────────────
-  if (contentType === "Knowledge Article") {
+  // ── How to article ─────────────────────────────────────────────────────────────
+  if (contentType === "How to") {
     const stepsBlock = source
       ? formatSourceAsSteps(source, isSpanish)
       : isSpanish
@@ -311,24 +311,26 @@ ${isSpanish
 **${L.nextReview}:** TBD`;
   }
 
-  // ── Topic Page ───────────────────────────────────────────────────────
+  // ── Business info article ────────────────────────────────────────────
   return `# ${title}
 
-## ${L.summary}
+## ${isSpanish ? "Descripción general" : "Overview"}
 
 ${summaryText}
 
-## ${L.whoApplies}
+## ${isSpanish ? L.whoApplies : "Who this is for"}
 
 ${audienceText}
 
-## ${isSpanish ? "Qué encontrará aquí" : "What you'll find here"}
+## ${isSpanish ? "Información clave" : "Key information"}
 
 ${L.topicIntro} ${title.toLowerCase()}. ${source ? `\n\n${source}` : ""}
 
+## ${isSpanish ? "Recursos relacionados" : "Related resources"}
+
 ${isSpanish
-  ? "### Recursos clave\n\n- Artículos relacionados sobre este tema.\n- Procedimientos y formularios necesarios.\n- Contactos para preguntas específicas.\n\n### Tareas comunes\n\n- Iniciar un proceso desde MyPepsiCo.\n- Consultar el estado de una solicitud abierta.\n- Acceder a documentación de respaldo."
-  : "### Key resources\n\n- Related articles on this topic.\n- Required procedures and forms.\n- Contacts for specific questions.\n\n### Common tasks\n\n- Start a process from MyPepsiCo.\n- Check the status of an open request.\n- Access supporting documentation."}
+  ? "- Artículos relacionados sobre este tema.\n- Procedimientos y formularios necesarios.\n- Contactos para preguntas específicas.\n- Sistemas y documentación de respaldo."
+  : "- Related policies, FAQs, and How to articles.\n- Required procedures and forms.\n- Contacts for specific questions.\n- Systems and supporting documentation."}
 
 ## ${L.needHelp}
 

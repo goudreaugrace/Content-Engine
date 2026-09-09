@@ -51,6 +51,7 @@ const MARKET_OPTIONS: { value: MarketFilter; label: string }[] = [
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
+  { value: "needs-author-review", label: "Needs author review" },
   { value: "needs-review", label: "Needs review" },
   { value: "needs-info", label: "Changes Requested" },
   { value: "rejected", label: "Rejected" },
@@ -387,6 +388,7 @@ function Meta({ label, value }: { label: string; value: string }) {
 function statusLabel(s?: ArticleStatus): string {
   if (!s) return "—";
   return {
+    "needs-author-review": "Needs author review",
     "needs-review": "Needs review",
     "needs-info": "Changes Requested",
     rejected: "Rejected",

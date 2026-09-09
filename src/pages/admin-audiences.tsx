@@ -7,10 +7,11 @@ import {
   CircularProgress,
   Alert,
   Button,
+  ButtonBase,
   Card,
-  CardActionArea,
   Collapse,
   Divider,
+  IconButton,
   useTheme,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -67,16 +68,16 @@ export default function AdminAudiences() {
             const open = expanded.has(p.id);
             return (
               <Card key={p.id} variant="outlined">
-                <CardActionArea
-                  onClick={() => toggle(p.id)}
-                  sx={{ "&:hover": { bgcolor: t.mist } }}
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  sx={{ px: 1.25, "&:hover": { bgcolor: t.mist } }}
                 >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    spacing={2}
-                    sx={{ px: 2.5, py: 1.75 }}
+                  <ButtonBase
+                    onClick={() => toggle(p.id)}
+                    aria-expanded={open}
+                    aria-controls={`audience-profile-${p.id}`}
+                    sx={{ flex: 1, justifyContent: "flex-start", px: 1.25, py: 1.75 }}
                   >
                     <Stack direction="row" alignItems="baseline" spacing={1.5} minWidth={0}>
                       <Typography
@@ -95,29 +96,32 @@ export default function AdminAudiences() {
                         {p.id}
                       </Typography>
                     </Stack>
-                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <Button
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/admin/audiences/${p.id}`);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <KeyboardArrowDownIcon
-                        sx={{
-                          fontSize: 20,
-                          color: t.slate,
-                          transform: open ? "rotate(180deg)" : "none",
-                          transition: "transform 180ms cubic-bezier(0.16, 1, 0.3, 1)",
-                        }}
-                      />
-                    </Stack>
-                  </Stack>
-                </CardActionArea>
+                  </ButtonBase>
+                  <Button
+                    size="small"
+                    onClick={() => navigate(`/admin/audiences/${p.id}`)}
+                  >
+                    Edit
+                  </Button>
+                  <IconButton
+                    aria-label={`${open ? "Collapse" : "Expand"} ${p.label}`}
+                    aria-expanded={open}
+                    aria-controls={`audience-profile-${p.id}`}
+                    onClick={() => toggle(p.id)}
+                    size="small"
+                  >
+                    <KeyboardArrowDownIcon
+                      sx={{
+                        fontSize: 20,
+                        color: t.slate,
+                        transform: open ? "rotate(180deg)" : "none",
+                        transition: "transform 180ms cubic-bezier(0.16, 1, 0.3, 1)",
+                      }}
+                    />
+                  </IconButton>
+                </Stack>
 
-                <Collapse in={open} timeout={200}>
+                <Collapse id={`audience-profile-${p.id}`} in={open} timeout={200}>
                   <Divider />
                   <Box sx={{ px: 2.5, py: 2.5 }}>
                     <Stack spacing={2.5}>

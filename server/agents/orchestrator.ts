@@ -150,7 +150,9 @@ export async function orchestrate(jobId: string): Promise<void> {
         relationships: job.input.relationships,
         body: `# ${job.input.title || "Untitled request"}\n\n## More information needed\n\nBefore this article can be drafted, the content agent needs the following from the requester:\n\n${missing}\n\nA clarification email has been sent to **${job.input.submittedBy.email}**. Once the missing details are provided, resubmit the request to generate the draft.`,
         submittedBy: job.input.submittedBy,
-        owner: job.input.approver?.name,
+        owner: job.input.authorReviewRequired
+          ? job.input.submittedBy.name
+          : job.input.approver?.name,
         approvedBy: job.input.approver?.name,
         submittedAt: now(),
         status: "needs-info",
@@ -187,6 +189,17 @@ export async function orchestrate(jobId: string): Promise<void> {
 
     // ---- Step 3 + 4: Market + Compliance in PARALLEL ----
     await patchJob(jobId, { status: "drafting" });
+
+    // Hands-off creation is intentionally asynchronous in the POC. Keep the
+    // job visible long enough for My Articles to communicate that source-heavy
+    // drafts are being prepared in the background; additional files add a
+    // small, capped amount of demo processing time.
+    if (job.input.authorReviewRequired) {
+      const sourceCount = Math.max(1, job.input.references?.length ?? 0);
+      const demoProcessingMs = Math.min(12_000, 5_000 + sourceCount * 1_000);
+      await new Promise((resolve) => setTimeout(resolve, demoProcessingMs));
+    }
+
     const rules = await loadDEExRules();
     if (!rules) throw new Error("DEEx rules not found at server/data/deex-rules.json");
 
@@ -302,12 +315,15 @@ export async function orchestrate(jobId: string): Promise<void> {
         sections: job.input.sections,
         taxonomy: job.input.taxonomy,
         relationships: job.input.relationships,
+        references: job.input.references,
         body: finalDraft.body,
         submittedBy: job.input.submittedBy,
         owner: job.input.approver?.name,
         approvedBy: job.input.approver?.name,
         submittedAt: now(),
-        status: "needs-review",
+        status: job.input.authorReviewRequired
+          ? "needs-author-review"
+          : "needs-review",
         complianceIssues: compliance.issues,
       }, {
         input: job.input,
@@ -327,7 +343,7 @@ export async function orchestrate(jobId: string): Promise<void> {
         ...baseArticle,
         approvalResults: ruling.reasons,
         autoApproveCandidate: ruling.decision === "auto-approve-candidate",
-        ...(ruling.decision === "needs-info"
+        ...(!job.input.authorReviewRequired && ruling.decision === "needs-info"
           ? {
               status: "needs-info" as const,
               infoNeeded: ruling.reasons
@@ -339,8 +355,9 @@ export async function orchestrate(jobId: string): Promise<void> {
       };
       await upsert("articles", article);
 
-      // Stakeholder notification email (stubbed)
-      const notification: StubbedEmail = {
+      // Hands-off drafts remain with the author until they explicitly submit.
+      if (!job.input.authorReviewRequired) {
+        const notification: StubbedEmail = {
         id: `email-${randomUUID().slice(0, 8)}`,
         to: [
           job.input.approver?.email ?? "portal-gov@pepsico.com",
@@ -353,8 +370,9 @@ export async function orchestrate(jobId: string): Promise<void> {
         kind: "stakeholder-notification",
         jobId,
         articleId: article.id,
-      };
-      await upsert("emails", notification);
+        };
+        await upsert("emails", notification);
+      }
 
       await mutate<Job>("jobs", jobId, (j) => ({
         ...j,

@@ -609,6 +609,18 @@ export type AudienceProfile = {
   sources?: ProfileSource[];
 };
 
+export type DEExRules = {
+  toneRules: string[];
+  inclusivityRules: string[];
+  accessibilityRules: string[];
+  formattingRules: string[];
+  characterLimits: {
+    title: number;
+    summary: number;
+    metaDescription: number;
+  };
+};
+
 /**
  * Sector — the tier above Market. Sectors group markets by business unit
  * (PFNA, PBNA) or geography (LatAm, Europe, AMESA, APAC), with Global for
@@ -693,6 +705,21 @@ async function requestWithMethodFallback<T>(
       throw error;
     }
     return request<T>(url, fallback);
+  }
+}
+
+async function requestWithTransientRetry<T>(
+  url: string,
+  opts: RequestInit = {},
+): Promise<T> {
+  try {
+    return await request<T>(url, opts);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const transient = /^(500|502|503|504)\s/.test(message) || /failed to fetch/i.test(message);
+    if (!transient) throw error;
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
+    return request<T>(url, opts);
   }
 }
 
@@ -944,6 +971,16 @@ export const api = {
   getAudience: (id: string) => request<AudienceProfile>(`/api/audiences/${id}`),
   saveAudience: (id: string, body: AudienceProfile) =>
     request<AudienceProfile>(`/api/audiences/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  // Global Pep readiness standards used by the compliance agent when it
+  // critiques drafts. Sector, country, and audience guidance have their own
+  // profile endpoints below this global layer.
+  getStandards: () => requestWithTransientRetry<DEExRules>("/api/standards"),
+  saveStandards: (body: DEExRules) =>
+    requestWithTransientRetry<DEExRules>("/api/standards", {
       method: "PUT",
       body: JSON.stringify(body),
     }),

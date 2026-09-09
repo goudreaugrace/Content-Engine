@@ -22,6 +22,7 @@ import SuperAdminDashboard from "./pages/super-admin-dashboard";
 import SuperAdminActions from "./pages/super-admin-actions";
 import SuperAdminReport from "./pages/super-admin-report";
 import ReportsSchedules from "./pages/reports-schedules";
+import AdminAIStandards from "./pages/admin-ai-standards";
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/admin/audiences/:id" element={<AdminAudienceEditor />} />
         <Route path="/admin/emails" element={<AdminEmails />} />
         <Route path="/admin/team-permissions" element={<TeamPermissions />} />
+        <Route path="/admin/ai-standards" element={<AdminAIStandards />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/design-ia" element={<DesignIAReference />} />
         <Route path="/personas" element={<PersonasReference />} />

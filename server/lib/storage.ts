@@ -224,6 +224,13 @@ export async function loadDEExRules(): Promise<DEExRules | null> {
   return readJsonOr<DEExRules | null>(paths.deexRules, null);
 }
 
+export async function saveDEExRules(rules: DEExRules): Promise<DEExRules> {
+  return withLock("deex-rules", async () => {
+    await writeJson(paths.deexRules, rules);
+    return rules;
+  });
+}
+
 // ---- Audience profiles ----
 export const KNOWN_AUDIENCE_IDS = [
   "all",

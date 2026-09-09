@@ -44,6 +44,7 @@ import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlin
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
+import RuleOutlinedIcon from "@mui/icons-material/RuleOutlined";
 
 // M3 navigation drawer / rail widths.
 //  - Expanded (272): drawer with icons + labels + section headers.
@@ -82,6 +83,7 @@ const navItems: NavItem[] = [
   { label: "All Articles", path: "/", icon: <LibraryBooksOutlinedIcon sx={{ fontSize: 20 }} />, exact: true },
   { label: "Messages", path: "/messages", icon: <ChatBubbleOutlineIcon sx={{ fontSize: 20 }} /> },
   { label: "Team Permissions", path: "/admin/team-permissions", icon: <ManageAccountsOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", teamAdminOnly: true },
+  { label: "AI Standards", path: "/admin/ai-standards", icon: <RuleOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", superAdminOnly: true },
   { label: "Sectors", path: "/admin/sectors", icon: <PublicOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
   { label: "Audiences", path: "/admin/audiences", icon: <PeopleOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },
   { label: "Email Log", path: "/admin/emails", icon: <EmailOutlinedIcon sx={{ fontSize: 20 }} />, section: "Admin", adminOnly: true },

@@ -56,6 +56,225 @@ function methodNotAllowed(res) {
   send(res, 405, { error: "method not allowed" });
 }
 
+/** Prefer the longest path candidate so nested routes survive partial `?path=` rewrites. */
+function resolveApiParts(req) {
+  const url = new URL(req.url, `https://${req.headers.host || "localhost"}`);
+  const candidates = [];
+  const fromQuery = url.searchParams.get("path");
+  if (fromQuery) candidates.push(fromQuery);
+
+  let fromPath = url.pathname
+    .replace(/\/api\/\[\.\.\.[^\]]+\]/, "")
+    .replace(/^\/api\/?/, "");
+  if (fromPath && fromPath !== "/") candidates.push(fromPath);
+
+  const full = url.pathname.match(/^\/api\/(.+)$/);
+  if (full && !full[1].startsWith("[")) candidates.push(full[1]);
+
+  let best = "";
+  for (const candidate of candidates) {
+    const cleaned = String(candidate).replace(/^\/+|\/+$/g, "");
+    if (cleaned.split("/").filter(Boolean).length > best.split("/").filter(Boolean).length) {
+      best = cleaned;
+    }
+  }
+  return best.split("/").filter(Boolean);
+}
+
+function validateStandards(rules) {
+  const errors = [];
+  const groups = ["toneRules", "inclusivityRules", "accessibilityRules", "formattingRules"];
+  for (const group of groups) {
+    const values = rules?.[group];
+    if (
+      !Array.isArray(values) ||
+      values.length === 0 ||
+      values.some((value) => typeof value !== "string" || !value.trim())
+    ) {
+      errors.push(`${group} must contain non-empty text rules`);
+    }
+  }
+  const limits = rules?.characterLimits;
+  for (const key of ["title", "summary", "metaDescription"]) {
+    const value = limits?.[key];
+    if (!Number.isInteger(value) || value <= 0 || value > 10000) {
+      errors.push(`characterLimits.${key} must be a positive whole number`);
+    }
+  }
+  return errors;
+}
+
+function articleCharCount(body) {
+  return String(body || "").replace(/[#*_>`\[\]()\-]/g, "").trim().length;
+}
+
+function buildAttentionFeed(db) {
+  const items = [];
+  for (const a of db.articles) {
+    if (a.status === "needs-author-review") {
+      items.push({
+        id: a.id,
+        kind: "draft",
+        title: a.title,
+        reason: "Generated draft needs author review",
+        severity: "medium",
+        market: a.market,
+        sector: a.sector,
+        contentType: a.contentType,
+        countries: a.countries || [],
+        asOf: a.submittedAt,
+        linkTo: `/articles/${a.id}`,
+        who: a.submittedBy?.name,
+        draftStatus: a.status,
+      });
+    } else if (a.status === "needs-review") {
+      items.push({
+        id: a.id,
+        kind: "draft",
+        title: a.title,
+        reason: a.autoApproveCandidate ? "Ready to approve — all checks passed" : "Needs review",
+        severity: "high",
+        market: a.market,
+        sector: a.sector,
+        contentType: a.contentType,
+        countries: a.countries || [],
+        asOf: a.submittedAt,
+        linkTo: `/articles/${a.id}`,
+        who: a.submittedBy?.name,
+        draftStatus: a.status,
+      });
+    } else if (a.status === "needs-info") {
+      items.push({
+        id: a.id,
+        kind: "draft",
+        title: a.title,
+        reason: "Waiting on author for more info",
+        severity: "medium",
+        market: a.market,
+        sector: a.sector,
+        contentType: a.contentType,
+        countries: a.countries || [],
+        asOf: a.submittedAt,
+        linkTo: `/articles/${a.id}`,
+        who: a.submittedBy?.name,
+        draftStatus: a.status,
+      });
+    } else if (a.status === "rejected") {
+      items.push({
+        id: a.id,
+        kind: "draft",
+        title: a.title,
+        reason: "Rejected — author may resubmit",
+        severity: "low",
+        market: a.market,
+        sector: a.sector,
+        contentType: a.contentType,
+        countries: a.countries || [],
+        asOf: a.submittedAt,
+        linkTo: `/articles/${a.id}`,
+        who: a.submittedBy?.name,
+        draftStatus: a.status,
+      });
+    }
+  }
+  for (const p of listPublished(db)) {
+    const staleness = computeStaleness(p);
+    if (staleness.level === "stale" || staleness.level === "aging") {
+      items.push({
+        id: p.id,
+        kind: "published",
+        title: p.title,
+        reason: staleness.level === "stale" ? (staleness.reasons[0] || "Stale — needs review") : "Aging — review soon",
+        severity: staleness.level === "stale" ? "high" : "medium",
+        market: p.market,
+        sector: p.sector,
+        contentType: p.contentType,
+        countries: p.countries || [],
+        asOf: p.lastReviewedAt || p.publishedAt,
+        linkTo: `/library/${p.id}`,
+        who: p.publishedBy,
+        stalenessLevel: staleness.level,
+      });
+    }
+  }
+  return items;
+}
+
+function buildActivityFeed(db) {
+  const events = [];
+  for (const a of db.articles) {
+    events.push({
+      id: `submit:${a.id}`,
+      action: "submitted",
+      articleId: a.id,
+      articleTitle: a.title,
+      actor: a.submittedBy?.name || "Unknown",
+      at: a.submittedAt,
+      linkTo: `/articles/${a.id}`,
+    });
+    if (a.reviewedAt && a.status === "rejected" && a.rejectionReason) {
+      events.push({
+        id: `reject:${a.id}:${a.reviewedAt}`,
+        action: "rejected",
+        articleId: a.id,
+        articleTitle: a.title,
+        actor: a.reviewer || "Reviewer",
+        at: a.reviewedAt,
+        linkTo: `/articles/${a.id}`,
+        detail: a.rejectionReason,
+      });
+    }
+    if (a.reviewedAt && a.status === "needs-info") {
+      events.push({
+        id: `needs-info:${a.id}:${a.reviewedAt}`,
+        action: "needs-info",
+        articleId: a.id,
+        articleTitle: a.title,
+        actor: a.reviewer || "Reviewer",
+        at: a.reviewedAt,
+        linkTo: `/articles/${a.id}`,
+        detail: a.infoNeeded,
+      });
+    }
+  }
+  for (const p of listPublished(db)) {
+    events.push({
+      id: `publish:${p.id}`,
+      action: "published",
+      articleId: p.id,
+      articleTitle: p.title,
+      actor: p.publishedBy || "Publisher",
+      at: p.publishedAt,
+      linkTo: `/library/${p.id}`,
+    });
+    if (p.lastReviewedAt && p.lastReviewedAt !== p.publishedAt) {
+      events.push({
+        id: `mark-reviewed:${p.id}:${p.lastReviewedAt}`,
+        action: "marked-reviewed",
+        articleId: p.id,
+        articleTitle: p.title,
+        actor: p.lastReviewer || "Reviewer",
+        at: p.lastReviewedAt,
+        linkTo: `/library/${p.id}`,
+      });
+    }
+    if (p.archivedAt) {
+      events.push({
+        id: `archive:${p.id}:${p.archivedAt}`,
+        action: "archived",
+        articleId: p.id,
+        articleTitle: p.title,
+        actor: p.archivedBy || "Admin",
+        at: p.archivedAt,
+        linkTo: `/library/${p.id}`,
+      });
+    }
+  }
+  return events
+    .sort((a, b) => +new Date(b.at) - +new Date(a.at))
+    .slice(0, 40);
+}
+
 function withArticleDefaults(article) {
   return {
     countries: [],
@@ -531,14 +750,27 @@ function createDemoArticleFromInput(input = {}, overrides = {}) {
 export default function handler(req, res) {
   req.body = parseBody(req.body);
   const db = data();
-  const url = new URL(req.url, `https://${req.headers.host || "localhost"}`);
-  const routedPath = url.searchParams.get("path");
-  const pathname = (routedPath || url.pathname).replace(/^\/api\/?/, "");
-  const parts = pathname.split("/").filter(Boolean);
+  const parts = resolveApiParts(req);
   const method = req.method || "GET";
 
   if (method === "OPTIONS") return send(res, 200, { ok: true });
   if (parts.length === 0 || parts[0] === "health") return send(res, 200, { ok: true, mockMode: true, ts: new Date().toISOString() });
+
+  if (parts[0] === "standards") {
+    if (parts.length !== 1) return notFound(res);
+    if (method === "GET") {
+      const rules = readJson("deex-rules.json", null);
+      if (!rules) return send(res, 404, { error: "Pep readiness standards not found" });
+      return send(res, 200, rules);
+    }
+    if (method === "PUT") {
+      const errors = validateStandards(req.body);
+      if (errors.length > 0) return send(res, 400, { error: errors.join("; ") });
+      // Serverless FS is not durable — validate and echo like a successful save.
+      return send(res, 200, req.body);
+    }
+    return methodNotAllowed(res);
+  }
 
   if (parts[0] === "articles") {
     if (parts.length === 1 && method === "GET") return send(res, 200, sortDesc(db.articles, "submittedAt"));
@@ -548,7 +780,7 @@ export default function handler(req, res) {
     if (parts.length === 2 && method === "GET") return send(res, 200, article);
     if (parts.length === 2 && method === "PATCH") return send(res, 200, upsert(db.articles, { ...article, ...req.body }));
     if (parts[2] === "owner" && method === "PATCH") return send(res, 200, { ...article, submittedBy: req.body?.submittedBy || article.submittedBy });
-    if (parts[2] === "review" && method === "PATCH") {
+    if (parts[2] === "review" && (method === "POST" || method === "PATCH")) {
       const reviewer = req.body?.reviewer || "Demo Reviewer";
       const reviewedAt = new Date().toISOString();
       if (req.body?.status === "approved") {
@@ -573,6 +805,25 @@ export default function handler(req, res) {
         reviewer,
         rejectionReason: req.body?.status === "rejected" ? (req.body?.rejectionReason || req.body?.note || "") : undefined,
         infoNeeded: req.body?.status === "needs-info" ? req.body?.note : undefined,
+      }));
+    }
+    if (parts[2] === "submit-for-approval" && (method === "POST" || method === "PATCH")) {
+      if (article.status !== "needs-author-review") {
+        return send(res, 400, {
+          error: "Only drafts that need author review can be submitted for approval",
+        });
+      }
+      if (articleCharCount(article.body) < 500) {
+        return send(res, 400, {
+          error: "Articles need at least 500 characters before they can be submitted for approval.",
+        });
+      }
+      return send(res, 200, upsert(db.articles, {
+        ...article,
+        status: "needs-review",
+        submittedAt: new Date().toISOString(),
+        reviewedAt: undefined,
+        reviewer: undefined,
       }));
     }
     if (["revise", "revise-section"].includes(parts[2]) && method === "POST") return send(res, 200, { revisedBody: article.body, revisedSection: article.body, explanation: "Demo deployment keeps revisions simulated." });
@@ -643,28 +894,63 @@ export default function handler(req, res) {
       }
       return send(res, 201, { id: `email-${Date.now()}`, to: req.body.to, subject: `Action requested: ${req.body.articleTitle}`, body: req.body.reason, sentAt: new Date().toISOString(), kind: "owner-alert", articleId: req.body.articleId, articleTitle: req.body.articleTitle });
     }
+    return methodNotAllowed(res);
   }
 
-  if (parts[0] === "countries") return send(res, 200, db.countries);
+  if (parts[0] === "countries") {
+    if (parts.length === 1 && method === "GET") return send(res, 200, db.countries);
+    return methodNotAllowed(res);
+  }
   if (parts[0] === "markets") {
-    if (parts.length === 1) return send(res, 200, Object.values(db.markets));
-    if (method === "PUT") return send(res, 200, req.body || db.markets[parts[1]] || {});
-    return send(res, 200, db.markets[parts[1]] || {});
+    if (parts.length === 1 && method === "GET") return send(res, 200, Object.values(db.markets));
+    const market = db.markets[parts[1]];
+    if (!market && method !== "PUT") return notFound(res);
+    if (method === "PUT") return send(res, 200, req.body || market || {});
+    if (method === "GET") return send(res, 200, market);
+    return methodNotAllowed(res);
   }
   if (parts[0] === "sectors") {
-    if (parts.length === 1) return send(res, 200, Object.values(db.sectors));
-    if (parts[2] === "markets") return send(res, 200, Object.values(db.markets).filter((m) => m.sectorId === parts[1]));
-    if (method === "PUT") return send(res, 200, req.body || db.sectors[parts[1]] || {});
-    return send(res, 200, db.sectors[parts[1]] || {});
+    if (parts.length === 1 && method === "GET") return send(res, 200, Object.values(db.sectors));
+    if (parts[2] === "markets" && method === "GET") {
+      if (!db.sectors[parts[1]]) return notFound(res);
+      return send(res, 200, Object.values(db.markets).filter((m) => m.sectorId === parts[1]));
+    }
+    const sector = db.sectors[parts[1]];
+    if (!sector && method !== "PUT") return notFound(res);
+    if (method === "PUT") return send(res, 200, req.body || sector || {});
+    if (method === "GET") return send(res, 200, sector);
+    return methodNotAllowed(res);
   }
   if (parts[0] === "audiences") {
-    if (parts.length === 1) return send(res, 200, Object.values(db.audiences));
-    if (method === "PUT") return send(res, 200, req.body || db.audiences[parts[1]] || {});
-    return send(res, 200, db.audiences[parts[1]] || {});
+    if (parts.length === 1 && method === "GET") return send(res, 200, Object.values(db.audiences));
+    const audience = db.audiences[parts[1]];
+    if (!audience && method !== "PUT") return notFound(res);
+    if (method === "PUT") return send(res, 200, req.body || audience || {});
+    if (method === "GET") return send(res, 200, audience);
+    return methodNotAllowed(res);
   }
 
-  if (parts[0] === "attention" || parts[0] === "activity") return send(res, 200, []);
-  if (parts[0] === "uploads" && method === "POST") return send(res, 200, { id: `upload-${Date.now()}`, kind: "doc", title: req.body?.title || "Uploaded source", fileName: req.body?.fileName || "source.txt", filePath: "vercel-demo", mimeType: req.body?.mimeType || "text/plain" });
+  if (parts[0] === "attention") {
+    if (method !== "GET") return methodNotAllowed(res);
+    return send(res, 200, buildAttentionFeed(db));
+  }
+  if (parts[0] === "activity") {
+    if (method !== "GET") return methodNotAllowed(res);
+    return send(res, 200, buildActivityFeed(db));
+  }
+  if (parts[0] === "uploads") {
+    if (method === "POST") {
+      return send(res, 200, {
+        id: `upload-${Date.now()}`,
+        kind: "doc",
+        title: req.body?.title || "Uploaded source",
+        fileName: req.body?.fileName || "source.txt",
+        filePath: "vercel-demo",
+        mimeType: req.body?.mimeType || "text/plain",
+      });
+    }
+    return methodNotAllowed(res);
+  }
   if (parts[0] === "migrations" && parts[1] === "standardize" && method === "POST") {
     const job = fakeJob(req.body || {});
     const article = createDemoArticleFromInput(req.body || {}, {

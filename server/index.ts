@@ -45,6 +45,15 @@ app.use("/api/uploads", uploadsRouter);
 app.use("/api/migrations", migrationsRouter);
 app.use("/api/standards", standardsRouter);
 
+// Unmatched /api/* — always JSON, never Express's HTML "Cannot GET/POST".
+app.use("/api", (req, res) => {
+  res.status(404).json({
+    error: "not found",
+    method: req.method,
+    path: req.originalUrl,
+  });
+});
+
 // ── Production: serve the built React app + SPA fallback ──
 // In dev, Vite serves the client on port 5173 and proxies /api to us.
 // In prod (Railway, Render, etc.) one Node process serves both the built
